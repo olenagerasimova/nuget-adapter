@@ -25,6 +25,7 @@
 package com.artpie.nuget;
 
 import com.artipie.asto.blocking.BlockingStorage;
+import java.io.IOException;
 
 /**
  * NuGet package.
@@ -52,6 +53,7 @@ public interface NuGetPackage {
      *
      * @param storage Storage to use for saving.
      * @param identity Package identity.
+     * @throws IOException In case exception occurred on saving content.
      */
-    void save(BlockingStorage storage, PackageIdentity identity);
+    void save(BlockingStorage storage, PackageIdentity identity) throws IOException;
 }

@@ -56,6 +56,16 @@ public final class PackageIdentity {
     }
 
     /**
+     * Get key for .nupkg file.
+     *
+     * @return Key to .nupkg file.
+     */
+    public Key nupkgKey() {
+        final String name = String.format("%s.%s.nupkg", this.idLowerCase(), this.version);
+        return new Key.From(this.root(), name);
+    }
+
+    /**
      * Get key for hash file.
      *
      * @return Key to hash file.

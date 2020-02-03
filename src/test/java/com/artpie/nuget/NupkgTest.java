@@ -24,43 +24,58 @@
 
 package com.artpie.nuget;
 
+import com.artipie.asto.Key;
+import com.artipie.asto.blocking.BlockingStorage;
+import com.artipie.asto.fs.FileStorage;
+import com.google.common.io.ByteSource;
+import java.nio.file.Files;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests for {@link PackageIdentity}.
+ * Tests for {@link Nupkg}.
  *
  * @since 0.1
  */
-public class PackageIdentityTest {
+class NupkgTest {
 
     /**
-     * Example package identity.
+     * Storage used in tests.
      */
-    private final PackageIdentity identity = new PackageIdentity("Newtonsoft.Json", "12.0.3");
+    private BlockingStorage storage;
 
-    @Test
-    void shouldGenerateNupkgKey() {
-        MatcherAssert.assertThat(
-            this.identity.nupkgKey().string(),
-            Matchers.is("newtonsoft.json/12.0.3/newtonsoft.json.12.0.3.nupkg")
+    /**
+     * Resource `newtonsoft.json.12.0.3.nupkg` name.
+     */
+    private String name;
+
+    /**
+     * Nuspec created from resource.
+     */
+    private Nupkg nupkg;
+
+    @BeforeEach
+    void init() throws Exception {
+        this.storage = new BlockingStorage(
+            new FileStorage(
+                Files.createTempDirectory(NupkgTest.class.getName()).resolve("repo")
+            )
         );
+        this.name = "newtonsoft.json.12.0.3.nupkg";
+        this.nupkg = new Nupkg(ByteSource.wrap(new NewtonJsonResource(this.name).bytes()));
     }
 
     @Test
-    void shouldGenerateHashKey() {
+    void shouldSave() throws Exception {
+        final String id = "newtonsoft.json";
+        final String version = "12.0.3";
+        final Key.From key = new Key.From(id, version, this.name);
+        this.nupkg.save(this.storage, new PackageIdentity(id, version));
         MatcherAssert.assertThat(
-            this.identity.hashKey().string(),
-            Matchers.is("newtonsoft.json/12.0.3/newtonsoft.json.12.0.3.nupkg.sha512")
-        );
-    }
-
-    @Test
-    void shouldGenerateNuspecKey() {
-        MatcherAssert.assertThat(
-            this.identity.nuspecKey().string(),
-            Matchers.is("newtonsoft.json/12.0.3/newtonsoft.json.nuspec")
+            this.storage.value(key),
+            Matchers.equalTo(new NewtonJsonResource(this.name).bytes())
         );
     }
 }

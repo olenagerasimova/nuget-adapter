@@ -26,6 +26,7 @@ package com.artpie.nuget;
 
 import com.artipie.asto.Key;
 import com.artipie.asto.blocking.BlockingStorage;
+import com.google.common.io.ByteSource;
 import java.io.IOException;
 
 /**
@@ -56,10 +57,7 @@ public class Repository {
      * @throws IOException In case exception occurred on operations with storage.
      */
     public void add(final Key key) throws IOException {
-        if (this.storage == null) {
-            throw new UnsupportedOperationException("Storage will be used later");
-        }
-        final NuGetPackage nupkg = new Nupkg(new Object());
+        final NuGetPackage nupkg = new Nupkg(ByteSource.wrap(this.storage.value(key)));
         final Nuspec nuspec = nupkg.nuspec();
         final PackageIdentity id = nuspec.identity();
         nupkg.save(this.storage, id);
