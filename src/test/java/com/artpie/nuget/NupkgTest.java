@@ -24,44 +24,53 @@
 
 package com.artpie.nuget;
 
-import com.artipie.asto.Key;
 import com.artipie.asto.blocking.BlockingStorage;
+import com.artipie.asto.fs.FileStorage;
 import com.google.common.io.ByteSource;
-import java.io.IOException;
+import java.nio.file.Files;
+import org.hamcrest.MatcherAssert;
+import org.hamcrest.Matchers;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
- * Class representing NuGet repository.
+ * Tests for {@link Nupkg}.
  *
  * @since 0.1
  */
-public class Repository {
+class NupkgTest {
 
     /**
-     * The storage.
+     * Storage used in tests.
      */
-    private final BlockingStorage storage;
+    private BlockingStorage storage;
 
     /**
-     * Ctor.
-     *
-     * @param storage Storage to store all repository data.
+     * Nuspec created from resource.
      */
-    public Repository(final BlockingStorage storage) {
-        this.storage = storage;
+    private Nupkg nupkg;
+
+    @BeforeEach
+    void init() throws Exception {
+        this.storage = new BlockingStorage(
+            new FileStorage(
+                Files.createTempDirectory(NupkgTest.class.getName()).resolve("repo")
+            )
+        );
+        final byte[] bytes = new NewtonJsonResource("newtonsoft.json.12.0.3.nupkg").bytes();
+        this.nupkg = new Nupkg(ByteSource.wrap(bytes));
     }
 
-    /**
-     * Adds NuGet package in .nupkg file format from storage.
-     *
-     * @param key Key to find content of .nupkg package.
-     * @throws IOException In case exception occurred on operations with storage.
-     */
-    public void add(final Key key) throws IOException {
-        final NuGetPackage nupkg = new Nupkg(ByteSource.wrap(this.storage.value(key)));
-        final Nuspec nuspec = nupkg.nuspec();
-        final PackageIdentity id = nuspec.identity();
-        nupkg.save(this.storage, id);
-        nupkg.hash().save(this.storage, id);
-        nuspec.save(this.storage);
+    @Test
+    void shouldCalculateHash() throws Exception {
+        final PackageIdentity identity = new PackageIdentity("newtonsoft.json", "12.0.3");
+        this.nupkg.hash().save(this.storage, identity);
+        MatcherAssert.assertThat(
+            new String(this.storage.value(identity.hashKey())),
+            Matchers.equalTo(
+                // @checkstyle LineLength (1 lines)
+                "aTRmXwR5xYu+mWxE8r8W1DWnL02SeV8LwdQMsLwTWP8OZgrCCyTqvOAe5hRb1VNQYXjln7qr0PKpSyO/pcc19Q=="
+            )
+        );
     }
 }
