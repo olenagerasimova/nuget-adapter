@@ -27,7 +27,10 @@ package com.artpie.nuget;
 import com.artipie.asto.blocking.BlockingStorage;
 import com.google.common.hash.Hashing;
 import com.google.common.io.ByteSource;
+import com.google.common.io.ByteStreams;
 import java.io.IOException;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 /**
  * Package in .nupkg format.
@@ -52,11 +55,19 @@ public final class Nupkg implements NuGetPackage {
     }
 
     @Override
-    public Nuspec nuspec() {
-        if (this.content == null) {
-            throw new UnsupportedOperationException("Content will be used later");
+    public Nuspec nuspec() throws IOException {
+        try (ZipInputStream zipStream = new ZipInputStream(this.content.openStream())) {
+            while (true) {
+                final ZipEntry entry = zipStream.getNextEntry();
+                if (entry == null) {
+                    break;
+                }
+                if (entry.getName().endsWith(".nuspec")) {
+                    return new Nuspec(ByteSource.wrap(ByteStreams.toByteArray(zipStream)));
+                }
+            }
         }
-        throw new UnsupportedOperationException("Not implemented");
+        throw new IllegalArgumentException("No .nuspec file found inside the package.");
     }
 
     @Override

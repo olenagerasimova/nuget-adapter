@@ -46,8 +46,9 @@ public interface NuGetPackage {
      * Extract package description in .nuspec format.
      *
      * @return Package description.
+     * @throws IOException In case exception occurred reading content.
      */
-    Nuspec nuspec();
+    Nuspec nuspec() throws IOException;
 
     /**
      * Saves package binary content to storage.

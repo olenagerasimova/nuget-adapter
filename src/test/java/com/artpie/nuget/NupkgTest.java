@@ -28,10 +28,12 @@ import com.artipie.asto.Key;
 import com.artipie.asto.blocking.BlockingStorage;
 import com.artipie.asto.fs.FileStorage;
 import com.google.common.io.ByteSource;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -42,18 +44,27 @@ import org.junit.jupiter.api.io.TempDir;
  */
 class NupkgTest {
 
+    /**
+     * Resource `newtonsoft.json.12.0.3.nupkg` name.
+     */
+    private String name;
+
+    @BeforeEach
+    void init() {
+        this.name = "newtonsoft.json.12.0.3.nupkg";
+    }
+
     @Test
     void shouldSave(final @TempDir Path temp) throws Exception {
         final BlockingStorage storage = new BlockingStorage(new FileStorage(temp));
         final String id = "newtonsoft.json";
         final String version = "12.0.3";
-        final String name = "newtonsoft.json.12.0.3.nupkg";
-        final Key.From key = new Key.From(id, version, name);
-        new Nupkg(ByteSource.wrap(new NewtonJsonResource(name).bytes()))
+        final Key.From key = new Key.From(id, version, this.name);
+        new Nupkg(ByteSource.wrap(new NewtonJsonResource(this.name).bytes()))
             .save(storage, new PackageIdentity(id, version));
         MatcherAssert.assertThat(
             storage.value(key),
-            Matchers.equalTo(new NewtonJsonResource(name).bytes())
+            Matchers.equalTo(new NewtonJsonResource(this.name).bytes())
         );
     }
 
@@ -70,6 +81,17 @@ class NupkgTest {
                 // @checkstyle LineLength (1 lines)
                 "Dh4h7PEF7IU9JNcohnrXBhPCFmOkaTB0sqNhnBvTnWa1iMM3I7tGbHJCToDjymPCSQeKs0e6uUKFAOfuQwWdDQ=="
             )
+        );
+    }
+
+    @Test
+    void shouldExtractNuspec() throws IOException {
+        final Nuspec nuspec = new Nupkg(
+            ByteSource.wrap(new NewtonJsonResource(this.name).bytes())
+        ).nuspec();
+        MatcherAssert.assertThat(
+            nuspec.identity().nupkgKey().string(),
+            Matchers.is("newtonsoft.json/12.0.3/newtonsoft.json.12.0.3.nupkg")
         );
     }
 }
