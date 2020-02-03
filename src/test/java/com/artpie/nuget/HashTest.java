@@ -25,61 +25,47 @@
 package com.artpie.nuget;
 
 import com.artipie.asto.Key;
-import java.util.Locale;
+import com.artipie.asto.blocking.BlockingStorage;
+import com.artipie.asto.fs.FileStorage;
+import com.google.common.hash.HashCode;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import org.hamcrest.MatcherAssert;
+import org.hamcrest.Matchers;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
- * Package version identity.
+ * Tests for {@link Hash}.
  *
  * @since 0.1
  */
-public final class PackageIdentity {
+class HashTest {
 
     /**
-     * Package identity.
+     * Storage used in tests.
      */
-    private final String id;
+    private BlockingStorage storage;
 
-    /**
-     * Package version.
-     */
-    private final String version;
-
-    /**
-     * Ctor.
-     *
-     * @param id Package identity.
-     * @param version Package version.
-     */
-    public PackageIdentity(final String id, final String version) {
-        this.id = id;
-        this.version = version;
+    @BeforeEach
+    void init() throws Exception {
+        this.storage = new BlockingStorage(
+            new FileStorage(
+                Files.createTempDirectory(HashTest.class.getName()).resolve("repo")
+            )
+        );
     }
 
-    /**
-     * Get key for hash file.
-     *
-     * @return Key to hash file.
-     */
-    public Key hashKey() {
-        final String name = String.format("%s.%s.nupkg.sha512", this.idLowerCase(), this.version);
-        return new Key.From(this.root(), name);
-    }
-
-    /**
-     * Get root key for package.
-     *
-     * @return Root key.
-     */
-    private Key root() {
-        return new Key.From(this.idLowerCase(), this.version);
-    }
-
-    /**
-     * Transforms id part to lowercase.
-     *
-     * @return Id in lower case.
-     */
-    private String idLowerCase() {
-        return this.id.toLowerCase(Locale.getDefault());
+    @Test
+    void shouldSave() {
+        final String id = "abc";
+        final String version = "0.0.1";
+        final Hash hash = new Hash(HashCode.fromString("0123456789abcdef"));
+        hash.save(this.storage, new PackageIdentity(id, version));
+        final Key.From key = new Key.From(id, version, "abc.0.0.1.nupkg.sha512");
+        MatcherAssert.assertThat(
+            this.storage.value(key),
+            Matchers.equalTo("ASNFZ4mrze8=".getBytes(StandardCharsets.US_ASCII))
+        );
     }
 }
