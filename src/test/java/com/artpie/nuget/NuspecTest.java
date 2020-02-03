@@ -24,35 +24,59 @@
 
 package com.artpie.nuget;
 
+import com.artipie.asto.Key;
+import com.artipie.asto.blocking.BlockingStorage;
+import com.artipie.asto.fs.FileStorage;
+import com.google.common.io.ByteSource;
+import java.nio.file.Files;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests for {@link PackageIdentity}.
+ * Tests for {@link Nuspec}.
  *
  * @since 0.1
  */
-public class PackageIdentityTest {
+class NuspecTest {
 
     /**
-     * Example package identity.
+     * Storage used in tests.
      */
-    private final PackageIdentity identity = new PackageIdentity("Newtonsoft.Json", "12.0.3");
+    private BlockingStorage storage;
+
+    /**
+     * Nuspec created from `newtonsoft.json.nuspec` resource.
+     */
+    private Nuspec nuspec;
+
+    @BeforeEach
+    void init() throws Exception {
+        this.storage = new BlockingStorage(
+            new FileStorage(
+                Files.createTempDirectory(NuspecTest.class.getName()).resolve("repo")
+            )
+        );
+        this.nuspec = new Nuspec(ByteSource.wrap(NewtonJsonPackage.readNuspec()));
+    }
 
     @Test
-    void shouldGenerateHashKey() {
+    void shouldExtractIdentity() {
+        final PackageIdentity identity = this.nuspec.identity();
         MatcherAssert.assertThat(
-            this.identity.hashKey().string(),
-            Matchers.is("newtonsoft.json/12.0.3/newtonsoft.json.12.0.3.nupkg.sha512")
+            identity.nuspecKey().string(),
+            Matchers.equalTo("newtonsoft.json/12.0.3/newtonsoft.json.nuspec")
         );
     }
 
     @Test
-    void shouldGenerateNuspecKey() {
+    void shouldSave() {
+        this.nuspec.save(this.storage);
+        final Key.From key = new Key.From("newtonsoft.json", "12.0.3", "newtonsoft.json.nuspec");
         MatcherAssert.assertThat(
-            this.identity.nuspecKey().string(),
-            Matchers.is("newtonsoft.json/12.0.3/newtonsoft.json.nuspec")
+            this.storage.value(key),
+            Matchers.equalTo(NewtonJsonPackage.readNuspec())
         );
     }
 }

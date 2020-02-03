@@ -60,6 +60,11 @@ SOFTWARE.
       <version>0.11.1</version>
     </dependency>
     <dependency>
+      <groupId>com.jcabi</groupId>
+      <artifactId>jcabi-xml</artifactId>
+      <version>0.22.1</version>
+    </dependency>
+    <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-api</artifactId>
       <version>${junit-platform.version}</version>
@@ -89,6 +94,10 @@ SOFTWARE.
       <testResource>
         <directory>${basedir}/src/test/resources</directory>
         <filtering>true</filtering>
+      </testResource>
+      <testResource>
+        <directory>${basedir}/src/test/resources-binary</directory>
+        <filtering>false</filtering>
       </testResource>
     </testResources>
     <plugins>

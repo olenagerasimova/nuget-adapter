@@ -24,35 +24,49 @@
 
 package com.artpie.nuget;
 
-import org.hamcrest.MatcherAssert;
-import org.hamcrest.Matchers;
-import org.junit.jupiter.api.Test;
+import com.google.common.io.ByteStreams;
+import java.io.IOException;
+import java.io.InputStream;
 
 /**
- * Tests for {@link PackageIdentity}.
+ * Newton.Json package resources.
  *
  * @since 0.1
  */
-public class PackageIdentityTest {
+final class NewtonJsonPackage {
 
     /**
-     * Example package identity.
+     * Ctor.
      */
-    private final PackageIdentity identity = new PackageIdentity("Newtonsoft.Json", "12.0.3");
-
-    @Test
-    void shouldGenerateHashKey() {
-        MatcherAssert.assertThat(
-            this.identity.hashKey().string(),
-            Matchers.is("newtonsoft.json/12.0.3/newtonsoft.json.12.0.3.nupkg.sha512")
-        );
+    private NewtonJsonPackage() {
     }
 
-    @Test
-    void shouldGenerateNuspecKey() {
-        MatcherAssert.assertThat(
-            this.identity.nuspecKey().string(),
-            Matchers.is("newtonsoft.json/12.0.3/newtonsoft.json.nuspec")
-        );
+    /**
+     * Read .nuspec file content.
+     *
+     * @return Binary data.
+     */
+    static byte[] readNuspec() {
+        return read("newtonsoft.json.nuspec");
+    }
+
+    /**
+     * Reads file content.
+     *
+     * @param name File name.
+     * @return Binary data.
+     */
+    private static byte[] read(final String name) {
+        final String resource = String.format("newtonsoft.json/12.0.3/%s", name);
+        final ClassLoader loader = Thread.currentThread().getContextClassLoader();
+        try (InputStream stream = loader.getResourceAsStream(resource)) {
+            if (stream == null) {
+                final String message = String.format("Cannot find resource by name '%s'", name);
+                throw new IllegalArgumentException(message);
+            }
+            return ByteStreams.toByteArray(stream);
+        } catch (final IOException ex) {
+            throw new IllegalArgumentException(String.format("Failed to read '%s'", name), ex);
+        }
     }
 }
