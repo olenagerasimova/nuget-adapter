@@ -50,5 +50,4 @@ public final class Nuspec {
     public void save(final BlockingStorage storage) {
         throw new UnsupportedOperationException("Not implemented");
     }
-
 }

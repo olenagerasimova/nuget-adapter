@@ -60,10 +60,8 @@ public class Repository {
         final Nupkg nupkg = new Nupkg(new Object());
         final ParsedNupkg parsed = nupkg.parse();
         final PackageIdentity id = parsed.identity();
-        final Nuspec nuspec = parsed.nuspec();
-        final Hash hash = nupkg.hash();
         nupkg.save(this.storage, id);
-        hash.save(this.storage, id);
-        nuspec.save(this.storage);
+        nupkg.hash().save(this.storage, id);
+        parsed.nuspec().save(this.storage);
     }
 }
