@@ -37,9 +37,8 @@ public class PackageIdentityTest {
 
     @Test
     void shouldGenerateHashKey() {
-        final PackageIdentity identity = new PackageIdentity("Newtonsoft.Json", "12.0.3");
         MatcherAssert.assertThat(
-            identity.hashKey().string(),
+            new PackageIdentity("Newtonsoft.Json", "12.0.3").hashKey().string(),
             Matchers.is("newtonsoft.json/12.0.3/newtonsoft.json.12.0.3.nupkg.sha512")
         );
     }

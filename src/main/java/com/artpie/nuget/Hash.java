@@ -56,7 +56,6 @@ public final class Hash {
      * @param identity Package identity.
      */
     public void save(final BlockingStorage storage, final PackageIdentity identity) {
-        final byte[] bytes = Base64.getEncoder().encode(this.value.asBytes());
-        storage.save(identity.hashKey(), bytes);
+        storage.save(identity.hashKey(), Base64.getEncoder().encode(this.value.asBytes()));
     }
 }

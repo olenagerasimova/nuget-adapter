@@ -61,8 +61,10 @@ public final class PackageIdentity {
      * @return Key to hash file.
      */
     public Key hashKey() {
-        final String name = String.format("%s.%s.nupkg.sha512", this.idLowerCase(), this.version);
-        return new Key.From(this.root(), name);
+        return new Key.From(
+            this.root(),
+            String.format("%s.%s.nupkg.sha512", this.idLowerCase(), this.version)
+        );
     }
 
     /**

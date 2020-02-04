@@ -60,11 +60,12 @@ class HashTest {
     void shouldSave() {
         final String id = "abc";
         final String version = "0.0.1";
-        final Hash hash = new Hash(HashCode.fromString("0123456789abcdef"));
-        hash.save(this.storage, new PackageIdentity(id, version));
-        final Key.From key = new Key.From(id, version, "abc.0.0.1.nupkg.sha512");
+        new Hash(HashCode.fromString("0123456789abcdef")).save(
+            this.storage,
+            new PackageIdentity(id, version)
+        );
         MatcherAssert.assertThat(
-            this.storage.value(key),
+            this.storage.value(new Key.From(id, version, "abc.0.0.1.nupkg.sha512")),
             Matchers.equalTo("ASNFZ4mrze8=".getBytes(StandardCharsets.US_ASCII))
         );
     }
