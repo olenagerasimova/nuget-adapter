@@ -17,7 +17,7 @@ Some valuable references:
 
 ## Getting started
 
-Add dependency to your `pom.xml`:
+Add dependency to `pom.xml`:
 
 ```xml
 <dependency>
@@ -27,10 +27,10 @@ Add dependency to your `pom.xml`:
 </dependency>
 ```
 
-Save package file in `.nupkg` format to storage. 
-Then, you make an instance of `Repository` class with your storage
-as an argument.
-Finally, you instruct `Repository` to add the package to repository:
+Save NuGet package ZIP file like `package.nupkg` (particular name does not matter)
+to [ASTO](https://github.com/artipie/asto) storage. 
+Then, make an instance of `Repository` class with storage as an argument.
+Finally, instruct `Repository` to add the package to repository:
 
 ```java
 import com.artpie.nuget;
