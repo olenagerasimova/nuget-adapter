@@ -57,11 +57,11 @@ public class Repository {
         if (this.storage == null) {
             throw new UnsupportedOperationException("Storage will be used later");
         }
-        final Nupkg nupkg = new Nupkg(new Object());
-        final ParsedNupkg parsed = nupkg.parse();
-        final PackageIdentity id = parsed.identity();
+        final NuGetPackage nupkg = new Nupkg(new Object());
+        final Nuspec nuspec = nupkg.nuspec();
+        final PackageIdentity id = nuspec.identity();
         nupkg.save(this.storage, id);
         nupkg.hash().save(this.storage, id);
-        parsed.nuspec().save(this.storage);
+        nuspec.save(this.storage);
     }
 }

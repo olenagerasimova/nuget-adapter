@@ -24,45 +24,34 @@
 
 package com.artpie.nuget;
 
+import com.artipie.asto.blocking.BlockingStorage;
+
 /**
- * Parsed package content .nupkg format.
+ * NuGet package.
  *
  * @since 0.1
  */
-public final class ParsedNupkg {
+public interface NuGetPackage {
 
     /**
-     * Parsed content of package.
-     */
-    private final Object content;
-
-    /**
-     * Ctor.
+     * Calculates hash of package binary content using SHA512 algorithm encoded in Base64.
      *
-     * @param content Parsed content of package.
+     * @return Package hash.
      */
-    public ParsedNupkg(final Object content) {
-        this.content = content;
-    }
-
-    /**
-     * Extract package identity from package.
-     *
-     * @return Package identity.
-     */
-    public PackageIdentity identity() {
-        return this.nuspec().identity();
-    }
+    Hash hash();
 
     /**
      * Extract package description in .nuspec format.
      *
      * @return Package description.
      */
-    public Nuspec nuspec() {
-        if (this.content == null) {
-            throw new UnsupportedOperationException("Content will be used later");
-        }
-        throw new UnsupportedOperationException("Not implemented");
-    }
+    Nuspec nuspec();
+
+    /**
+     * Saves package binary content to storage.
+     *
+     * @param storage Storage to use for saving.
+     * @param identity Package identity.
+     */
+    void save(BlockingStorage storage, PackageIdentity identity);
 }

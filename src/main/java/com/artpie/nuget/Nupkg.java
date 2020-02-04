@@ -32,7 +32,7 @@ import com.artipie.asto.blocking.BlockingStorage;
  * @since 0.1
  */
 @SuppressWarnings("PMD.AvoidDuplicateLiterals")
-public final class Nupkg {
+public final class Nupkg implements NuGetPackage {
 
     /**
      * Binary content of package.
@@ -48,33 +48,20 @@ public final class Nupkg {
         this.content = content;
     }
 
-    /**
-     * Parses binary content of package.
-     *
-     * @return Parsed package.
-     */
-    public ParsedNupkg parse() {
+    @Override
+    public Nuspec nuspec() {
         if (this.content == null) {
             throw new UnsupportedOperationException("Content will be used later");
         }
         throw new UnsupportedOperationException("Not implemented");
     }
 
-    /**
-     * Calculates hash of package binary content using SHA512 algorithm encoded in Base64.
-     *
-     * @return Package hash.
-     */
+    @Override
     public Hash hash() {
         throw new UnsupportedOperationException("Not implemented");
     }
 
-    /**
-     * Saves package binary content to storage.
-     *
-     * @param storage Storage to use for saving.
-     * @param identity Package identity.
-     */
+    @Override
     public void save(final BlockingStorage storage, final PackageIdentity identity) {
         throw new UnsupportedOperationException("Not implemented");
     }
