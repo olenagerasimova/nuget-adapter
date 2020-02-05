@@ -29,44 +29,43 @@ import java.io.IOException;
 import java.io.InputStream;
 
 /**
- * Newton.Json package resources.
+ * Newton.Json package resource.
  *
  * @since 0.1
  */
-final class NewtonJsonPackage {
+final class NewtonJsonResource {
+
+    /**
+     * Resource name.
+     */
+    private final String name;
 
     /**
      * Ctor.
+     *
+     * @param name Resource name.
      */
-    private NewtonJsonPackage() {
+    NewtonJsonResource(final String name) {
+        this.name = name;
     }
 
     /**
-     * Read .nuspec file content.
+     * Reads binary data.
      *
      * @return Binary data.
      */
-    static byte[] readNuspec() {
-        return read("newtonsoft.json.nuspec");
-    }
-
-    /**
-     * Reads file content.
-     *
-     * @param name File name.
-     * @return Binary data.
-     */
-    private static byte[] read(final String name) {
-        final String resource = String.format("newtonsoft.json/12.0.3/%s", name);
+    public byte[] bytes() {
+        final String resource = String.format("newtonsoft.json/12.0.3/%s", this.name);
         final ClassLoader loader = Thread.currentThread().getContextClassLoader();
         try (InputStream stream = loader.getResourceAsStream(resource)) {
             if (stream == null) {
-                final String message = String.format("Cannot find resource by name '%s'", name);
-                throw new IllegalArgumentException(message);
+                throw new IllegalArgumentException(
+                    String.format("Cannot find resource by name '%s'", this.name)
+                );
             }
             return ByteStreams.toByteArray(stream);
         } catch (final IOException ex) {
-            throw new IllegalArgumentException(String.format("Failed to read '%s'", name), ex);
+            throw new IllegalArgumentException(String.format("Failed to read '%s'", this.name), ex);
         }
     }
 }

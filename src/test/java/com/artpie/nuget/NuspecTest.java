@@ -47,7 +47,12 @@ class NuspecTest {
     private BlockingStorage storage;
 
     /**
-     * Nuspec created from `newtonsoft.json.nuspec` resource.
+     * Resource `newtonsoft.json.nuspec` name.
+     */
+    private String name;
+
+    /**
+     * Nuspec created from resource.
      */
     private Nuspec nuspec;
 
@@ -58,7 +63,8 @@ class NuspecTest {
                 Files.createTempDirectory(NuspecTest.class.getName()).resolve("repo")
             )
         );
-        this.nuspec = new Nuspec(ByteSource.wrap(NewtonJsonPackage.readNuspec()));
+        this.name = "newtonsoft.json.nuspec";
+        this.nuspec = new Nuspec(ByteSource.wrap(new NewtonJsonResource(this.name).bytes()));
     }
 
     @Test
@@ -73,10 +79,10 @@ class NuspecTest {
     @Test
     void shouldSave() {
         this.nuspec.save(this.storage);
-        final Key.From key = new Key.From("newtonsoft.json", "12.0.3", "newtonsoft.json.nuspec");
+        final Key.From key = new Key.From("newtonsoft.json", "12.0.3", this.name);
         MatcherAssert.assertThat(
             this.storage.value(key),
-            Matchers.equalTo(NewtonJsonPackage.readNuspec())
+            Matchers.equalTo(new NewtonJsonResource(this.name).bytes())
         );
     }
 }
