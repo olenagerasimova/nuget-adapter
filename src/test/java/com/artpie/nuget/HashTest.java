@@ -24,38 +24,49 @@
 
 package com.artpie.nuget;
 
+import com.artipie.asto.Key;
 import com.artipie.asto.blocking.BlockingStorage;
+import com.artipie.asto.fs.FileStorage;
 import com.google.common.hash.HashCode;
-import java.util.Base64;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import org.hamcrest.MatcherAssert;
+import org.hamcrest.Matchers;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
- * Package hash.
+ * Tests for {@link Hash}.
  *
  * @since 0.1
  */
-public final class Hash {
+class HashTest {
 
     /**
-     * Calculated hash code value.
+     * Storage used in tests.
      */
-    private final HashCode value;
+    private BlockingStorage storage;
 
-    /**
-     * Ctor.
-     *
-     * @param value Calculated hash code value.
-     */
-    public Hash(final HashCode value) {
-        this.value = value;
+    @BeforeEach
+    void init() throws Exception {
+        this.storage = new BlockingStorage(
+            new FileStorage(
+                Files.createTempDirectory(HashTest.class.getName()).resolve("repo")
+            )
+        );
     }
 
-    /**
-     * Saves hash to storage as base64 string.
-     *
-     * @param storage Storage to use for saving.
-     * @param identity Package identity.
-     */
-    public void save(final BlockingStorage storage, final PackageIdentity identity) {
-        storage.save(identity.hashKey(), Base64.getEncoder().encode(this.value.asBytes()));
+    @Test
+    void shouldSave() {
+        final String id = "abc";
+        final String version = "0.0.1";
+        new Hash(HashCode.fromString("0123456789abcdef")).save(
+            this.storage,
+            new PackageIdentity(id, version)
+        );
+        MatcherAssert.assertThat(
+            this.storage.value(new Key.From(id, version, "abc.0.0.1.nupkg.sha512")),
+            Matchers.equalTo("ASNFZ4mrze8=".getBytes(StandardCharsets.US_ASCII))
+        );
     }
 }

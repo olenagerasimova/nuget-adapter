@@ -56,12 +56,32 @@ public final class PackageIdentity {
     }
 
     /**
+     * Get key for hash file.
+     *
+     * @return Key to hash file.
+     */
+    public Key hashKey() {
+        return new Key.From(
+            this.root(),
+            String.format("%s.%s.nupkg.sha512", this.idLowerCase(), this.version)
+        );
+    }
+
+    /**
      * Get root key for package.
      *
      * @return Root key.
      */
-    @SuppressWarnings("PMD.UnusedPrivateMethod")
     private Key root() {
-        return new Key.From(this.id.toLowerCase(Locale.getDefault()), this.version);
+        return new Key.From(this.idLowerCase(), this.version);
+    }
+
+    /**
+     * Transforms id part to lowercase.
+     *
+     * @return Id in lower case.
+     */
+    private String idLowerCase() {
+        return this.id.toLowerCase(Locale.getDefault());
     }
 }

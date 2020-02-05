@@ -22,40 +22,10 @@
  * SOFTWARE.
  */
 
-package com.artpie.nuget;
-
-import com.artipie.asto.blocking.BlockingStorage;
-import com.google.common.hash.HashCode;
-import java.util.Base64;
-
 /**
- * Package hash.
+ * NuGet repository tests.
  *
  * @since 0.1
  */
-public final class Hash {
 
-    /**
-     * Calculated hash code value.
-     */
-    private final HashCode value;
-
-    /**
-     * Ctor.
-     *
-     * @param value Calculated hash code value.
-     */
-    public Hash(final HashCode value) {
-        this.value = value;
-    }
-
-    /**
-     * Saves hash to storage as base64 string.
-     *
-     * @param storage Storage to use for saving.
-     * @param identity Package identity.
-     */
-    public void save(final BlockingStorage storage, final PackageIdentity identity) {
-        storage.save(identity.hashKey(), Base64.getEncoder().encode(this.value.asBytes()));
-    }
-}
+package com.artpie.nuget;
