@@ -73,8 +73,7 @@ public final class PackageIdentity {
      * @return Key to .nuspec file.
      */
     public Key nuspecKey() {
-        final String name = String.format("%s.nuspec", this.idLowerCase());
-        return new Key.From(this.root(), name);
+        return new Key.From(this.root(), String.format("%s.nuspec", this.idLowerCase()));
     }
 
     /**

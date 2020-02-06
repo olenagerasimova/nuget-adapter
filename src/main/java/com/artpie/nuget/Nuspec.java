@@ -111,12 +111,14 @@ public final class Nuspec {
     private static String single(final XML xml, final String xpath) {
         final List<String> values = xml.xpath(xpath);
         if (values.isEmpty()) {
-            final String message = String.format("No values found in path: '%s'", xpath);
-            throw new IllegalArgumentException(message);
+            throw new IllegalArgumentException(
+                String.format("No values found in path: '%s'", xpath)
+            );
         }
         if (values.size() > 1) {
-            final String message = String.format("Multiple values found in path: '%s'", xpath);
-            throw new IllegalArgumentException(message);
+            throw new IllegalArgumentException(
+                String.format("Multiple values found in path: '%s'", xpath)
+            );
         }
         return values.get(0);
     }

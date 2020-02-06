@@ -26,7 +26,7 @@ package com.artpie.nuget;
 
 import com.google.common.io.ByteStreams;
 import java.io.IOException;
-import java.io.InputStream;
+import org.cactoos.io.ResourceOf;
 
 /**
  * Newton.Json package resource.
@@ -55,15 +55,10 @@ final class NewtonJsonResource {
      * @return Binary data.
      */
     public byte[] bytes() {
-        final String resource = String.format("newtonsoft.json/12.0.3/%s", this.name);
-        final ClassLoader loader = Thread.currentThread().getContextClassLoader();
-        try (InputStream stream = loader.getResourceAsStream(resource)) {
-            if (stream == null) {
-                throw new IllegalArgumentException(
-                    String.format("Cannot find resource by name '%s'", this.name)
-                );
-            }
-            return ByteStreams.toByteArray(stream);
+        try {
+            return ByteStreams.toByteArray(
+                new ResourceOf(String.format("newtonsoft.json/12.0.3/%s", this.name)).stream()
+            );
         } catch (final IOException ex) {
             throw new IllegalArgumentException(String.format("Failed to read '%s'", this.name), ex);
         }
