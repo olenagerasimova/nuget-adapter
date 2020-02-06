@@ -87,6 +87,12 @@ public final class Nuspec {
      */
     private XML xml() throws IOException {
         try {
+            // @checkstyle MethodBodyCommentsCheck (5 lines)
+            // DocumentBuilderFactory is used here because of bug in XMLDocument
+            // see https://github.com/jcabi/jcabi-xml/issues/153
+            // Code could be simplified to
+            // `new XMLDocument(ByteArrayInputStream stream)`
+            // after the issue is fixed
             return new XMLDocument(
                 DocumentBuilderFactory.newInstance()
                     .newDocumentBuilder()
