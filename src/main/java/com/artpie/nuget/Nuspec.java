@@ -60,8 +60,9 @@ public final class Nuspec {
      * Extract package identity from document.
      *
      * @return Package identity.
+     * @throws IOException In case exception occurred on reading document.
      */
-    public PackageIdentity identity() {
+    public PackageIdentity identity() throws IOException {
         final XML xml = this.xml();
         final String id = single(xml, "/package/metadata/id/text()");
         final String version = single(xml, "/package/metadata/version/text()");
@@ -72,30 +73,26 @@ public final class Nuspec {
      * Saves .nuspec document to storage.
      *
      * @param storage Storage to use for saving.
+     * @throws IOException In case exception occurred on reading document or writing it to storage.
      */
-    public void save(final BlockingStorage storage) {
-        final byte[] bytes;
-        try {
-            bytes = this.content.read();
-        } catch (final IOException ex) {
-            throw new IllegalStateException("Failed to read content", ex);
-        }
-        storage.save(this.identity().nuspecKey(), bytes);
+    public void save(final BlockingStorage storage) throws IOException {
+        storage.save(this.identity().nuspecKey(), this.content.read());
     }
 
     /**
      * Parse binary content as XML document.
      *
      * @return Content as XML document.
+     * @throws IOException In case exception occurred on reading document.
      */
-    private XML xml() {
+    private XML xml() throws IOException {
         try {
             return new XMLDocument(
                 DocumentBuilderFactory.newInstance()
                     .newDocumentBuilder()
                     .parse(new ByteArrayInputStream(this.content.read()))
             );
-        } catch (final IOException | ParserConfigurationException | SAXException ex) {
+        } catch (final ParserConfigurationException | SAXException ex) {
             throw new IllegalArgumentException("Failed parsing .nuspec", ex);
         }
     }

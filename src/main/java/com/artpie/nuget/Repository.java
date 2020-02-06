@@ -26,6 +26,7 @@ package com.artpie.nuget;
 
 import com.artipie.asto.Key;
 import com.artipie.asto.blocking.BlockingStorage;
+import java.io.IOException;
 
 /**
  * Class representing NuGet repository.
@@ -52,8 +53,9 @@ public class Repository {
      * Adds NuGet package in .nupkg file format from storage.
      *
      * @param key Key to find content of .nupkg package.
+     * @throws IOException In case exception occurred on operations with storage.
      */
-    public void add(final Key key) {
+    public void add(final Key key) throws IOException {
         if (this.storage == null) {
             throw new UnsupportedOperationException("Storage will be used later");
         }

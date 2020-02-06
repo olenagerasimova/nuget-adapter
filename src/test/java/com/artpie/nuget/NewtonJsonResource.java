@@ -53,14 +53,11 @@ final class NewtonJsonResource {
      * Reads binary data.
      *
      * @return Binary data.
+     * @throws IOException In case exception occurred on reading resource content.
      */
-    public byte[] bytes() {
-        try {
-            return ByteStreams.toByteArray(
-                new ResourceOf(String.format("newtonsoft.json/12.0.3/%s", this.name)).stream()
-            );
-        } catch (final IOException ex) {
-            throw new IllegalArgumentException(String.format("Failed to read '%s'", this.name), ex);
-        }
+    public byte[] bytes() throws IOException {
+        return ByteStreams.toByteArray(
+            new ResourceOf(String.format("newtonsoft.json/12.0.3/%s", this.name)).stream()
+        );
     }
 }

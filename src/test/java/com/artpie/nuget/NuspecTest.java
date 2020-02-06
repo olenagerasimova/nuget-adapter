@@ -68,7 +68,7 @@ class NuspecTest {
     }
 
     @Test
-    void shouldExtractIdentity() {
+    void shouldExtractIdentity() throws Exception {
         final PackageIdentity identity = this.nuspec.identity();
         MatcherAssert.assertThat(
             identity.nuspecKey().string(),
@@ -77,7 +77,7 @@ class NuspecTest {
     }
 
     @Test
-    void shouldSave() {
+    void shouldSave() throws Exception {
         this.nuspec.save(this.storage);
         final Key.From key = new Key.From("newtonsoft.json", "12.0.3", this.name);
         MatcherAssert.assertThat(
