@@ -62,7 +62,7 @@ SOFTWARE.
     <dependency>
       <groupId>com.jcabi</groupId>
       <artifactId>jcabi-xml</artifactId>
-      <version>0.22.1</version>
+      <version>0.22.2</version>
     </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>

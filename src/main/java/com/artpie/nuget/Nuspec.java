@@ -31,9 +31,6 @@ import com.jcabi.xml.XMLDocument;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.List;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import org.xml.sax.SAXException;
 
 /**
  * Package description in .nuspec format.
@@ -63,9 +60,10 @@ public final class Nuspec {
      * @throws IOException In case exception occurred on reading document.
      */
     public PackageIdentity identity() throws IOException {
-        final XML xml = this.xml();
-        final String id = single(xml, "/package/metadata/id/text()");
-        final String version = single(xml, "/package/metadata/version/text()");
+        final XML xml = this.xml()
+            .registerNs("ns", "http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd");
+        final String id = single(xml, "/ns:package/ns:metadata/ns:id/text()");
+        final String version = single(xml, "/ns:package/ns:metadata/ns:version/text()");
         return new PackageIdentity(id, version);
     }
 
@@ -86,21 +84,7 @@ public final class Nuspec {
      * @throws IOException In case exception occurred on reading document.
      */
     private XML xml() throws IOException {
-        try {
-            // @checkstyle MethodBodyCommentsCheck (5 lines)
-            // DocumentBuilderFactory is used here because of bug in XMLDocument
-            // see https://github.com/jcabi/jcabi-xml/issues/153
-            // Code could be simplified to
-            // `new XMLDocument(ByteArrayInputStream stream)`
-            // after the issue is fixed
-            return new XMLDocument(
-                DocumentBuilderFactory.newInstance()
-                    .newDocumentBuilder()
-                    .parse(new ByteArrayInputStream(this.content.read()))
-            );
-        } catch (final ParserConfigurationException | SAXException ex) {
-            throw new IllegalArgumentException("Failed parsing .nuspec", ex);
-        }
+        return new XMLDocument(new ByteArrayInputStream(this.content.read()));
     }
 
     /**
