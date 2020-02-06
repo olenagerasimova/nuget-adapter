@@ -25,29 +25,88 @@
 package com.artpie.nuget;
 
 import com.artipie.asto.blocking.BlockingStorage;
+import com.google.common.io.ByteSource;
+import com.jcabi.xml.XML;
+import com.jcabi.xml.XMLDocument;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.util.List;
 
 /**
  * Package description in .nuspec format.
  *
  * @since 0.1
  */
-@SuppressWarnings("PMD.AvoidDuplicateLiterals")
 public final class Nuspec {
+
+    /**
+     * Binary content in .nuspec format.
+     */
+    private final ByteSource content;
+
+    /**
+     * Ctor.
+     *
+     * @param content Binary content of in .nuspec format.
+     */
+    public Nuspec(final ByteSource content) {
+        this.content = content;
+    }
+
     /**
      * Extract package identity from document.
      *
      * @return Package identity.
+     * @throws IOException In case exception occurred on reading document.
      */
-    public PackageIdentity identity() {
-        throw new UnsupportedOperationException("Not implemented");
+    public PackageIdentity identity() throws IOException {
+        final XML xml = this.xml()
+            .registerNs("ns", "http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd");
+        final String id = single(xml, "/ns:package/ns:metadata/ns:id/text()");
+        final String version = single(xml, "/ns:package/ns:metadata/ns:version/text()");
+        return new PackageIdentity(id, version);
     }
 
     /**
      * Saves .nuspec document to storage.
      *
      * @param storage Storage to use for saving.
+     * @throws IOException In case exception occurred on reading document or writing it to storage.
      */
-    public void save(final BlockingStorage storage) {
-        throw new UnsupportedOperationException("Not implemented");
+    public void save(final BlockingStorage storage) throws IOException {
+        storage.save(this.identity().nuspecKey(), this.content.read());
+    }
+
+    /**
+     * Parse binary content as XML document.
+     *
+     * @return Content as XML document.
+     * @throws IOException In case exception occurred on reading document.
+     */
+    private XML xml() throws IOException {
+        return new XMLDocument(new ByteArrayInputStream(this.content.read()));
+    }
+
+    /**
+     * Reads single string value from XML via XPath.
+     * Exception is thrown if zero or more then 1 values found
+     *
+     * @param xml XML document to read from.
+     * @param xpath XPath expression to select data from the XML.
+     * @return Value found by XPath
+     */
+    private static String single(final XML xml, final String xpath) {
+        final List<String> values = xml.xpath(xpath);
+        if (values.isEmpty()) {
+            throw new IllegalArgumentException(
+                String.format("No values found in path: '%s'", xpath)
+            );
+        }
+        if (values.size() > 1) {
+            throw new IllegalArgumentException(
+                String.format("Multiple values found in path: '%s'", xpath)
+            );
+        }
+        return values.get(0);
     }
 }

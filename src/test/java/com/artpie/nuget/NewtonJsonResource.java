@@ -24,35 +24,40 @@
 
 package com.artpie.nuget;
 
-import org.hamcrest.MatcherAssert;
-import org.hamcrest.Matchers;
-import org.junit.jupiter.api.Test;
+import com.google.common.io.ByteStreams;
+import java.io.IOException;
+import org.cactoos.io.ResourceOf;
 
 /**
- * Tests for {@link PackageIdentity}.
+ * Newton.Json package resource.
  *
  * @since 0.1
  */
-public class PackageIdentityTest {
+final class NewtonJsonResource {
 
     /**
-     * Example package identity.
+     * Resource name.
      */
-    private final PackageIdentity identity = new PackageIdentity("Newtonsoft.Json", "12.0.3");
+    private final String name;
 
-    @Test
-    void shouldGenerateHashKey() {
-        MatcherAssert.assertThat(
-            this.identity.hashKey().string(),
-            Matchers.is("newtonsoft.json/12.0.3/newtonsoft.json.12.0.3.nupkg.sha512")
-        );
+    /**
+     * Ctor.
+     *
+     * @param name Resource name.
+     */
+    NewtonJsonResource(final String name) {
+        this.name = name;
     }
 
-    @Test
-    void shouldGenerateNuspecKey() {
-        MatcherAssert.assertThat(
-            this.identity.nuspecKey().string(),
-            Matchers.is("newtonsoft.json/12.0.3/newtonsoft.json.nuspec")
+    /**
+     * Reads binary data.
+     *
+     * @return Binary data.
+     * @throws IOException In case exception occurred on reading resource content.
+     */
+    public byte[] bytes() throws IOException {
+        return ByteStreams.toByteArray(
+            new ResourceOf(String.format("newtonsoft.json/12.0.3/%s", this.name)).stream()
         );
     }
 }

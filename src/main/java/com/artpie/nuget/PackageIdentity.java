@@ -68,6 +68,15 @@ public final class PackageIdentity {
     }
 
     /**
+     * Get key for .nuspec file.
+     *
+     * @return Key to .nuspec file.
+     */
+    public Key nuspecKey() {
+        return new Key.From(this.root(), String.format("%s.nuspec", this.idLowerCase()));
+    }
+
+    /**
      * Get root key for package.
      *
      * @return Root key.
