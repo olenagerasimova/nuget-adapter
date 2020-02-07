@@ -65,7 +65,8 @@ public final class Nupkg implements NuGetPackage {
     }
 
     @Override
-    public void save(final BlockingStorage storage, final PackageIdentity identity) {
-        throw new UnsupportedOperationException("Not implemented");
+    public void save(final BlockingStorage storage, final PackageIdentity identity)
+        throws IOException {
+        storage.save(identity.nupkgKey(), this.content.read());
     }
 }

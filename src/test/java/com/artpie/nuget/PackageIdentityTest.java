@@ -41,6 +41,14 @@ public class PackageIdentityTest {
     private final PackageIdentity identity = new PackageIdentity("Newtonsoft.Json", "12.0.3");
 
     @Test
+    void shouldGenerateNupkgKey() {
+        MatcherAssert.assertThat(
+            this.identity.nupkgKey().string(),
+            Matchers.is("newtonsoft.json/12.0.3/newtonsoft.json.12.0.3.nupkg")
+        );
+    }
+
+    @Test
     void shouldGenerateHashKey() {
         MatcherAssert.assertThat(
             this.identity.hashKey().string(),

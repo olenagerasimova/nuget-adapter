@@ -5,4 +5,5 @@
 * text=auto eol=lf
 *.java ident
 *.xml ident
+*.nupkg binary
 *.nuspec binary

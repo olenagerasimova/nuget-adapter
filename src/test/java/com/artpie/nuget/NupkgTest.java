@@ -24,6 +24,7 @@
 
 package com.artpie.nuget;
 
+import com.artipie.asto.Key;
 import com.artipie.asto.blocking.BlockingStorage;
 import com.artipie.asto.fs.FileStorage;
 import com.google.common.io.ByteSource;
@@ -40,6 +41,21 @@ import org.junit.jupiter.api.io.TempDir;
  * @since 0.1
  */
 class NupkgTest {
+
+    @Test
+    void shouldSave(final @TempDir Path temp) throws Exception {
+        final BlockingStorage storage = new BlockingStorage(new FileStorage(temp));
+        final String id = "newtonsoft.json";
+        final String version = "12.0.3";
+        final String name = "newtonsoft.json.12.0.3.nupkg";
+        final Key.From key = new Key.From(id, version, name);
+        new Nupkg(ByteSource.wrap(new NewtonJsonResource(name).bytes()))
+            .save(storage, new PackageIdentity(id, version));
+        MatcherAssert.assertThat(
+            storage.value(key),
+            Matchers.equalTo(new NewtonJsonResource(name).bytes())
+        );
+    }
 
     @Test
     void shouldCalculateHash(final @TempDir Path temp) throws Exception {
