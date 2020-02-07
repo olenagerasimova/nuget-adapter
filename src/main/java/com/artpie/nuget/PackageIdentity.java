@@ -61,8 +61,10 @@ public final class PackageIdentity {
      * @return Key to .nupkg file.
      */
     public Key nupkgKey() {
-        final String name = String.format("%s.%s.nupkg", this.idLowerCase(), this.version);
-        return new Key.From(this.root(), name);
+        return new Key.From(
+            this.root(),
+            String.format("%s.%s.nupkg", this.idLowerCase(), this.version)
+        );
     }
 
     /**
