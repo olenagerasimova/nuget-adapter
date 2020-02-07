@@ -28,11 +28,12 @@ import com.artipie.asto.Key;
 import com.artipie.asto.blocking.BlockingStorage;
 import com.artipie.asto.fs.FileStorage;
 import com.google.common.io.ByteSource;
-import java.nio.file.Files;
+import java.nio.file.Path;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 /**
  * Tests for {@link Nuspec}.
@@ -40,11 +41,6 @@ import org.junit.jupiter.api.Test;
  * @since 0.1
  */
 class NuspecTest {
-
-    /**
-     * Storage used in tests.
-     */
-    private BlockingStorage storage;
 
     /**
      * Resource `newtonsoft.json.nuspec` name.
@@ -58,11 +54,6 @@ class NuspecTest {
 
     @BeforeEach
     void init() throws Exception {
-        this.storage = new BlockingStorage(
-            new FileStorage(
-                Files.createTempDirectory(NuspecTest.class.getName()).resolve("repo")
-            )
-        );
         this.name = "newtonsoft.json.nuspec";
         this.nuspec = new Nuspec(ByteSource.wrap(new NewtonJsonResource(this.name).bytes()));
     }
@@ -77,11 +68,12 @@ class NuspecTest {
     }
 
     @Test
-    void shouldSave() throws Exception {
-        this.nuspec.save(this.storage);
+    void shouldSave(final @TempDir Path temp) throws Exception {
+        final BlockingStorage storage = new BlockingStorage(new FileStorage(temp));
+        this.nuspec.save(storage);
         final Key.From key = new Key.From("newtonsoft.json", "12.0.3", this.name);
         MatcherAssert.assertThat(
-            this.storage.value(key),
+            storage.value(key),
             Matchers.equalTo(new NewtonJsonResource(this.name).bytes())
         );
     }

@@ -25,6 +25,7 @@
 package com.artpie.nuget;
 
 import com.artipie.asto.blocking.BlockingStorage;
+import com.google.common.hash.Hashing;
 import com.google.common.io.ByteSource;
 import java.io.IOException;
 
@@ -59,8 +60,8 @@ public final class Nupkg implements NuGetPackage {
     }
 
     @Override
-    public Hash hash() {
-        throw new UnsupportedOperationException("Not implemented");
+    public Hash hash() throws IOException {
+        return new Hash(Hashing.sha512().hashBytes(this.content.read()));
     }
 
     @Override

@@ -38,8 +38,9 @@ public interface NuGetPackage {
      * Calculates hash of package binary content using SHA512 algorithm encoded in Base64.
      *
      * @return Package hash.
+     * @throws IOException In case exception occurred on reading content.
      */
-    Hash hash();
+    Hash hash() throws IOException;
 
     /**
      * Extract package description in .nuspec format.
