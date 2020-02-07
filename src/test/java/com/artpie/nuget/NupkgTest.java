@@ -27,11 +27,12 @@ package com.artpie.nuget;
 import com.artipie.asto.blocking.BlockingStorage;
 import com.artipie.asto.fs.FileStorage;
 import com.google.common.io.ByteSource;
-import java.nio.file.Files;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 /**
  * Tests for {@link Nupkg}.
@@ -40,36 +41,18 @@ import org.junit.jupiter.api.Test;
  */
 class NupkgTest {
 
-    /**
-     * Storage used in tests.
-     */
-    private BlockingStorage storage;
-
-    /**
-     * Nuspec created from resource.
-     */
-    private Nupkg nupkg;
-
-    @BeforeEach
-    void init() throws Exception {
-        this.storage = new BlockingStorage(
-            new FileStorage(
-                Files.createTempDirectory(NupkgTest.class.getName()).resolve("repo")
-            )
-        );
-        final byte[] bytes = new NewtonJsonResource("newtonsoft.json.12.0.3.nupkg").bytes();
-        this.nupkg = new Nupkg(ByteSource.wrap(bytes));
-    }
-
     @Test
-    void shouldCalculateHash() throws Exception {
-        final PackageIdentity identity = new PackageIdentity("newtonsoft.json", "12.0.3");
-        this.nupkg.hash().save(this.storage, identity);
+    void shouldCalculateHash(final @TempDir Path temp) throws Exception {
+        final BlockingStorage storage = new BlockingStorage(new FileStorage(temp));
+        final PackageIdentity identity = new PackageIdentity("foo", "1.0.0");
+        final byte[] data = "test data".getBytes(StandardCharsets.UTF_8);
+        final Nupkg nupkg = new Nupkg(ByteSource.wrap(data));
+        nupkg.hash().save(storage, identity);
         MatcherAssert.assertThat(
-            new String(this.storage.value(identity.hashKey())),
+            new String(storage.value(identity.hashKey())),
             Matchers.equalTo(
                 // @checkstyle LineLength (1 lines)
-                "aTRmXwR5xYu+mWxE8r8W1DWnL02SeV8LwdQMsLwTWP8OZgrCCyTqvOAe5hRb1VNQYXjln7qr0PKpSyO/pcc19Q=="
+                "Dh4h7PEF7IU9JNcohnrXBhPCFmOkaTB0sqNhnBvTnWa1iMM3I7tGbHJCToDjymPCSQeKs0e6uUKFAOfuQwWdDQ=="
             )
         );
     }

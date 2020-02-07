@@ -29,11 +29,11 @@ import com.artipie.asto.blocking.BlockingStorage;
 import com.artipie.asto.fs.FileStorage;
 import com.google.common.hash.HashCode;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
+import java.nio.file.Path;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 /**
  * Tests for {@link Hash}.
@@ -42,30 +42,17 @@ import org.junit.jupiter.api.Test;
  */
 class HashTest {
 
-    /**
-     * Storage used in tests.
-     */
-    private BlockingStorage storage;
-
-    @BeforeEach
-    void init() throws Exception {
-        this.storage = new BlockingStorage(
-            new FileStorage(
-                Files.createTempDirectory(HashTest.class.getName()).resolve("repo")
-            )
-        );
-    }
-
     @Test
-    void shouldSave() {
+    void shouldSave(final @TempDir Path temp) {
         final String id = "abc";
         final String version = "0.0.1";
+        final BlockingStorage storage = new BlockingStorage(new FileStorage(temp));
         new Hash(HashCode.fromString("0123456789abcdef")).save(
-            this.storage,
+            storage,
             new PackageIdentity(id, version)
         );
         MatcherAssert.assertThat(
-            this.storage.value(new Key.From(id, version, "abc.0.0.1.nupkg.sha512")),
+            storage.value(new Key.From(id, version, "abc.0.0.1.nupkg.sha512")),
             Matchers.equalTo("ASNFZ4mrze8=".getBytes(StandardCharsets.US_ASCII))
         );
     }
