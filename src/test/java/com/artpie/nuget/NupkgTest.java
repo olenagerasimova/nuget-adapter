@@ -45,9 +45,9 @@ class NupkgTest {
     void shouldCalculateHash(final @TempDir Path temp) throws Exception {
         final BlockingStorage storage = new BlockingStorage(new FileStorage(temp));
         final PackageIdentity identity = new PackageIdentity("foo", "1.0.0");
-        final byte[] data = "test data".getBytes(StandardCharsets.UTF_8);
-        final Nupkg nupkg = new Nupkg(ByteSource.wrap(data));
-        nupkg.hash().save(storage, identity);
+        new Nupkg(ByteSource.wrap("test data".getBytes(StandardCharsets.UTF_8)))
+            .hash()
+            .save(storage, identity);
         MatcherAssert.assertThat(
             new String(storage.value(identity.hashKey())),
             Matchers.equalTo(
