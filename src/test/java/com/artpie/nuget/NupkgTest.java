@@ -24,57 +24,36 @@
 
 package com.artpie.nuget;
 
-import com.artipie.asto.Key;
 import com.artipie.asto.blocking.BlockingStorage;
 import com.artipie.asto.fs.FileStorage;
 import com.google.common.io.ByteSource;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 /**
- * Tests for {@link Nuspec}.
+ * Tests for {@link Nupkg}.
  *
  * @since 0.1
  */
-class NuspecTest {
-
-    /**
-     * Resource `newtonsoft.json.nuspec` name.
-     */
-    private String name;
-
-    /**
-     * Nuspec created from resource.
-     */
-    private Nuspec nuspec;
-
-    @BeforeEach
-    void init() throws Exception {
-        this.name = "newtonsoft.json.nuspec";
-        this.nuspec = new Nuspec(ByteSource.wrap(new NewtonJsonResource(this.name).bytes()));
-    }
+class NupkgTest {
 
     @Test
-    void shouldExtractIdentity() throws Exception {
-        final PackageIdentity identity = this.nuspec.identity();
-        MatcherAssert.assertThat(
-            identity.nuspecKey().string(),
-            Matchers.equalTo("newtonsoft.json/12.0.3/newtonsoft.json.nuspec")
-        );
-    }
-
-    @Test
-    void shouldSave(final @TempDir Path temp) throws Exception {
+    void shouldCalculateHash(final @TempDir Path temp) throws Exception {
         final BlockingStorage storage = new BlockingStorage(new FileStorage(temp));
-        this.nuspec.save(storage);
-        final Key.From key = new Key.From("newtonsoft.json", "12.0.3", this.name);
+        final PackageIdentity identity = new PackageIdentity("foo", "1.0.0");
+        new Nupkg(ByteSource.wrap("test data".getBytes(StandardCharsets.UTF_8)))
+            .hash()
+            .save(storage, identity);
         MatcherAssert.assertThat(
-            storage.value(key),
-            Matchers.equalTo(new NewtonJsonResource(this.name).bytes())
+            new String(storage.value(identity.hashKey())),
+            Matchers.equalTo(
+                // @checkstyle LineLength (1 lines)
+                "Dh4h7PEF7IU9JNcohnrXBhPCFmOkaTB0sqNhnBvTnWa1iMM3I7tGbHJCToDjymPCSQeKs0e6uUKFAOfuQwWdDQ=="
+            )
         );
     }
 }
