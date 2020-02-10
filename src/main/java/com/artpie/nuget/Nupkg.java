@@ -56,6 +56,7 @@ public final class Nupkg implements NuGetPackage {
 
     @Override
     public Nuspec nuspec() throws IOException {
+        Nuspec nuspec = null;
         try (ZipInputStream zipStream = new ZipInputStream(this.content.openStream())) {
             while (true) {
                 final ZipEntry entry = zipStream.getNextEntry();
@@ -63,11 +64,19 @@ public final class Nupkg implements NuGetPackage {
                     break;
                 }
                 if (entry.getName().endsWith(".nuspec")) {
-                    return new Nuspec(ByteSource.wrap(ByteStreams.toByteArray(zipStream)));
+                    if (nuspec != null) {
+                        throw new IllegalArgumentException(
+                            "More then one .nuspec file found inside the package."
+                        );
+                    }
+                    nuspec = new Nuspec(ByteSource.wrap(ByteStreams.toByteArray(zipStream)));
                 }
             }
         }
-        throw new IllegalArgumentException("No .nuspec file found inside the package.");
+        if (nuspec == null) {
+            throw new IllegalArgumentException("No .nuspec file found inside the package.");
+        }
+        return nuspec;
     }
 
     @Override

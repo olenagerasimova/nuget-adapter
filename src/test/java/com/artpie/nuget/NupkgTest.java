@@ -59,11 +59,10 @@ class NupkgTest {
         final BlockingStorage storage = new BlockingStorage(new FileStorage(temp));
         final String id = "newtonsoft.json";
         final String version = "12.0.3";
-        final Key.From key = new Key.From(id, version, this.name);
         new Nupkg(ByteSource.wrap(new NewtonJsonResource(this.name).bytes()))
             .save(storage, new PackageIdentity(id, version));
         MatcherAssert.assertThat(
-            storage.value(key),
+            storage.value(new Key.From(id, version, this.name)),
             Matchers.equalTo(new NewtonJsonResource(this.name).bytes())
         );
     }
