@@ -25,7 +25,6 @@
 package com.artpie.nuget;
 
 import com.google.common.io.ByteStreams;
-import java.io.IOException;
 import org.cactoos.io.ResourceOf;
 
 /**
@@ -53,9 +52,9 @@ final class NewtonJsonResource {
      * Reads binary data.
      *
      * @return Binary data.
-     * @throws IOException In case exception occurred on reading resource content.
+     * @throws Exception In case exception occurred on reading resource content.
      */
-    public byte[] bytes() throws IOException {
+    public byte[] bytes() throws Exception {
         return ByteStreams.toByteArray(
             new ResourceOf(String.format("newtonsoft.json/12.0.3/%s", this.name)).stream()
         );

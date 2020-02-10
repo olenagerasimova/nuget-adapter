@@ -28,7 +28,6 @@ import com.artipie.asto.Key;
 import com.artipie.asto.blocking.BlockingStorage;
 import com.artipie.asto.fs.FileStorage;
 import com.google.common.io.ByteSource;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import org.hamcrest.MatcherAssert;
@@ -84,7 +83,7 @@ class NupkgTest {
     }
 
     @Test
-    void shouldExtractNuspec() throws IOException {
+    void shouldExtractNuspec() throws Exception {
         final Nuspec nuspec = new Nupkg(
             ByteSource.wrap(new NewtonJsonResource(this.name).bytes())
         ).nuspec();
