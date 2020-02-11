@@ -40,18 +40,25 @@ import org.junit.jupiter.api.io.TempDir;
  *
  * @since 0.1
  */
-class IntegrationTest {
+class RepositoryIT {
+
+    // @checkstyle VisibilityModifierCheck (5 lines)
+    /**
+     * Temporary directory.
+     */
+    @TempDir
+    Path temp;
 
     @Test
-    void shouldAddPackage(final @TempDir Path temp) throws Exception {
-        final Path repo = temp.resolve("repo");
+    void shouldAddPackage() throws Exception {
+        final Path repo = this.temp.resolve("repo");
         final BlockingStorage storage = new BlockingStorage(new FileStorage(repo));
         final Key.From source = new Key.From("package.zip");
         storage.save(source, new NewtonJsonResource("newtonsoft.json.12.0.3.nupkg").bytes());
         final Repository repository = new Repository(storage);
         repository.add(source);
-        final Path stdout = temp.resolve("stdout.txt");
-        final Path project = temp.resolve("project");
+        final Path stdout = this.temp.resolve("stdout.txt");
+        final Path project = this.temp.resolve("project");
         Files.createDirectory(project);
         new ProcessBuilder()
             .directory(project.toFile())

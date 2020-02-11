@@ -40,9 +40,16 @@ import org.junit.jupiter.api.io.TempDir;
  */
 class RepositoryTest {
 
+    // @checkstyle VisibilityModifierCheck (5 lines)
+    /**
+     * Temporary directory.
+     */
+    @TempDir
+    Path temp;
+
     @Test
-    void shouldAddPackage(final @TempDir Path temp) throws Exception {
-        final BlockingStorage storage = new BlockingStorage(new FileStorage(temp));
+    void shouldAddPackage() throws Exception {
+        final BlockingStorage storage = new BlockingStorage(new FileStorage(this.temp));
         final Key.From source = new Key.From("package.zip");
         final String nupkg = "newtonsoft.json.12.0.3.nupkg";
         storage.save(source, new NewtonJsonResource(nupkg).bytes());
