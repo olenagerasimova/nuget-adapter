@@ -37,6 +37,7 @@ import java.net.URL;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.concurrent.CompletableFuture;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.core.AllOf;
 import org.junit.jupiter.api.BeforeEach;
@@ -47,6 +48,7 @@ import org.junit.jupiter.api.Test;
  *
  * @since 0.1
  */
+@SuppressWarnings("PMD.TooManyMethods")
 class NuGetTest {
 
     /**
@@ -131,14 +133,34 @@ class NuGetTest {
 
     @Test
     void shouldPutRoot() throws Exception {
-        final Response response = this.nuget.response(
-            "PUT /base",
-            Collections.emptyList(),
-            NuGetTest.nupkg()
-        );
+        final Response response = this.putPackage(nupkg());
         MatcherAssert.assertThat(
             response,
             new RsHasStatus(RsStatus.CREATED)
+        );
+    }
+
+    @Test
+    void shouldFailPutPackage() {
+        final Flowable<ByteBuffer> bad = Flowable.fromArray(
+            ByteBuffer.wrap("not a zip".getBytes())
+        );
+        final Response response = this.putPackage(bad);
+        MatcherAssert.assertThat(
+            response,
+            new RsHasStatus(RsStatus.BAD_REQUEST)
+        );
+    }
+
+    @Test
+    void shouldFailPutSamePackage() throws Exception {
+        this.putPackage(nupkg()).send(
+            (status, headers, body) -> CompletableFuture.allOf()
+        ).toCompletableFuture().join();
+        final Response response = this.putPackage(nupkg());
+        MatcherAssert.assertThat(
+            response,
+            new RsHasStatus(RsStatus.CONFLICT)
         );
     }
 
@@ -160,6 +182,10 @@ class NuGetTest {
             Flowable.empty()
         );
         MatcherAssert.assertThat(response, new RsHasStatus(RsStatus.METHOD_NOT_ALLOWED));
+    }
+
+    private Response putPackage(final Flowable<ByteBuffer> pack) {
+        return this.nuget.response("PUT /base", Collections.emptyList(), pack);
     }
 
     private static Flowable<ByteBuffer> nupkg() throws Exception {
