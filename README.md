@@ -42,7 +42,7 @@ repo.add(new Key.From("package.nupkg"));
 
 - [x] Adding package to repository [#1](https://github.com/artipie/nuget-adapter/issues/1)
 - [x] HTTP support for installing package [#19](https://github.com/artipie/nuget-adapter/issues/19)
-- [ ] HTTP support for adding package [#20](https://github.com/artipie/nuget-adapter/issues/20)
+- [x] HTTP support for adding package [#20](https://github.com/artipie/nuget-adapter/issues/20)
 - [ ] HTTP support for listing package versions [#29](https://github.com/artipie/nuget-adapter/issues/29)
 
 ## How to contribute
