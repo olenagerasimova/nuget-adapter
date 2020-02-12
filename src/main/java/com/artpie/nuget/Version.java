@@ -24,46 +24,36 @@
 
 package com.artpie.nuget;
 
-import org.hamcrest.MatcherAssert;
-import org.hamcrest.Matchers;
-import org.junit.jupiter.api.Test;
-
 /**
- * Tests for {@link PackageIdentity}.
+ * Version of package.
+ * See <a href="https://docs.microsoft.com/en-us/nuget/concepts/package-versioning">Package versioning</a>.
  *
+ * @todo: normalized() method should actually do normalization as described in docs
  * @since 0.1
  */
-public class PackageIdentityTest {
+public final class Version {
 
     /**
-     * Example package identity.
+     * Raw version string.
      */
-    private final PackageIdentity identity = new PackageIdentity(
-        "Newtonsoft.Json",
-        new Version("12.0.3")
-    );
+    private final String raw;
 
-    @Test
-    void shouldGenerateNupkgKey() {
-        MatcherAssert.assertThat(
-            this.identity.nupkgKey().string(),
-            Matchers.is("newtonsoft.json/12.0.3/newtonsoft.json.12.0.3.nupkg")
-        );
+    /**
+     * Ctor.
+     *
+     * @param raw Raw version string.
+     */
+    public Version(final String raw) {
+        this.raw = raw;
     }
 
-    @Test
-    void shouldGenerateHashKey() {
-        MatcherAssert.assertThat(
-            this.identity.hashKey().string(),
-            Matchers.is("newtonsoft.json/12.0.3/newtonsoft.json.12.0.3.nupkg.sha512")
-        );
-    }
-
-    @Test
-    void shouldGenerateNuspecKey() {
-        MatcherAssert.assertThat(
-            this.identity.nuspecKey().string(),
-            Matchers.is("newtonsoft.json/12.0.3/newtonsoft.json.nuspec")
-        );
+    /**
+     * Get normalized version.
+     * See <a href="https://docs.microsoft.com/en-us/nuget/concepts/package-versioning#normalized-version-numbers">Normalized version numbers</a>.
+     *
+     * @return Normalized version string.
+     */
+    public String normalized() {
+        return this.raw;
     }
 }

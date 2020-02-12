@@ -49,7 +49,7 @@ class HashTest {
         final BlockingStorage storage = new BlockingStorage(new FileStorage(temp));
         new Hash(HashCode.fromString("0123456789abcdef")).save(
             storage,
-            new PackageIdentity(id, version)
+            new PackageIdentity(id, new Version(version))
         );
         MatcherAssert.assertThat(
             storage.value(new Key.From(id, version, "abc.0.0.1.nupkg.sha512")),

@@ -60,11 +60,19 @@ public final class Nuspec {
      * @throws IOException In case exception occurred on reading document.
      */
     public PackageIdentity identity() throws IOException {
-        final XML xml = this.xml()
-            .registerNs("ns", "http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd");
-        final String id = single(xml, "/ns:package/ns:metadata/ns:id/text()");
-        final String version = single(xml, "/ns:package/ns:metadata/ns:version/text()");
-        return new PackageIdentity(id, version);
+        final String id = single(this.xml(), "/ns:package/ns:metadata/ns:id/text()");
+        return new PackageIdentity(id, this.version());
+    }
+
+    /**
+     * Extract version from document.
+     *
+     * @return Package version.
+     * @throws IOException In case exception occurred on reading document.
+     */
+    public Version version() throws IOException {
+        final String version = single(this.xml(), "/ns:package/ns:metadata/ns:version/text()");
+        return new Version(version);
     }
 
     /**
@@ -84,7 +92,8 @@ public final class Nuspec {
      * @throws IOException In case exception occurred on reading document.
      */
     private XML xml() throws IOException {
-        return new XMLDocument(new ByteArrayInputStream(this.content.read()));
+        return new XMLDocument(new ByteArrayInputStream(this.content.read()))
+            .registerNs("ns", "http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd");
     }
 
     /**
