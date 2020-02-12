@@ -24,9 +24,16 @@
 
 package com.artpie.nuget.http;
 
+import com.artipie.asto.Key;
+import com.artipie.asto.Storage;
 import com.artipie.http.Response;
 import com.artipie.http.rs.RsWithStatus;
 import java.net.HttpURLConnection;
+import java.nio.ByteBuffer;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import org.reactivestreams.Publisher;
 
 /**
  * Root resource. Used as endpoint to push a package.
@@ -35,13 +42,50 @@ import java.net.HttpURLConnection;
  * @since 0.1
  */
 public final class Root implements Resource {
+
+    /**
+     * Storage to read content from.
+     */
+    private final Storage storage;
+
+    /**
+     * Ctor.
+     *
+     * @param storage Storage to read content from.
+     */
+    public Root(final Storage storage) {
+        this.storage = storage;
+    }
+
     @Override
     public Response get() {
         return new RsWithStatus(HttpURLConnection.HTTP_BAD_METHOD);
     }
 
     @Override
-    public Response put() {
-        throw new UnsupportedOperationException();
+    public Response put(final Publisher<ByteBuffer> body) {
+        Response response;
+        try {
+            response = this.putAsync(body).get();
+        } catch (final InterruptedException | ExecutionException ex) {
+            response = new RsWithStatus(HttpURLConnection.HTTP_INTERNAL_ERROR);
+        }
+        return response;
+    }
+
+    /**
+     * Serve PUT method async.
+     *
+     * @param body Request body.
+     * @return Response to request.
+     */
+    private CompletableFuture<Response> putAsync(final Publisher<ByteBuffer> body) {
+        return CompletableFuture
+            .supplyAsync(() -> new Key.From(UUID.randomUUID().toString()))
+            .thenCompose(
+                key -> this.storage.save(key, body).thenApply(
+                    ignored -> new RsWithStatus(HttpURLConnection.HTTP_CREATED)
+                )
+            );
     }
 }

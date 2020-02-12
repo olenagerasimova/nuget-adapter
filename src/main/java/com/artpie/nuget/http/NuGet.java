@@ -23,6 +23,7 @@
  */
 package com.artpie.nuget.http;
 
+import com.artipie.asto.Storage;
 import com.artipie.http.Response;
 import com.artipie.http.Slice;
 import com.artipie.http.rq.RequestLineFrom;
@@ -30,7 +31,7 @@ import com.artipie.http.rs.RsWithStatus;
 import java.net.HttpURLConnection;
 import java.nio.ByteBuffer;
 import java.util.Map;
-import java.util.concurrent.Flow;
+import org.reactivestreams.Publisher;
 
 /**
  * NuGet repository HTTP front end.
@@ -45,30 +46,37 @@ public final class NuGet implements Slice {
     private final String base;
 
     /**
+     * Storage for packages.
+     */
+    private final Storage storage;
+
+    /**
      * Ctor.
      *
      * @param base Base path.
+     * @param storage Storage for packages.
      */
-    public NuGet(final String base) {
+    public NuGet(final String base, final Storage storage) {
         this.base = base;
+        this.storage = storage;
     }
 
     @Override
     public Response response(
         final String line,
         final Iterable<Map.Entry<String, String>> headers,
-        final Flow.Publisher<ByteBuffer> body
+        final Publisher<ByteBuffer> body
     ) {
         final Response response;
         final RequestLineFrom request = new RequestLineFrom(line);
         final String path = request.uri().getPath();
         if (path.startsWith(this.base)) {
-            final Resource resource = NuGet.resource(path.substring(this.base.length()));
+            final Resource resource = this.resource(path.substring(this.base.length()));
             final String method = request.method();
             if (method.equals("GET")) {
                 response = resource.get();
             } else if (method.equals("PUT")) {
-                response = resource.put();
+                response = resource.put(body);
             } else {
                 response = new RsWithStatus(HttpURLConnection.HTTP_BAD_METHOD);
             }
@@ -84,10 +92,10 @@ public final class NuGet implements Slice {
      * @param path Relative path.
      * @return Resource found by path.
      */
-    private static Resource resource(final String path) {
+    private Resource resource(final String path) {
         final Resource resource;
         if (path.isEmpty()) {
-            resource = new Root();
+            resource = new Root(this.storage);
         } else {
             resource = new PackageContent();
         }
