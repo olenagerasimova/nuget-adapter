@@ -47,7 +47,7 @@ class NuGetTest {
 
     @BeforeEach
     void init() {
-        this.nuget = new NuGet("/base/");
+        this.nuget = new NuGet("/base");
     }
 
     @Test
@@ -76,5 +76,25 @@ class NuGetTest {
             response,
             new RsHasStatus(HttpURLConnection.HTTP_BAD_METHOD)
         );
+    }
+
+    @Test
+    void shouldFailGetRootNotBasePath() {
+        final Response response = this.nuget.response(
+            "GET /not-base",
+            Collections.emptyList(),
+            FlowAdapters.toFlowPublisher(Flowable.empty())
+        );
+        MatcherAssert.assertThat(response, new RsHasStatus(HttpURLConnection.HTTP_NOT_FOUND));
+    }
+
+    @Test
+    void shouldFailGetRoot() {
+        final Response response = this.nuget.response(
+            "GET /base",
+            Collections.emptyList(),
+            FlowAdapters.toFlowPublisher(Flowable.empty())
+        );
+        MatcherAssert.assertThat(response, new RsHasStatus(HttpURLConnection.HTTP_BAD_METHOD));
     }
 }
