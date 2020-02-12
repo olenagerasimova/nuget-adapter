@@ -23,7 +23,16 @@
  */
 package com.artpie.nuget.http;
 
+import com.artipie.asto.Key;
+import com.artipie.asto.Storage;
 import com.artipie.http.Response;
+import com.artipie.http.rs.RsWithStatus;
+import java.net.HttpURLConnection;
+import java.util.Collections;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 /**
  * Package content resource.
@@ -32,8 +41,67 @@ import com.artipie.http.Response;
  * @since 0.1
  */
 public final class PackageContent implements Resource {
+
+    /**
+     * Resource path.
+     */
+    private final String path;
+
+    /**
+     * Storage to read content from.
+     */
+    private final Storage storage;
+
+    /**
+     * Ctor.
+     *
+     * @param path Resource path.
+     * @param storage Storage to read content from.
+     */
+    public PackageContent(final String path, final Storage storage) {
+        this.path = path;
+        this.storage = storage;
+    }
+
     @Override
     public Response get() {
-        throw new UnsupportedOperationException();
+        Response response;
+        try {
+            response = this.getAsync().get();
+        } catch (final InterruptedException | ExecutionException ex) {
+            response = new RsWithStatus(HttpURLConnection.HTTP_INTERNAL_ERROR);
+        }
+        return response;
+    }
+
+    /**
+     * Serve GET method async.
+     *
+     * @return Response to request.
+     */
+    private Future<Response> getAsync() {
+        return CompletableFuture
+            .supplyAsync(() -> new Key.From(this.path))
+            .thenCompose(
+                key -> this.storage.exists(key).thenCompose(
+                    exists -> {
+                        final CompletionStage<Response> response;
+                        if (exists) {
+                            response = this.storage.value(key).thenApplyAsync(
+                                data -> connection -> connection.accept(
+                                    HttpURLConnection.HTTP_OK,
+                                    Collections.emptyList(),
+                                    data
+                                )
+                            );
+                        } else {
+                            response = CompletableFuture.completedFuture(
+                                new RsWithStatus(HttpURLConnection.HTTP_NOT_FOUND)
+                            );
+                        }
+                        return response;
+                    }
+                )
+            );
     }
 }

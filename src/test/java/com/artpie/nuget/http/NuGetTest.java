@@ -23,15 +23,22 @@
  */
 package com.artpie.nuget.http;
 
+import com.artipie.asto.Key;
+import com.artipie.asto.Storage;
+import com.artipie.asto.blocking.BlockingStorage;
+import com.artipie.asto.fs.FileStorage;
 import com.artipie.http.Response;
+import com.artipie.http.hm.RsHasBody;
 import com.artipie.http.hm.RsHasStatus;
 import io.reactivex.Flowable;
 import java.net.HttpURLConnection;
+import java.nio.file.Path;
 import java.util.Collections;
 import org.hamcrest.MatcherAssert;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.reactivestreams.FlowAdapters;
+import org.junit.jupiter.api.io.TempDir;
 
 /**
  * Tests for {@link NuGet}.
@@ -41,13 +48,40 @@ import org.reactivestreams.FlowAdapters;
 class NuGetTest {
 
     /**
+     * Storage used in tests.
+     */
+    private Storage storage;
+
+    /**
      * Tested NuGet slice.
      */
     private NuGet nuget;
 
     @BeforeEach
-    void init() {
-        this.nuget = new NuGet("/base/");
+    void init(final @TempDir Path temp) {
+        this.storage = new FileStorage(temp);
+        this.nuget = new NuGet("/base/", this.storage);
+    }
+
+    @Test
+    void shouldGetPackageContent() {
+        final byte[] data = "data".getBytes();
+        new BlockingStorage(this.storage).save(
+            new Key.From("package", "1.0.0", "content.nupkg"),
+            data
+        );
+        final Response response = this.nuget.response(
+            "GET /base/package/1.0.0/content.nupkg",
+            Collections.emptyList(),
+            Flowable.empty()
+        );
+        MatcherAssert.assertThat(
+            response,
+            Matchers.allOf(
+                new RsHasStatus(HttpURLConnection.HTTP_OK),
+                new RsHasBody(data)
+            )
+        );
     }
 
     @Test
@@ -55,7 +89,7 @@ class NuGetTest {
         final Response response = this.nuget.response(
             "GET /not-base/package/1.0.0/content.nupkg",
             Collections.emptyList(),
-            FlowAdapters.toFlowPublisher(Flowable.empty())
+            Flowable.empty()
         );
         MatcherAssert.assertThat(
             "Resources from outside of base path should not be found",
@@ -65,11 +99,21 @@ class NuGetTest {
     }
 
     @Test
+    void shouldFailGetPackageContentWhenNotExists() {
+        final Response response = this.nuget.response(
+            "GET /base/package/1.0.0/logo.png",
+            Collections.emptyList(),
+            Flowable.empty()
+        );
+        MatcherAssert.assertThat(response, new RsHasStatus(HttpURLConnection.HTTP_NOT_FOUND));
+    }
+
+    @Test
     void shouldFailPutPackageContent() {
         final Response response = this.nuget.response(
             "PUT /base/package/1.0.0/content.nupkg",
             Collections.emptyList(),
-            FlowAdapters.toFlowPublisher(Flowable.empty())
+            Flowable.empty()
         );
         MatcherAssert.assertThat(
             "Package content cannot be put",
