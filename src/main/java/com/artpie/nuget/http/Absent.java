@@ -27,6 +27,7 @@ import com.artipie.http.Response;
 import com.artipie.http.rs.RsStatus;
 import com.artipie.http.rs.RsWithStatus;
 import java.nio.ByteBuffer;
+import java.util.Map;
 import org.reactivestreams.Publisher;
 
 /**
@@ -42,7 +43,9 @@ public final class Absent implements Resource {
     }
 
     @Override
-    public Response put(final Publisher<ByteBuffer> body) {
+    public Response put(
+        final Iterable<Map.Entry<String, String>> headers,
+        final Publisher<ByteBuffer> body) {
         return new RsWithStatus(RsStatus.NOT_FOUND);
     }
 }

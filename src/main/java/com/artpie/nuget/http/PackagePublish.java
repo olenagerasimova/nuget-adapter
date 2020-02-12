@@ -24,7 +24,6 @@
 
 package com.artpie.nuget.http;
 
-import com.artipie.asto.Content;
 import com.artipie.asto.Key;
 import com.artipie.asto.Storage;
 import com.artipie.asto.blocking.BlockingStorage;
@@ -34,8 +33,10 @@ import com.artipie.http.rs.RsWithStatus;
 import com.artpie.nuget.InvalidPackageException;
 import com.artpie.nuget.PackageVersionAlreadyExistsException;
 import com.artpie.nuget.Repository;
+import com.artpie.nuget.http.publish.Multipart;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import org.reactivestreams.Publisher;
@@ -100,11 +101,14 @@ public final class PackagePublish implements Route {
         }
 
         @Override
-        public Response put(final Publisher<ByteBuffer> body) {
+        public Response put(
+            final Iterable<Map.Entry<String, String>> headers,
+            final Publisher<ByteBuffer> body
+        ) {
             return connection -> CompletableFuture
                 .supplyAsync(() -> new Key.From(UUID.randomUUID().toString()))
                 .thenCompose(
-                    key -> this.storage.save(key, new Content.From(body)).thenCompose(
+                    key -> this.storage.save(key, new Multipart(headers, body).first()).thenCompose(
                         ignored -> {
                             RsStatus status;
                             try {

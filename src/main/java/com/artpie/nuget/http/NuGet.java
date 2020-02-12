@@ -89,7 +89,7 @@ public final class NuGet implements Slice {
             if (method.equals(RqMethod.GET)) {
                 response = resource.get();
             } else if (method.equals(RqMethod.PUT)) {
-                response = resource.put(body);
+                response = resource.put(headers, body);
             } else {
                 response = new RsWithStatus(RsStatus.METHOD_NOT_ALLOWED);
             }

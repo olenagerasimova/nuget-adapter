@@ -27,6 +27,7 @@ import com.artipie.http.Response;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.Map;
 import org.reactivestreams.Publisher;
 
 /**
@@ -63,8 +64,10 @@ public final class RoutingResource implements Resource {
     }
 
     @Override
-    public Response put(final Publisher<ByteBuffer> body) {
-        return this.resource().put(body);
+    public Response put(
+        final Iterable<Map.Entry<String, String>> headers,
+        final Publisher<ByteBuffer> body) {
+        return this.resource().put(headers, body);
     }
 
     /**

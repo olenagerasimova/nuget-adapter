@@ -36,6 +36,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import javax.json.Json;
 import javax.json.JsonArrayBuilder;
 import javax.json.JsonObject;
@@ -108,7 +109,9 @@ class Registration implements Resource {
     }
 
     @Override
-    public Response put(final Publisher<ByteBuffer> body) {
+    public Response put(
+        final Iterable<Map.Entry<String, String>> headers,
+        final Publisher<ByteBuffer> body) {
         return new RsWithStatus(RsStatus.METHOD_NOT_ALLOWED);
     }
 
