@@ -70,6 +70,8 @@ public final class Repository {
         nupkg.save(this.storage, id);
         nupkg.hash().save(this.storage, id);
         nuspec.save(this.storage);
+        final Versions versions = this.versions(nuspec.packageId());
+        versions.add(nuspec.version()).save(this.storage, nuspec.packageId().versionsKey());
     }
 
     /**

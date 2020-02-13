@@ -30,9 +30,11 @@ import com.artipie.asto.fs.FileStorage;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.util.List;
+import java.util.stream.Collectors;
 import javax.json.Json;
-import javax.json.JsonArray;
 import javax.json.JsonReader;
+import javax.json.JsonString;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
 import org.hamcrest.collection.IsEmptyCollection;
@@ -72,7 +74,9 @@ class RepositoryTest {
         final String nupkg = "newtonsoft.json.12.0.3.nupkg";
         this.storage.save(source, new NewtonJsonResource(nupkg).bytes());
         this.repository.add(source);
-        final Key.From root = new Key.From("newtonsoft.json", "12.0.3");
+        final String version = "12.0.3";
+        final String pack = "newtonsoft.json";
+        final Key.From root = new Key.From(pack, version);
         MatcherAssert.assertThat(
             this.storage.value(new Key.From(root, nupkg)),
             Matchers.equalTo(new NewtonJsonResource(nupkg).bytes())
@@ -90,6 +94,10 @@ class RepositoryTest {
         MatcherAssert.assertThat(
             this.storage.value(new Key.From(root, nuspec)),
             Matchers.equalTo(new NewtonJsonResource(nuspec).bytes())
+        );
+        MatcherAssert.assertThat(
+            this.versions(new Key.From(pack, "index.json")),
+            Matchers.contains(version)
         );
     }
 
@@ -134,10 +142,15 @@ class RepositoryTest {
         );
     }
 
-    private JsonArray versions(final Key key) {
+    private List<String> versions(final Key key) {
         final byte[] bytes = this.storage.value(key);
         try (JsonReader reader = Json.createReader(new ByteArrayInputStream(bytes))) {
-            return reader.readObject().getJsonArray("versions");
+            return reader.readObject()
+                .getJsonArray("versions")
+                .getValuesAs(JsonString.class)
+                .stream()
+                .map(JsonString::getString)
+                .collect(Collectors.toList());
         }
     }
 }
