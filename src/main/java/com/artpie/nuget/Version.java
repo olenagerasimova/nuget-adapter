@@ -28,7 +28,7 @@ package com.artpie.nuget;
  * Version of package.
  * See <a href="https://docs.microsoft.com/en-us/nuget/concepts/package-versioning">Package versioning</a>.
  *
- * @todo: normalized() method should actually do normalization as described in docs
+ * @todo: normalized() method should actually do normalization as described in docs, see https://docs.microsoft.com/en-us/nuget/concepts/package-versioning#normalized-version-numbers
  * @since 0.1
  */
 public final class Version {
