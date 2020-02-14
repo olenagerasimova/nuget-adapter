@@ -38,7 +38,10 @@ public class PackageIdentityTest {
     /**
      * Example package identity.
      */
-    private final PackageIdentity identity = new PackageIdentity("Newtonsoft.Json", "12.0.3");
+    private final PackageIdentity identity = new PackageIdentity(
+        new PackageId("Newtonsoft.Json"),
+        "12.0.3"
+    );
 
     @Test
     void shouldGenerateNupkgKey() {

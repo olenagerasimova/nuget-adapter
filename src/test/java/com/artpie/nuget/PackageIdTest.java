@@ -21,39 +21,37 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-
 package com.artpie.nuget;
 
-import com.artipie.asto.Key;
-import com.artipie.asto.blocking.BlockingStorage;
-import com.artipie.asto.fs.FileStorage;
-import com.google.common.hash.HashCode;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Path;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 
 /**
- * Tests for {@link Hash}.
+ * Tests for {@link PackageId}.
  *
  * @since 0.1
  */
-class HashTest {
+public class PackageIdTest {
+
+    /**
+     * Example package identity.
+     */
+    private final PackageId id = new PackageId("Newtonsoft.Json");
 
     @Test
-    void shouldSave(final @TempDir Path temp) {
-        final String id = "abc";
-        final String version = "0.0.1";
-        final BlockingStorage storage = new BlockingStorage(new FileStorage(temp));
-        new Hash(HashCode.fromString("0123456789abcdef")).save(
-            storage,
-            new PackageIdentity(new PackageId(id), version)
-        );
+    void shouldGenerateVersionsKey() {
         MatcherAssert.assertThat(
-            storage.value(new Key.From(id, version, "abc.0.0.1.nupkg.sha512")),
-            Matchers.equalTo("ASNFZ4mrze8=".getBytes(StandardCharsets.US_ASCII))
+            this.id.versionsKey().string(),
+            Matchers.is("newtonsoft.json/index.json")
+        );
+    }
+
+    @Test
+    void shouldGenerateLower() {
+        MatcherAssert.assertThat(
+            this.id.lower(),
+            Matchers.is("newtonsoft.json")
         );
     }
 }

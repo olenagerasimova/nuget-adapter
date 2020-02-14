@@ -25,74 +25,45 @@
 package com.artpie.nuget;
 
 import com.artipie.asto.Key;
+import java.util.Locale;
 
 /**
- * Package version identity.
+ * Package identity.
  *
  * @since 0.1
  */
-public final class PackageIdentity {
+public final class PackageId {
 
     /**
-     * Package identity.
+     * Raw package identity string.
      */
-    private final PackageId id;
-
-    /**
-     * Package version.
-     */
-    private final String version;
+    private final String raw;
 
     /**
      * Ctor.
      *
-     * @param id Package identity.
-     * @param version Package version.
+     * @param raw Raw package identity string.
      */
-    public PackageIdentity(final PackageId id, final String version) {
-        this.id = id;
-        this.version = version;
+    public PackageId(final String raw) {
+        this.raw = raw;
     }
 
     /**
-     * Get key for .nupkg file.
+     * Get as lowercase string.
+     * See <a href="https://docs.microsoft.com/en-us/dotnet/api/system.string.tolowerinvariant?view=netstandard-2.0#System_String_ToLowerInvariant">.NET's System.String.ToLowerInvariant()</a>.
      *
-     * @return Key to .nupkg file.
+     * @return Id as lowercase string.
      */
-    public Key nupkgKey() {
-        return new Key.From(
-            this.root(),
-            String.format("%s.%s.nupkg", this.id.lower(), this.version)
-        );
+    public String lower() {
+        return this.raw.toLowerCase(Locale.getDefault());
     }
 
     /**
-     * Get key for hash file.
+     * Get key for package versions registry.
      *
-     * @return Key to hash file.
+     * @return Get key for package versions registry.
      */
-    public Key hashKey() {
-        return new Key.From(
-            this.root(),
-            String.format("%s.%s.nupkg.sha512", this.id.lower(), this.version)
-        );
-    }
-
-    /**
-     * Get key for .nuspec file.
-     *
-     * @return Key to .nuspec file.
-     */
-    public Key nuspecKey() {
-        return new Key.From(this.root(), String.format("%s.nuspec", this.id.lower()));
-    }
-
-    /**
-     * Get root key for package.
-     *
-     * @return Root key.
-     */
-    private Key root() {
-        return new Key.From(this.id.lower(), this.version);
+    public Key versionsKey() {
+        return new Key.From(this.lower(), "index.json");
     }
 }
