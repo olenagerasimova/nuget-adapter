@@ -61,7 +61,7 @@ public final class PackageIdentity {
      */
     public Key nupkgKey() {
         return new Key.From(
-            this.root(),
+            this.rootKey(),
             String.format("%s.%s.nupkg", this.id.lower(), this.version.normalized())
         );
     }
@@ -73,7 +73,7 @@ public final class PackageIdentity {
      */
     public Key hashKey() {
         return new Key.From(
-            this.root(),
+            this.rootKey(),
             String.format("%s.%s.nupkg.sha512", this.id.lower(), this.version.normalized())
         );
     }
@@ -84,7 +84,7 @@ public final class PackageIdentity {
      * @return Key to .nuspec file.
      */
     public Key nuspecKey() {
-        return new Key.From(this.root(), String.format("%s.nuspec", this.id.lower()));
+        return new Key.From(this.rootKey(), String.format("%s.nuspec", this.id.lower()));
     }
 
     /**
@@ -92,7 +92,7 @@ public final class PackageIdentity {
      *
      * @return Root key.
      */
-    private Key root() {
+    public Key rootKey() {
         return new Key.From(this.id.lower(), this.version.normalized());
     }
 }

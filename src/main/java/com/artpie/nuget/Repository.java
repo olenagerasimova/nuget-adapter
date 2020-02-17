@@ -56,8 +56,10 @@ public final class Repository {
      * @param key Key to find content of .nupkg package.
      * @throws IOException In case exception occurred on operations with storage.
      * @throws InvalidPackageException If package content is invalid and so cannot be added.
+     * @throws PackageVersionAlreadyExistsException If package version already in storage.
      */
-    public void add(final Key key) throws IOException, InvalidPackageException {
+    public void add(final Key key)
+        throws IOException, InvalidPackageException, PackageVersionAlreadyExistsException {
         final NuGetPackage nupkg = new Nupkg(ByteSource.wrap(this.storage.value(key)));
         final Nuspec nuspec;
         final PackageIdentity id;
@@ -66,6 +68,9 @@ public final class Repository {
             id = nuspec.identity();
         } catch (final IOException | IllegalArgumentException ex) {
             throw new InvalidPackageException(ex);
+        }
+        if (!this.storage.list(id.rootKey()).isEmpty()) {
+            throw new PackageVersionAlreadyExistsException();
         }
         nupkg.save(this.storage, id);
         nupkg.hash().save(this.storage, id);
