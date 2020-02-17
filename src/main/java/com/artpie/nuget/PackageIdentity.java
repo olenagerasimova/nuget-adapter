@@ -25,7 +25,6 @@
 package com.artpie.nuget;
 
 import com.artipie.asto.Key;
-import java.util.Locale;
 
 /**
  * Package version identity.
@@ -37,7 +36,7 @@ public final class PackageIdentity {
     /**
      * Package identity.
      */
-    private final String id;
+    private final PackageId id;
 
     /**
      * Package version.
@@ -50,7 +49,7 @@ public final class PackageIdentity {
      * @param id Package identity.
      * @param version Package version.
      */
-    public PackageIdentity(final String id, final Version version) {
+    public PackageIdentity(final PackageId id, final Version version) {
         this.id = id;
         this.version = version;
     }
@@ -63,7 +62,7 @@ public final class PackageIdentity {
     public Key nupkgKey() {
         return new Key.From(
             this.root(),
-            String.format("%s.%s.nupkg", this.idLowerCase(), this.version.normalized())
+            String.format("%s.%s.nupkg", this.id.lower(), this.version.normalized())
         );
     }
 
@@ -75,7 +74,7 @@ public final class PackageIdentity {
     public Key hashKey() {
         return new Key.From(
             this.root(),
-            String.format("%s.%s.nupkg.sha512", this.idLowerCase(), this.version.normalized())
+            String.format("%s.%s.nupkg.sha512", this.id.lower(), this.version.normalized())
         );
     }
 
@@ -85,7 +84,7 @@ public final class PackageIdentity {
      * @return Key to .nuspec file.
      */
     public Key nuspecKey() {
-        return new Key.From(this.root(), String.format("%s.nuspec", this.idLowerCase()));
+        return new Key.From(this.root(), String.format("%s.nuspec", this.id.lower()));
     }
 
     /**
@@ -94,15 +93,6 @@ public final class PackageIdentity {
      * @return Root key.
      */
     private Key root() {
-        return new Key.From(this.idLowerCase(), this.version.normalized());
-    }
-
-    /**
-     * Transforms id part to lowercase.
-     *
-     * @return Id in lower case.
-     */
-    private String idLowerCase() {
-        return this.id.toLowerCase(Locale.getDefault());
+        return new Key.From(this.id.lower(), this.version.normalized());
     }
 }

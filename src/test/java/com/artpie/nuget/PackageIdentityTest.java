@@ -39,7 +39,7 @@ public class PackageIdentityTest {
      * Example package identity.
      */
     private final PackageIdentity identity = new PackageIdentity(
-        "Newtonsoft.Json",
+        new PackageId("Newtonsoft.Json"),
         new Version("12.0.3")
     );
 

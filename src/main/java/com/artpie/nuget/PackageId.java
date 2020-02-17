@@ -25,35 +25,45 @@
 package com.artpie.nuget;
 
 import com.artipie.asto.Key;
-import com.artipie.asto.blocking.BlockingStorage;
-import com.artipie.asto.fs.FileStorage;
-import com.google.common.hash.HashCode;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Path;
-import org.hamcrest.MatcherAssert;
-import org.hamcrest.Matchers;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
+import java.util.Locale;
 
 /**
- * Tests for {@link Hash}.
+ * Package identifier.
  *
  * @since 0.1
  */
-class HashTest {
+public final class PackageId {
 
-    @Test
-    void shouldSave(final @TempDir Path temp) {
-        final String id = "abc";
-        final String version = "0.0.1";
-        final BlockingStorage storage = new BlockingStorage(new FileStorage(temp));
-        new Hash(HashCode.fromString("0123456789abcdef")).save(
-            storage,
-            new PackageIdentity(new PackageId(id), new Version(version))
-        );
-        MatcherAssert.assertThat(
-            storage.value(new Key.From(id, version, "abc.0.0.1.nupkg.sha512")),
-            Matchers.equalTo("ASNFZ4mrze8=".getBytes(StandardCharsets.US_ASCII))
-        );
+    /**
+     * Raw package identifier string.
+     */
+    private final String raw;
+
+    /**
+     * Ctor.
+     *
+     * @param raw Raw package identifier string.
+     */
+    public PackageId(final String raw) {
+        this.raw = raw;
+    }
+
+    /**
+     * Get as lowercase string.
+     * See <a href="https://docs.microsoft.com/en-us/dotnet/api/system.string.tolowerinvariant?view=netstandard-2.0#System_String_ToLowerInvariant">.NET's System.String.ToLowerInvariant()</a>.
+     *
+     * @return Id as lowercase string.
+     */
+    public String lower() {
+        return this.raw.toLowerCase(Locale.getDefault());
+    }
+
+    /**
+     * Get key for package versions registry.
+     *
+     * @return Get key for package versions registry.
+     */
+    public Key versionsKey() {
+        return new Key.From(this.lower(), "index.json");
     }
 }
