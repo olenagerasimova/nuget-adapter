@@ -24,7 +24,6 @@
 
 package com.artpie.nuget;
 
-import com.artipie.asto.Key;
 import com.artipie.asto.blocking.BlockingStorage;
 import com.artipie.asto.fs.FileStorage;
 import com.google.common.io.ByteSource;
@@ -59,6 +58,15 @@ class NuspecTest {
     }
 
     @Test
+    void shouldExtractVersion() throws Exception {
+        final Version version = this.nuspec.version();
+        MatcherAssert.assertThat(
+            version.normalized(),
+            Matchers.equalTo("12.0.3")
+        );
+    }
+
+    @Test
     void shouldExtractIdentity() throws Exception {
         final PackageIdentity identity = this.nuspec.identity();
         MatcherAssert.assertThat(
@@ -71,9 +79,8 @@ class NuspecTest {
     void shouldSave(final @TempDir Path temp) throws Exception {
         final BlockingStorage storage = new BlockingStorage(new FileStorage(temp));
         this.nuspec.save(storage);
-        final Key.From key = new Key.From("newtonsoft.json", "12.0.3", this.name);
         MatcherAssert.assertThat(
-            storage.value(key),
+            storage.value(this.nuspec.identity().nuspecKey()),
             Matchers.equalTo(new NewtonJsonResource(this.name).bytes())
         );
     }
