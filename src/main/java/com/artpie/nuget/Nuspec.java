@@ -60,10 +60,7 @@ public final class Nuspec {
      * @throws IOException In case exception occurred on reading document.
      */
     public PackageIdentity identity() throws IOException {
-        return new PackageIdentity(
-            this.packageId(),
-            single(this.xml(), "/ns:package/ns:metadata/ns:version/text()")
-        );
+        return new PackageIdentity(this.packageId(), this.version());
     }
 
     /**
@@ -76,6 +73,17 @@ public final class Nuspec {
         return new PackageId(
             single(this.xml(), "/ns:package/ns:metadata/ns:id/text()")
         );
+    }
+
+    /**
+     * Extract version from document.
+     *
+     * @return Package version.
+     * @throws IOException In case exception occurred on reading document.
+     */
+    public Version version() throws IOException {
+        final String version = single(this.xml(), "/ns:package/ns:metadata/ns:version/text()");
+        return new Version(version);
     }
 
     /**

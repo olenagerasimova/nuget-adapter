@@ -66,6 +66,15 @@ class NuspecTest {
     }
 
     @Test
+    void shouldExtractVersion() throws Exception {
+        final Version version = this.nuspec.version();
+        MatcherAssert.assertThat(
+            version.normalized(),
+            Matchers.equalTo("12.0.3")
+        );
+    }
+
+    @Test
     void shouldExtractIdentity() throws Exception {
         final PackageIdentity identity = this.nuspec.identity();
         MatcherAssert.assertThat(

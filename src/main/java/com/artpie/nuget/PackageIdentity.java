@@ -41,7 +41,7 @@ public final class PackageIdentity {
     /**
      * Package version.
      */
-    private final String version;
+    private final Version version;
 
     /**
      * Ctor.
@@ -49,7 +49,7 @@ public final class PackageIdentity {
      * @param id Package identity.
      * @param version Package version.
      */
-    public PackageIdentity(final PackageId id, final String version) {
+    public PackageIdentity(final PackageId id, final Version version) {
         this.id = id;
         this.version = version;
     }
@@ -62,7 +62,7 @@ public final class PackageIdentity {
     public Key nupkgKey() {
         return new Key.From(
             this.root(),
-            String.format("%s.%s.nupkg", this.id.lower(), this.version)
+            String.format("%s.%s.nupkg", this.id.lower(), this.version.normalized())
         );
     }
 
@@ -74,7 +74,7 @@ public final class PackageIdentity {
     public Key hashKey() {
         return new Key.From(
             this.root(),
-            String.format("%s.%s.nupkg.sha512", this.id.lower(), this.version)
+            String.format("%s.%s.nupkg.sha512", this.id.lower(), this.version.normalized())
         );
     }
 
@@ -93,6 +93,6 @@ public final class PackageIdentity {
      * @return Root key.
      */
     private Key root() {
-        return new Key.From(this.id.lower(), this.version);
+        return new Key.From(this.id.lower(), this.version.normalized());
     }
 }

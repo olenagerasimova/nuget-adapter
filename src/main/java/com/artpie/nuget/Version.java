@@ -24,36 +24,36 @@
 
 package com.artpie.nuget;
 
-import com.artipie.asto.Key;
-import com.artipie.asto.blocking.BlockingStorage;
-import com.artipie.asto.fs.FileStorage;
-import com.google.common.hash.HashCode;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Path;
-import org.hamcrest.MatcherAssert;
-import org.hamcrest.Matchers;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
-
 /**
- * Tests for {@link Hash}.
+ * Version of package.
+ * See <a href="https://docs.microsoft.com/en-us/nuget/concepts/package-versioning">Package versioning</a>.
  *
+ * @todo: normalized() method should actually do normalization as described in docs, see https://docs.microsoft.com/en-us/nuget/concepts/package-versioning#normalized-version-numbers
  * @since 0.1
  */
-class HashTest {
+public final class Version {
 
-    @Test
-    void shouldSave(final @TempDir Path temp) {
-        final String id = "abc";
-        final String version = "0.0.1";
-        final BlockingStorage storage = new BlockingStorage(new FileStorage(temp));
-        new Hash(HashCode.fromString("0123456789abcdef")).save(
-            storage,
-            new PackageIdentity(new PackageId(id), new Version(version))
-        );
-        MatcherAssert.assertThat(
-            storage.value(new Key.From(id, version, "abc.0.0.1.nupkg.sha512")),
-            Matchers.equalTo("ASNFZ4mrze8=".getBytes(StandardCharsets.US_ASCII))
-        );
+    /**
+     * Raw version string.
+     */
+    private final String raw;
+
+    /**
+     * Ctor.
+     *
+     * @param raw Raw version string.
+     */
+    public Version(final String raw) {
+        this.raw = raw;
+    }
+
+    /**
+     * Get normalized version.
+     * See <a href="https://docs.microsoft.com/en-us/nuget/concepts/package-versioning#normalized-version-numbers">Normalized version numbers</a>.
+     *
+     * @return Normalized version string.
+     */
+    public String normalized() {
+        return this.raw;
     }
 }
