@@ -34,7 +34,7 @@ import java.io.IOException;
  *
  * @since 0.1
  */
-public class Repository {
+public final class Repository {
 
     /**
      * The storage.
@@ -63,5 +63,22 @@ public class Repository {
         nupkg.save(this.storage, id);
         nupkg.hash().save(this.storage, id);
         nuspec.save(this.storage);
+    }
+
+    /**
+     * Enumerates package versions.
+     *
+     * @param id Package identifier.
+     * @return Versions of package.
+     */
+    public Versions versions(final PackageId id) {
+        final Key key = id.versionsKey();
+        final Versions versions;
+        if (this.storage.exists(key)) {
+            versions = new Versions(ByteSource.wrap(this.storage.value(key)));
+        } else {
+            versions = new Versions();
+        }
+        return versions;
     }
 }

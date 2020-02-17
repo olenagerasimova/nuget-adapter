@@ -27,9 +27,14 @@ import com.artipie.asto.Key;
 import com.artipie.asto.blocking.BlockingStorage;
 import com.artipie.asto.fs.FileStorage;
 import com.google.common.io.ByteSource;
+import java.io.ByteArrayInputStream;
 import java.nio.file.Path;
+import javax.json.Json;
+import javax.json.JsonArray;
+import javax.json.JsonReader;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -40,12 +45,35 @@ import org.junit.jupiter.api.io.TempDir;
  */
 class VersionsTest {
 
+    /**
+     * Storage used in tests.
+     */
+    private BlockingStorage storage;
+
+    @BeforeEach
+    void init(final @TempDir Path temp) {
+        this.storage = new BlockingStorage(new FileStorage(temp));
+    }
+
     @Test
-    void shouldSave(final @TempDir Path temp) throws Exception {
-        final BlockingStorage storage = new BlockingStorage(new FileStorage(temp));
+    void shouldSave() throws Exception {
         final Key.From key = new Key.From("foo");
         final byte[] data = "data".getBytes();
-        new Versions(ByteSource.wrap(data)).save(storage, key);
-        MatcherAssert.assertThat(storage.value(key), Matchers.equalTo(data));
+        new Versions(ByteSource.wrap(data)).save(this.storage, key);
+        MatcherAssert.assertThat(this.storage.value(key), Matchers.equalTo(data));
+    }
+
+    @Test
+    void shouldSaveEmpty() throws Exception {
+        final Key.From key = new Key.From("bar");
+        new Versions().save(this.storage, key);
+        MatcherAssert.assertThat(this.versions(key), Matchers.empty());
+    }
+
+    private JsonArray versions(final Key key) {
+        final byte[] bytes = this.storage.value(key);
+        try (JsonReader reader = Json.createReader(new ByteArrayInputStream(bytes))) {
+            return reader.readObject().getJsonArray("versions");
+        }
     }
 }
