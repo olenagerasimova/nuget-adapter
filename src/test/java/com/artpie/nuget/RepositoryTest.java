@@ -30,6 +30,7 @@ import com.artipie.asto.fs.FileStorage;
 import java.nio.file.Path;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -73,6 +74,18 @@ class RepositoryTest {
         MatcherAssert.assertThat(
             storage.value(new Key.From(root, nuspec)),
             Matchers.equalTo(new NewtonJsonResource(nuspec).bytes())
+        );
+    }
+
+    @Test
+    void shouldFailToAddInvalidPackage() {
+        final BlockingStorage storage = new BlockingStorage(new FileStorage(this.temp));
+        final Key.From source = new Key.From("invalid");
+        storage.save(source, "not a zip".getBytes());
+        final Repository repository = new Repository(storage);
+        Assertions.assertThrows(
+            InvalidPackageException.class,
+            () -> repository.add(source)
         );
     }
 }
