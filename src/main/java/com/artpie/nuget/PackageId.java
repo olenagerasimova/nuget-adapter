@@ -28,21 +28,21 @@ import com.artipie.asto.Key;
 import java.util.Locale;
 
 /**
- * Package identity.
+ * Package identifier.
  *
  * @since 0.1
  */
 public final class PackageId {
 
     /**
-     * Raw package identity string.
+     * Raw package identifier string.
      */
     private final String raw;
 
     /**
      * Ctor.
      *
-     * @param raw Raw package identity string.
+     * @param raw Raw package identifier string.
      */
     public PackageId(final String raw) {
         this.raw = raw;

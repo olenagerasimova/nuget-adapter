@@ -59,9 +59,8 @@ class NuspecTest {
 
     @Test
     void shouldExtractPackageId() throws Exception {
-        final PackageId id = this.nuspec.packageId();
         MatcherAssert.assertThat(
-            id.lower(),
+            this.nuspec.packageId().lower(),
             Matchers.equalTo("newtonsoft.json")
         );
     }
