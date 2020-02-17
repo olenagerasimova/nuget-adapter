@@ -59,7 +59,7 @@ class NupkgTest {
         final String id = "newtonsoft.json";
         final String version = "12.0.3";
         new Nupkg(ByteSource.wrap(new NewtonJsonResource(this.name).bytes()))
-            .save(storage, new PackageIdentity(id, version));
+            .save(storage, new PackageIdentity(id, new Version(version)));
         MatcherAssert.assertThat(
             storage.value(new Key.From(id, version, this.name)),
             Matchers.equalTo(new NewtonJsonResource(this.name).bytes())
@@ -69,7 +69,7 @@ class NupkgTest {
     @Test
     void shouldCalculateHash(final @TempDir Path temp) throws Exception {
         final BlockingStorage storage = new BlockingStorage(new FileStorage(temp));
-        final PackageIdentity identity = new PackageIdentity("foo", "1.0.0");
+        final PackageIdentity identity = new PackageIdentity("foo", new Version("1.0.0"));
         new Nupkg(ByteSource.wrap("test data".getBytes(StandardCharsets.UTF_8)))
             .hash()
             .save(storage, identity);
