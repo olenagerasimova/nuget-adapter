@@ -40,11 +40,14 @@ public final class Version {
      * @checkstyle StringLiteralsConcatenationCheck (7 lines)
      */
     private static final Pattern PATTERN = Pattern.compile(
-        "(?<major>\\d+)\\.(?<minor>\\d+)"
-            + "(\\.(?<patch>\\d+)(\\.(?<revision>\\d+))?)?"
-            + "(-(?<label>[0-9a-zA-Z\\-]+(\\.[0-9a-zA-Z\\-]+)*))?"
-            + "(\\+(?<metadata>[0-9a-zA-Z\\-]+(\\.[0-9a-zA-Z\\-]+)*))?"
-            + "$"
+        String.join(
+            "",
+            "(?<major>\\d+)\\.(?<minor>\\d+)",
+            "(\\.(?<patch>\\d+)(\\.(?<revision>\\d+))?)?",
+            "(-(?<label>[0-9a-zA-Z\\-]+(\\.[0-9a-zA-Z\\-]+)*))?",
+            "(\\+(?<metadata>[0-9a-zA-Z\\-]+(\\.[0-9a-zA-Z\\-]+)*))?",
+            "$"
+        )
     );
 
     /**
@@ -68,24 +71,23 @@ public final class Version {
      * @return Normalized version string.
      */
     public String normalized() {
-        final String major = this.group("major");
-        final String minor = this.group("minor");
-        final String patch = this.group("patch");
-        final String revision = this.group("revision");
-        final String label = this.group("label");
+        final Matcher matcher = this.matcher();
         final StringBuilder builder = new StringBuilder()
-            .append(removeLeadingZeroes(major))
+            .append(removeLeadingZeroes(matcher.group("major")))
             .append('.')
-            .append(removeLeadingZeroes(minor));
+            .append(removeLeadingZeroes(matcher.group("minor")));
+        final String patch = matcher.group("patch");
         if (patch != null) {
             builder.append('.').append(removeLeadingZeroes(patch));
         }
+        final String revision = matcher.group("revision");
         if (revision != null) {
             final String rev = removeLeadingZeroes(revision);
             if (!rev.equals("0")) {
                 builder.append('.').append(rev);
             }
         }
+        final String label = matcher.group("label");
         if (label != null) {
             builder.append('-').append(label);
         }
@@ -93,19 +95,18 @@ public final class Version {
     }
 
     /**
-     * Get RegEx group by name.
+     * Get RegEx matcher by version pattern.
      *
-     * @param name Group name.
-     * @return Matched value or null if group is not found.
+     * @return Matcher by pattern.
      */
-    private String group(final String name) {
+    private Matcher matcher() {
         final Matcher matcher = PATTERN.matcher(this.raw);
         if (!matcher.find()) {
             throw new IllegalStateException(
                 String.format("Unexpected version format: %s", this.raw)
             );
         }
-        return matcher.group(name);
+        return matcher;
     }
 
     /**
