@@ -85,7 +85,9 @@ class RepositoryTest {
         final Repository repository = new Repository(storage);
         Assertions.assertThrows(
             InvalidPackageException.class,
-            () -> repository.add(source)
+            () -> repository.add(source),
+            // @checkstyle LineLengthCheck (1 line)
+            "Repository expected to throw InvalidPackageException if package is invalid and cannot be added"
         );
     }
 }
