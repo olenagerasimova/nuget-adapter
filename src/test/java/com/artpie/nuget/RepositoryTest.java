@@ -35,6 +35,8 @@ import javax.json.JsonArray;
 import javax.json.JsonReader;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
+import org.hamcrest.collection.IsEmptyCollection;
+import org.hamcrest.core.IsEqual;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -43,6 +45,7 @@ import org.junit.jupiter.api.io.TempDir;
  * Tests for {@link Repository}.
  *
  * @since 0.1
+ * @checkstyle ClassDataAbstractionCouplingCheck (2 lines)
  */
 class RepositoryTest {
 
@@ -98,7 +101,11 @@ class RepositoryTest {
         final Versions versions = this.repository.versions(foo);
         final Key.From bar = new Key.From("bar");
         versions.save(this.storage, bar);
-        MatcherAssert.assertThat(this.storage.value(bar), Matchers.equalTo(bytes));
+        MatcherAssert.assertThat(
+            "Saved versions are not identical to versions initial content",
+            this.storage.value(bar),
+            new IsEqual<>(bytes)
+        );
     }
 
     @Test
@@ -107,7 +114,11 @@ class RepositoryTest {
         final Versions versions = this.repository.versions(pack);
         final Key.From sink = new Key.From("sink");
         versions.save(this.storage, sink);
-        MatcherAssert.assertThat(this.versions(sink), Matchers.empty());
+        MatcherAssert.assertThat(
+            "Versions created from scratch expected to be empty",
+            this.versions(sink),
+            new IsEmptyCollection<>()
+        );
     }
 
     private JsonArray versions(final Key key) {

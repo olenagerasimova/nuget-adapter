@@ -33,7 +33,8 @@ import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonReader;
 import org.hamcrest.MatcherAssert;
-import org.hamcrest.Matchers;
+import org.hamcrest.collection.IsEmptyCollection;
+import org.hamcrest.core.IsEqual;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -60,14 +61,22 @@ class VersionsTest {
         final Key.From key = new Key.From("foo");
         final byte[] data = "data".getBytes();
         new Versions(ByteSource.wrap(data)).save(this.storage, key);
-        MatcherAssert.assertThat(this.storage.value(key), Matchers.equalTo(data));
+        MatcherAssert.assertThat(
+            "Saved versions are not identical to versions initial content",
+            this.storage.value(key),
+            new IsEqual<>(data)
+        );
     }
 
     @Test
     void shouldSaveEmpty() throws Exception {
         final Key.From key = new Key.From("bar");
         new Versions().save(this.storage, key);
-        MatcherAssert.assertThat(this.versions(key), Matchers.empty());
+        MatcherAssert.assertThat(
+            "Versions created from scratch expected to be empty",
+            this.versions(key),
+            new IsEmptyCollection<>()
+        );
     }
 
     private JsonArray versions(final Key key) {
