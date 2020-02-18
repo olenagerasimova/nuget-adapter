@@ -29,10 +29,15 @@ import com.artipie.asto.fs.FileStorage;
 import com.google.common.io.ByteSource;
 import java.io.ByteArrayInputStream;
 import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 import javax.json.Json;
-import javax.json.JsonArray;
 import javax.json.JsonReader;
+import javax.json.JsonString;
 import org.hamcrest.MatcherAssert;
+import org.hamcrest.Matchers;
 import org.hamcrest.collection.IsEmptyCollection;
 import org.hamcrest.core.IsEqual;
 import org.junit.jupiter.api.BeforeEach;
@@ -43,6 +48,7 @@ import org.junit.jupiter.api.io.TempDir;
  * Tests for {@link Versions}.
  *
  * @since 0.1
+ * @checkstyle ClassDataAbstractionCouplingCheck (2 lines)
  */
 class VersionsTest {
 
@@ -54,6 +60,26 @@ class VersionsTest {
     @BeforeEach
     void init(final @TempDir Path temp) {
         this.storage = new BlockingStorage(new FileStorage(temp));
+    }
+
+    @Test
+    void shouldAddVersionWhenEmpty() throws Exception {
+        final Version version = new Version("0.1.0");
+        final List<String> versions = this.addVersionTo("{\"versions\":[]}", version);
+        MatcherAssert.assertThat(
+            versions,
+            Matchers.equalTo(Collections.singletonList(version.normalized()))
+        );
+    }
+
+    @Test
+    void shouldAddVersionWhenNotEmpty() throws Exception {
+        final Version version = new Version("1.1.0");
+        final List<String> versions = this.addVersionTo("{\"versions\":[\"1.0.0\"]}", version);
+        MatcherAssert.assertThat(
+            versions,
+            Matchers.equalTo(Arrays.asList("1.0.0", version.normalized()))
+        );
     }
 
     @Test
@@ -79,10 +105,23 @@ class VersionsTest {
         );
     }
 
-    private JsonArray versions(final Key key) {
+    private List<String> addVersionTo(final String original, final Version version)
+        throws Exception {
+        final Versions versions = new Versions(ByteSource.wrap(original.getBytes()));
+        final Key.From sink = new Key.From("sink");
+        versions.add(version).save(this.storage, sink);
+        return this.versions(sink);
+    }
+
+    private List<String> versions(final Key key) {
         final byte[] bytes = this.storage.value(key);
         try (JsonReader reader = Json.createReader(new ByteArrayInputStream(bytes))) {
-            return reader.readObject().getJsonArray("versions");
+            return reader.readObject()
+                .getJsonArray("versions")
+                .getValuesAs(JsonString.class)
+                .stream()
+                .map(JsonString::getString)
+                .collect(Collectors.toList());
         }
     }
 }
