@@ -109,7 +109,7 @@ class RepositoryTest {
     }
 
     @Test
-    void shouldGetPackageVersionsWhenNonePresent() throws Exception {
+    void shouldGetEmptyPackageVersionsWhenNonePresent() throws Exception {
         final PackageId pack = new PackageId("MyLib");
         final Versions versions = this.repository.versions(pack);
         final Key.From sink = new Key.From("sink");
