@@ -24,14 +24,31 @@
 
 package com.artpie.nuget;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 /**
  * Version of package.
  * See <a href="https://docs.microsoft.com/en-us/nuget/concepts/package-versioning">Package versioning</a>.
  *
- * @todo: normalized() method should actually do normalization as described in docs, see https://docs.microsoft.com/en-us/nuget/concepts/package-versioning#normalized-version-numbers
  * @since 0.1
  */
 public final class Version {
+
+    /**
+     * RegEx pattern for matching version string.
+     * @checkstyle StringLiteralsConcatenationCheck (7 lines)
+     */
+    private static final Pattern PATTERN = Pattern.compile(
+        String.join(
+            "",
+            "(?<major>\\d+)\\.(?<minor>\\d+)",
+            "(\\.(?<patch>\\d+)(\\.(?<revision>\\d+))?)?",
+            "(-(?<label>[0-9a-zA-Z\\-]+(\\.[0-9a-zA-Z\\-]+)*))?",
+            "(\\+(?<metadata>[0-9a-zA-Z\\-]+(\\.[0-9a-zA-Z\\-]+)*))?",
+            "$"
+        )
+    );
 
     /**
      * Raw version string.
@@ -54,6 +71,51 @@ public final class Version {
      * @return Normalized version string.
      */
     public String normalized() {
-        return this.raw;
+        final Matcher matcher = this.matcher();
+        final StringBuilder builder = new StringBuilder()
+            .append(removeLeadingZeroes(matcher.group("major")))
+            .append('.')
+            .append(removeLeadingZeroes(matcher.group("minor")));
+        final String patch = matcher.group("patch");
+        if (patch != null) {
+            builder.append('.').append(removeLeadingZeroes(patch));
+        }
+        final String revision = matcher.group("revision");
+        if (revision != null) {
+            final String rev = removeLeadingZeroes(revision);
+            if (!rev.equals("0")) {
+                builder.append('.').append(rev);
+            }
+        }
+        final String label = matcher.group("label");
+        if (label != null) {
+            builder.append('-').append(label);
+        }
+        return builder.toString();
+    }
+
+    /**
+     * Get RegEx matcher by version pattern.
+     *
+     * @return Matcher by pattern.
+     */
+    private Matcher matcher() {
+        final Matcher matcher = PATTERN.matcher(this.raw);
+        if (!matcher.find()) {
+            throw new IllegalStateException(
+                String.format("Unexpected version format: %s", this.raw)
+            );
+        }
+        return matcher;
+    }
+
+    /**
+     * Removes leading zeroes from a string. Last zero is preserved.
+     *
+     * @param string Original string.
+     * @return String without leading zeroes.
+     */
+    private static String removeLeadingZeroes(final String string) {
+        return string.replaceFirst("^0+(?!$)", "");
     }
 }
