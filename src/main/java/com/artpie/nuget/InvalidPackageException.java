@@ -28,9 +28,8 @@ package com.artpie.nuget;
  *
  * @since 0.1
  */
+@SuppressWarnings("serial")
 public final class InvalidPackageException extends Exception {
-    private static final long serialVersionUID = -1;
-
     /**
      * Ctor.
      *
