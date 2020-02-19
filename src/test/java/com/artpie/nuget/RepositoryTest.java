@@ -37,6 +37,7 @@ import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
 import org.hamcrest.collection.IsEmptyCollection;
 import org.hamcrest.core.IsEqual;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -89,6 +90,18 @@ class RepositoryTest {
         MatcherAssert.assertThat(
             this.storage.value(new Key.From(root, nuspec)),
             Matchers.equalTo(new NewtonJsonResource(nuspec).bytes())
+        );
+    }
+
+    @Test
+    void shouldFailToAddInvalidPackage() {
+        final Key.From source = new Key.From("invalid");
+        this.storage.save(source, "not a zip".getBytes());
+        Assertions.assertThrows(
+            InvalidPackageException.class,
+            () -> this.repository.add(source),
+            // @checkstyle LineLengthCheck (1 line)
+            "Repository expected to throw InvalidPackageException if package is invalid and cannot be added"
         );
     }
 

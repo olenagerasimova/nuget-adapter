@@ -55,11 +55,18 @@ public final class Repository {
      *
      * @param key Key to find content of .nupkg package.
      * @throws IOException In case exception occurred on operations with storage.
+     * @throws InvalidPackageException If package content is invalid and so cannot be added.
      */
-    public void add(final Key key) throws IOException {
+    public void add(final Key key) throws IOException, InvalidPackageException {
         final NuGetPackage nupkg = new Nupkg(ByteSource.wrap(this.storage.value(key)));
-        final Nuspec nuspec = nupkg.nuspec();
-        final PackageIdentity id = nuspec.identity();
+        final Nuspec nuspec;
+        final PackageIdentity id;
+        try {
+            nuspec = nupkg.nuspec();
+            id = nuspec.identity();
+        } catch (final IOException | IllegalArgumentException ex) {
+            throw new InvalidPackageException(ex);
+        }
         nupkg.save(this.storage, id);
         nupkg.hash().save(this.storage, id);
         nuspec.save(this.storage);
