@@ -28,6 +28,7 @@ import com.artipie.asto.Key;
 import com.artipie.asto.blocking.BlockingStorage;
 import com.google.common.io.ByteSource;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 /**
  * NuGet package verion enumeration.
@@ -40,6 +41,17 @@ public final class Versions {
      * Packages registry content.
      */
     private final ByteSource content;
+
+    /**
+     * Ctor.
+     */
+    public Versions() {
+        this(
+            ByteSource.wrap(
+                "{\"versions\":[]}".getBytes(StandardCharsets.US_ASCII)
+            )
+        );
+    }
 
     /**
      * Ctor.

@@ -27,9 +27,17 @@ package com.artpie.nuget;
 import com.artipie.asto.Key;
 import com.artipie.asto.blocking.BlockingStorage;
 import com.artipie.asto.fs.FileStorage;
+import java.io.ByteArrayInputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import javax.json.Json;
+import javax.json.JsonArray;
+import javax.json.JsonReader;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
+import org.hamcrest.collection.IsEmptyCollection;
+import org.hamcrest.core.IsEqual;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -37,32 +45,40 @@ import org.junit.jupiter.api.io.TempDir;
  * Tests for {@link Repository}.
  *
  * @since 0.1
+ * @checkstyle ClassDataAbstractionCouplingCheck (2 lines)
  */
 class RepositoryTest {
 
-    // @checkstyle VisibilityModifierCheck (5 lines)
     /**
-     * Temporary directory.
+     * Storage used in tests.
      */
-    @TempDir
-    Path temp;
+    private BlockingStorage storage;
+
+    /**
+     * Repository to test.
+     */
+    private Repository repository;
+
+    @BeforeEach
+    void init(final @TempDir Path temp) {
+        this.storage = new BlockingStorage(new FileStorage(temp));
+        this.repository = new Repository(this.storage);
+    }
 
     @Test
     void shouldAddPackage() throws Exception {
-        final BlockingStorage storage = new BlockingStorage(new FileStorage(this.temp));
         final Key.From source = new Key.From("package.zip");
         final String nupkg = "newtonsoft.json.12.0.3.nupkg";
-        storage.save(source, new NewtonJsonResource(nupkg).bytes());
-        final Repository repository = new Repository(storage);
-        repository.add(source);
+        this.storage.save(source, new NewtonJsonResource(nupkg).bytes());
+        this.repository.add(source);
         final Key.From root = new Key.From("newtonsoft.json", "12.0.3");
         MatcherAssert.assertThat(
-            storage.value(new Key.From(root, nupkg)),
+            this.storage.value(new Key.From(root, nupkg)),
             Matchers.equalTo(new NewtonJsonResource(nupkg).bytes())
         );
         MatcherAssert.assertThat(
             new String(
-                storage.value(new Key.From(root, "newtonsoft.json.12.0.3.nupkg.sha512"))
+                this.storage.value(new Key.From(root, "newtonsoft.json.12.0.3.nupkg.sha512"))
             ),
             Matchers.equalTo(
                 // @checkstyle LineLength (1 lines)
@@ -71,8 +87,44 @@ class RepositoryTest {
         );
         final String nuspec = "newtonsoft.json.nuspec";
         MatcherAssert.assertThat(
-            storage.value(new Key.From(root, nuspec)),
+            this.storage.value(new Key.From(root, nuspec)),
             Matchers.equalTo(new NewtonJsonResource(nuspec).bytes())
         );
+    }
+
+    @Test
+    void shouldGetPackageVersions() throws Exception {
+        final byte[] bytes = "{\"versions\":[\"1.0.0\",\"1.0.1\"]}"
+            .getBytes(StandardCharsets.US_ASCII);
+        final PackageId foo = new PackageId("Foo");
+        this.storage.save(foo.versionsKey(), bytes);
+        final Versions versions = this.repository.versions(foo);
+        final Key.From bar = new Key.From("bar");
+        versions.save(this.storage, bar);
+        MatcherAssert.assertThat(
+            "Saved versions are not identical to versions initial content",
+            this.storage.value(bar),
+            new IsEqual<>(bytes)
+        );
+    }
+
+    @Test
+    void shouldGetEmptyPackageVersionsWhenNonePresent() throws Exception {
+        final PackageId pack = new PackageId("MyLib");
+        final Versions versions = this.repository.versions(pack);
+        final Key.From sink = new Key.From("sink");
+        versions.save(this.storage, sink);
+        MatcherAssert.assertThat(
+            "Versions created from scratch expected to be empty",
+            this.versions(sink),
+            new IsEmptyCollection<>()
+        );
+    }
+
+    private JsonArray versions(final Key key) {
+        final byte[] bytes = this.storage.value(key);
+        try (JsonReader reader = Json.createReader(new ByteArrayInputStream(bytes))) {
+            return reader.readObject().getJsonArray("versions");
+        }
     }
 }
