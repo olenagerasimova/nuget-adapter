@@ -131,13 +131,11 @@ public final class Versions {
      * @return Serialized JSON object.
      */
     private static ByteSource bytes(final JsonObject json) {
-        try {
-            try (ByteArrayOutputStream out = new ByteArrayOutputStream();
-                JsonWriter writer = Json.createWriter(out)) {
-                writer.writeObject(json);
-                out.flush();
-                return ByteSource.wrap(out.toByteArray());
-            }
+        try (ByteArrayOutputStream out = new ByteArrayOutputStream();
+            JsonWriter writer = Json.createWriter(out)) {
+            writer.writeObject(json);
+            out.flush();
+            return ByteSource.wrap(out.toByteArray());
         } catch (final IOException ex) {
             throw new IllegalStateException("Failed to serialize JSON to bytes", ex);
         }
