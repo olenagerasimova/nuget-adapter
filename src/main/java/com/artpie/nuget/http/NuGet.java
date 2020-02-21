@@ -27,6 +27,7 @@ import com.artipie.http.Response;
 import com.artipie.http.Slice;
 import com.artipie.http.rq.RequestLineFrom;
 import com.artipie.http.rs.RsWithStatus;
+import java.net.HttpURLConnection;
 import java.nio.ByteBuffer;
 import java.util.Map;
 import java.util.concurrent.Flow;
@@ -35,7 +36,6 @@ import java.util.concurrent.Flow;
  * NuGet repository HTTP front end.
  *
  * @since 0.1
- * @todo #19:30min Replace HTTP status magic numbers.
  */
 public final class NuGet implements Slice {
 
@@ -67,12 +67,10 @@ public final class NuGet implements Slice {
             if (request.method().equals("GET")) {
                 response = resource.get();
             } else {
-                final int notallowed = 405;
-                response = new RsWithStatus(notallowed);
+                response = new RsWithStatus(HttpURLConnection.HTTP_BAD_METHOD);
             }
         } else {
-            final int notfound = 404;
-            response = new RsWithStatus(notfound);
+            response = new RsWithStatus(HttpURLConnection.HTTP_NOT_FOUND);
         }
         return response;
     }

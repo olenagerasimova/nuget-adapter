@@ -26,6 +26,7 @@ package com.artpie.nuget.http;
 import com.artipie.http.Response;
 import com.artipie.http.hm.RsHasStatus;
 import io.reactivex.Flowable;
+import java.net.HttpURLConnection;
 import java.util.Collections;
 import org.hamcrest.MatcherAssert;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,7 +37,6 @@ import org.reactivestreams.FlowAdapters;
  * Tests for {@link NuGet}.
  *
  * @since 0.1
- * @todo #19:30min Replace HTTP status magic numbers.
  */
 class NuGetTest {
 
@@ -57,11 +57,10 @@ class NuGetTest {
             Collections.emptyList(),
             FlowAdapters.toFlowPublisher(Flowable.empty())
         );
-        final int notfound = 404;
         MatcherAssert.assertThat(
             "Resources from outside of base path should not be found",
             response,
-            new RsHasStatus(notfound)
+            new RsHasStatus(HttpURLConnection.HTTP_NOT_FOUND)
         );
     }
 
@@ -72,11 +71,10 @@ class NuGetTest {
             Collections.emptyList(),
             FlowAdapters.toFlowPublisher(Flowable.empty())
         );
-        final int notallowed = 405;
         MatcherAssert.assertThat(
             "Package content cannot be put",
             response,
-            new RsHasStatus(notallowed)
+            new RsHasStatus(HttpURLConnection.HTTP_BAD_METHOD)
         );
     }
 }
