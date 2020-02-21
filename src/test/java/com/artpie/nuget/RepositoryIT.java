@@ -27,11 +27,14 @@ package com.artpie.nuget;
 import com.artipie.asto.Key;
 import com.artipie.asto.blocking.BlockingStorage;
 import com.artipie.asto.fs.FileStorage;
+import com.google.common.collect.ImmutableList;
 import com.jcabi.log.Logger;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -49,24 +52,62 @@ class RepositoryIT {
     @TempDir
     Path temp;
 
+    /**
+     * Path to NuGet repository directory.
+     */
+    private Path repo;
+
+    @BeforeEach
+    void setUp() {
+        this.repo = this.temp.resolve("repo");
+    }
+
     @Test
-    void shouldAddPackage() throws Exception {
-        final Path repo = this.temp.resolve("repo");
-        final BlockingStorage storage = new BlockingStorage(new FileStorage(repo));
+    void shouldInstallAddedPackage() throws Exception {
+        this.addPackage();
+        MatcherAssert.assertThat(
+            run(
+                "install",
+                "newtonsoft.json", "-Version", "12.0.3",
+                "-NoCache"
+            ),
+            Matchers.containsString("Successfully installed 'newtonsoft.json 12.0.3'")
+        );
+    }
+
+    @Test
+    void shouldListAddedPackage() throws Exception {
+        this.addPackage();
+        MatcherAssert.assertThat(
+            run(
+                "list",
+                "Newtonsoft.Json",
+                "-AllVersions"
+            ),
+            Matchers.containsString("Newtonsoft.Json 12.0.3")
+        );
+    }
+
+    private void addPackage() throws Exception {
+        final BlockingStorage storage = new BlockingStorage(new FileStorage(this.repo));
         final Key.From source = new Key.From("package.zip");
         storage.save(source, new NewtonJsonResource("newtonsoft.json.12.0.3.nupkg").bytes());
         final Repository repository = new Repository(storage);
         repository.add(source);
+    }
+
+    private String run(final String... args) throws IOException, InterruptedException {
         final Path stdout = this.temp.resolve("stdout.txt");
         final Path project = this.temp.resolve("project");
         Files.createDirectory(project);
         new ProcessBuilder()
             .directory(project.toFile())
             .command(
-                "nuget", "install",
-                "newtonsoft.json", "-Version", "12.0.3",
-                "-NoCache",
-                "-Source", repo.toString()
+                ImmutableList.<String>builder()
+                    .add("nuget")
+                    .add(args)
+                    .add("-Source", this.repo.toString())
+                    .build()
             )
             .redirectOutput(stdout.toFile())
             .redirectErrorStream(true)
@@ -74,9 +115,6 @@ class RepositoryIT {
             .waitFor();
         final String log = new String(Files.readAllBytes(stdout));
         Logger.debug(this, "Full stdout/stderr:\n%s", log);
-        MatcherAssert.assertThat(
-            log,
-            Matchers.containsString("Successfully installed 'newtonsoft.json 12.0.3'")
-        );
+        return log;
     }
 }
