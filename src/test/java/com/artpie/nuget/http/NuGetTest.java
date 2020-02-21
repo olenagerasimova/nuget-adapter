@@ -57,7 +57,11 @@ class NuGetTest {
             FlowAdapters.toFlowPublisher(Flowable.empty())
         );
         final int notfound = 404;
-        MatcherAssert.assertThat(response, new RsHasStatus(notfound));
+        MatcherAssert.assertThat(
+            "Resources from outside of base path should not be found",
+            response,
+            new RsHasStatus(notfound)
+        );
     }
 
     @Test
@@ -68,6 +72,10 @@ class NuGetTest {
             FlowAdapters.toFlowPublisher(Flowable.empty())
         );
         final int notallowed = 405;
-        MatcherAssert.assertThat(response, new RsHasStatus(notallowed));
+        MatcherAssert.assertThat(
+            "Package content cannot be put",
+            response,
+            new RsHasStatus(notallowed)
+        );
     }
 }
