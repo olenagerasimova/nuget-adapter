@@ -36,6 +36,7 @@ import org.reactivestreams.FlowAdapters;
  * Tests for {@link NuGet}.
  *
  * @since 0.1
+ * @todo #19:30min Replace HTTP status magic numbers.
  */
 class NuGetTest {
 

@@ -35,6 +35,7 @@ import java.util.concurrent.Flow;
  * NuGet repository HTTP front end.
  *
  * @since 0.1
+ * @todo #19:30min Replace HTTP status magic numbers.
  */
 public final class NuGet implements Slice {
 
