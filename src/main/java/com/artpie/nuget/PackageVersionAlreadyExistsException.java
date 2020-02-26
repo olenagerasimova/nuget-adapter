@@ -31,4 +31,13 @@ package com.artpie.nuget;
  */
 @SuppressWarnings("serial")
 public final class PackageVersionAlreadyExistsException extends Exception {
+
+    /**
+     * Ctor.
+     *
+     * @param message Exception details message.
+     */
+    public PackageVersionAlreadyExistsException(final String message) {
+        super(message);
+    }
 }

@@ -95,4 +95,9 @@ public final class PackageIdentity {
     public Key rootKey() {
         return new Key.From(this.id.lower(), this.version.normalized());
     }
+
+    @Override
+    public String toString() {
+        return String.format("Package: '%s' Version: '%s'", this.id, this.version);
+    }
 }

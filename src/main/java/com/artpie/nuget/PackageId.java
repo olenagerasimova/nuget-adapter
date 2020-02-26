@@ -66,4 +66,9 @@ public final class PackageId {
     public Key versionsKey() {
         return new Key.From(this.lower(), "index.json");
     }
+
+    @Override
+    public String toString() {
+        return this.raw;
+    }
 }

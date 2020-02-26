@@ -70,7 +70,7 @@ public final class Repository {
             throw new InvalidPackageException(ex);
         }
         if (!this.storage.list(id.rootKey()).isEmpty()) {
-            throw new PackageVersionAlreadyExistsException();
+            throw new PackageVersionAlreadyExistsException(id.toString());
         }
         nupkg.save(this.storage, id);
         nupkg.hash().save(this.storage, id);
