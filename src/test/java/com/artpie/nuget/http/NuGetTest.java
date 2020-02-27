@@ -33,9 +33,10 @@ import com.artipie.http.hm.RsHasStatus;
 import io.reactivex.Flowable;
 import java.net.HttpURLConnection;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.Collections;
 import org.hamcrest.MatcherAssert;
-import org.hamcrest.Matchers;
+import org.hamcrest.core.AllOf;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -77,9 +78,11 @@ class NuGetTest {
                 Collections.emptyList(),
                 Flowable.empty()
             ),
-            Matchers.allOf(
-                new RsHasStatus(HttpURLConnection.HTTP_OK),
-                new RsHasBody(data)
+            new AllOf<>(
+                Arrays.asList(
+                    new RsHasStatus(HttpURLConnection.HTTP_OK),
+                    new RsHasBody(data)
+                )
             )
         );
     }
