@@ -94,6 +94,11 @@ public final class Version {
         return builder.toString();
     }
 
+    @Override
+    public String toString() {
+        return this.raw;
+    }
+
     /**
      * Get RegEx matcher by version pattern.
      *
