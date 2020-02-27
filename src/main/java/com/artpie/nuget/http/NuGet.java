@@ -63,8 +63,7 @@ public final class NuGet implements Slice {
         final RequestLineFrom request = new RequestLineFrom(line);
         final String path = request.uri().getPath();
         if (path.startsWith(this.base)) {
-            final String relative = path.substring(this.base.length());
-            final Resource resource = NuGet.resource(relative);
+            final Resource resource = NuGet.resource(path.substring(this.base.length()));
             final String method = request.method();
             if (method.equals("GET")) {
                 response = resource.get();

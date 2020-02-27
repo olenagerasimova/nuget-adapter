@@ -79,7 +79,7 @@ class NuGetTest {
     }
 
     @Test
-    void shouldFailGetRootNotBasePath() {
+    void shouldFailGetRootFromNotBasePath() {
         final Response response = this.nuget.response(
             "GET /not-base",
             Collections.emptyList(),
