@@ -44,6 +44,14 @@ public class PackageIdentityTest {
     );
 
     @Test
+    void shouldGenerateRootKey() {
+        MatcherAssert.assertThat(
+            this.identity.rootKey().string(),
+            Matchers.is("newtonsoft.json/12.0.3")
+        );
+    }
+
+    @Test
     void shouldGenerateNupkgKey() {
         MatcherAssert.assertThat(
             this.identity.nupkgKey().string(),
