@@ -70,13 +70,13 @@ class NuGetTest {
             new Key.From("package", "1.0.0", "content.nupkg"),
             data
         );
-        final Response response = this.nuget.response(
-            "GET /base/package/1.0.0/content.nupkg",
-            Collections.emptyList(),
-            Flowable.empty()
-        );
         MatcherAssert.assertThat(
-            response,
+            "Package content should be returned in response",
+            this.nuget.response(
+                "GET /base/package/1.0.0/content.nupkg",
+                Collections.emptyList(),
+                Flowable.empty()
+            ),
             Matchers.allOf(
                 new RsHasStatus(HttpURLConnection.HTTP_OK),
                 new RsHasBody(data)
@@ -100,12 +100,15 @@ class NuGetTest {
 
     @Test
     void shouldFailGetPackageContentWhenNotExists() {
-        final Response response = this.nuget.response(
-            "GET /base/package/1.0.0/logo.png",
-            Collections.emptyList(),
-            Flowable.empty()
+        MatcherAssert.assertThat(
+            "Not existing content should not be found",
+            this.nuget.response(
+                "GET /base/package/1.0.0/logo.png",
+                Collections.emptyList(),
+                Flowable.empty()
+            ),
+            new RsHasStatus(HttpURLConnection.HTTP_NOT_FOUND)
         );
-        MatcherAssert.assertThat(response, new RsHasStatus(HttpURLConnection.HTTP_NOT_FOUND));
     }
 
     @Test
