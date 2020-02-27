@@ -71,19 +71,18 @@ class RepositoryTest {
     @Test
     void shouldAddPackage() throws Exception {
         final Key.From source = new Key.From("package.zip");
-        final String nupkg = "newtonsoft.json.12.0.3.nupkg";
-        this.storage.save(source, new NewtonJsonResource(nupkg).bytes());
+        this.storage.save(source, this.nupkg().bytes());
         this.repository.add(source);
+        final PackageId id = new PackageId("newtonsoft.json");
         final String version = "12.0.3";
-        final String pack = "newtonsoft.json";
-        final Key.From root = new Key.From(pack, version);
+        final PackageIdentity identity = new PackageIdentity(id, new Version(version));
         MatcherAssert.assertThat(
-            this.storage.value(new Key.From(root, nupkg)),
-            Matchers.equalTo(new NewtonJsonResource(nupkg).bytes())
+            this.storage.value(identity.nupkgKey()),
+            Matchers.equalTo(this.nupkg().bytes())
         );
         MatcherAssert.assertThat(
             new String(
-                this.storage.value(new Key.From(root, "newtonsoft.json.12.0.3.nupkg.sha512"))
+                this.storage.value(identity.hashKey())
             ),
             Matchers.equalTo(
                 // @checkstyle LineLength (1 lines)
@@ -92,11 +91,11 @@ class RepositoryTest {
         );
         final String nuspec = "newtonsoft.json.nuspec";
         MatcherAssert.assertThat(
-            this.storage.value(new Key.From(root, nuspec)),
+            this.storage.value(identity.nuspecKey()),
             Matchers.equalTo(new NewtonJsonResource(nuspec).bytes())
         );
         MatcherAssert.assertThat(
-            this.versions(new Key.From(pack, "index.json")),
+            this.versions(id.versionsKey()),
             Matchers.contains(version)
         );
     }
@@ -142,6 +141,17 @@ class RepositoryTest {
         );
     }
 
+    @Test
+    void shouldFailToAddPackageWhenItAlreadyExists() throws Exception {
+        final Key.From source = new Key.From("tmp");
+        this.storage.save(source, this.nupkg().bytes());
+        this.repository.add(source);
+        Assertions.assertThrows(
+            PackageVersionAlreadyExistsException.class,
+            () -> this.repository.add(source)
+        );
+    }
+
     private List<String> versions(final Key key) {
         final byte[] bytes = this.storage.value(key);
         try (JsonReader reader = Json.createReader(new ByteArrayInputStream(bytes))) {
@@ -152,5 +162,9 @@ class RepositoryTest {
                 .map(JsonString::getString)
                 .collect(Collectors.toList());
         }
+    }
+
+    private NewtonJsonResource nupkg() {
+        return new NewtonJsonResource("newtonsoft.json.12.0.3.nupkg");
     }
 }

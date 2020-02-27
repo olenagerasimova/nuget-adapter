@@ -21,54 +21,23 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-
 package com.artpie.nuget;
 
-import com.artipie.asto.Key;
-import java.util.Locale;
-
 /**
- * Package identifier.
+ * Exception indicates that package version cannot be added,
+ * because it is already exists in the storage.
  *
  * @since 0.1
  */
-public final class PackageId {
-
-    /**
-     * Raw package identifier string.
-     */
-    private final String raw;
+@SuppressWarnings("serial")
+public final class PackageVersionAlreadyExistsException extends Exception {
 
     /**
      * Ctor.
      *
-     * @param raw Raw package identifier string.
+     * @param message Exception details message.
      */
-    public PackageId(final String raw) {
-        this.raw = raw;
-    }
-
-    /**
-     * Get as lowercase string.
-     * See <a href="https://docs.microsoft.com/en-us/dotnet/api/system.string.tolowerinvariant?view=netstandard-2.0#System_String_ToLowerInvariant">.NET's System.String.ToLowerInvariant()</a>.
-     *
-     * @return Id as lowercase string.
-     */
-    public String lower() {
-        return this.raw.toLowerCase(Locale.getDefault());
-    }
-
-    /**
-     * Get key for package versions registry.
-     *
-     * @return Get key for package versions registry.
-     */
-    public Key versionsKey() {
-        return new Key.From(this.lower(), "index.json");
-    }
-
-    @Override
-    public String toString() {
-        return this.raw;
+    public PackageVersionAlreadyExistsException(final String message) {
+        super(message);
     }
 }
