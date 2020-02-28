@@ -74,6 +74,11 @@ public final class PackageContent implements Resource {
         return response;
     }
 
+    @Override
+    public Response put() {
+        return new RsWithStatus(HttpURLConnection.HTTP_BAD_METHOD);
+    }
+
     /**
      * Serve GET method async.
      *

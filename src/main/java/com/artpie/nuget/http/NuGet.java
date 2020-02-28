@@ -70,10 +70,12 @@ public final class NuGet implements Slice {
         final RequestLineFrom request = new RequestLineFrom(line);
         final String path = request.uri().getPath();
         if (path.startsWith(this.base)) {
-            final String relative = path.substring(this.base.length());
-            final Resource resource = new PackageContent(relative, this.storage);
-            if (request.method().equals("GET")) {
+            final Resource resource = this.resource(path.substring(this.base.length()));
+            final String method = request.method();
+            if (method.equals("GET")) {
                 response = resource.get();
+            } else if (method.equals("PUT")) {
+                response = resource.put();
             } else {
                 response = new RsWithStatus(HttpURLConnection.HTTP_BAD_METHOD);
             }
@@ -81,5 +83,21 @@ public final class NuGet implements Slice {
             response = new RsWithStatus(HttpURLConnection.HTTP_NOT_FOUND);
         }
         return response;
+    }
+
+    /**
+     * Find resource by relative path.
+     *
+     * @param path Relative path.
+     * @return Resource found by path.
+     */
+    private Resource resource(final String path) {
+        final Resource resource;
+        if (path.isEmpty()) {
+            resource = new Root();
+        } else {
+            resource = new PackageContent(path, this.storage);
+        }
+        return resource;
     }
 }
