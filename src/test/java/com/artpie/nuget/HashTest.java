@@ -26,14 +26,12 @@ package com.artpie.nuget;
 
 import com.artipie.asto.Key;
 import com.artipie.asto.blocking.BlockingStorage;
-import com.artipie.asto.fs.FileStorage;
+import com.artipie.asto.memory.InMemoryStorage;
 import com.google.common.hash.HashCode;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Path;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 
 /**
  * Tests for {@link Hash}.
@@ -43,10 +41,10 @@ import org.junit.jupiter.api.io.TempDir;
 class HashTest {
 
     @Test
-    void shouldSave(final @TempDir Path temp) {
+    void shouldSave() {
         final String id = "abc";
         final String version = "0.0.1";
-        final BlockingStorage storage = new BlockingStorage(new FileStorage(temp));
+        final BlockingStorage storage = new BlockingStorage(new InMemoryStorage());
         new Hash(HashCode.fromString("0123456789abcdef")).save(
             storage,
             new PackageIdentity(new PackageId(id), new Version(version))

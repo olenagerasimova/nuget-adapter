@@ -25,14 +25,12 @@
 package com.artpie.nuget;
 
 import com.artipie.asto.blocking.BlockingStorage;
-import com.artipie.asto.fs.FileStorage;
+import com.artipie.asto.memory.InMemoryStorage;
 import com.google.common.io.ByteSource;
-import java.nio.file.Path;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 
 /**
  * Tests for {@link Nuspec}.
@@ -84,8 +82,8 @@ class NuspecTest {
     }
 
     @Test
-    void shouldSave(final @TempDir Path temp) throws Exception {
-        final BlockingStorage storage = new BlockingStorage(new FileStorage(temp));
+    void shouldSave() throws Exception {
+        final BlockingStorage storage = new BlockingStorage(new InMemoryStorage());
         this.nuspec.save(storage);
         MatcherAssert.assertThat(
             storage.value(this.nuspec.identity().nuspecKey()),
