@@ -25,13 +25,12 @@ package com.artpie.nuget.http;
 
 import com.artipie.http.Response;
 import com.artipie.http.hm.RsHasStatus;
+import com.artipie.http.rs.RsStatus;
 import io.reactivex.Flowable;
-import java.net.HttpURLConnection;
 import java.util.Collections;
 import org.hamcrest.MatcherAssert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.reactivestreams.FlowAdapters;
 
 /**
  * Tests for {@link NuGet}.
@@ -55,12 +54,12 @@ class NuGetTest {
         final Response response = this.nuget.response(
             "GET /not-base/package/1.0.0/content.nupkg",
             Collections.emptyList(),
-            FlowAdapters.toFlowPublisher(Flowable.empty())
+            Flowable.empty()
         );
         MatcherAssert.assertThat(
             "Resources from outside of base path should not be found",
             response,
-            new RsHasStatus(HttpURLConnection.HTTP_NOT_FOUND)
+            new RsHasStatus(RsStatus.NOT_FOUND)
         );
     }
 
@@ -69,12 +68,12 @@ class NuGetTest {
         final Response response = this.nuget.response(
             "PUT /base/package/1.0.0/content.nupkg",
             Collections.emptyList(),
-            FlowAdapters.toFlowPublisher(Flowable.empty())
+            Flowable.empty()
         );
         MatcherAssert.assertThat(
             "Package content cannot be put",
             response,
-            new RsHasStatus(HttpURLConnection.HTTP_BAD_METHOD)
+            new RsHasStatus(RsStatus.METHOD_NOT_ALLOWED)
         );
     }
 
@@ -83,9 +82,9 @@ class NuGetTest {
         final Response response = this.nuget.response(
             "GET /not-base",
             Collections.emptyList(),
-            FlowAdapters.toFlowPublisher(Flowable.empty())
+            Flowable.empty()
         );
-        MatcherAssert.assertThat(response, new RsHasStatus(HttpURLConnection.HTTP_NOT_FOUND));
+        MatcherAssert.assertThat(response, new RsHasStatus(RsStatus.NOT_FOUND));
     }
 
     @Test
@@ -93,8 +92,8 @@ class NuGetTest {
         final Response response = this.nuget.response(
             "GET /base",
             Collections.emptyList(),
-            FlowAdapters.toFlowPublisher(Flowable.empty())
+            Flowable.empty()
         );
-        MatcherAssert.assertThat(response, new RsHasStatus(HttpURLConnection.HTTP_BAD_METHOD));
+        MatcherAssert.assertThat(response, new RsHasStatus(RsStatus.METHOD_NOT_ALLOWED));
     }
 }

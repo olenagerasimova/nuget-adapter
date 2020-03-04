@@ -26,11 +26,12 @@ package com.artpie.nuget.http;
 import com.artipie.http.Response;
 import com.artipie.http.Slice;
 import com.artipie.http.rq.RequestLineFrom;
+import com.artipie.http.rq.RqMethod;
+import com.artipie.http.rs.RsStatus;
 import com.artipie.http.rs.RsWithStatus;
-import java.net.HttpURLConnection;
 import java.nio.ByteBuffer;
 import java.util.Map;
-import java.util.concurrent.Flow;
+import org.reactivestreams.Publisher;
 
 /**
  * NuGet repository HTTP front end.
@@ -57,23 +58,23 @@ public final class NuGet implements Slice {
     public Response response(
         final String line,
         final Iterable<Map.Entry<String, String>> headers,
-        final Flow.Publisher<ByteBuffer> body
+        final Publisher<ByteBuffer> body
     ) {
         final Response response;
         final RequestLineFrom request = new RequestLineFrom(line);
         final String path = request.uri().getPath();
         if (path.startsWith(this.base)) {
             final Resource resource = NuGet.resource(path.substring(this.base.length()));
-            final String method = request.method();
-            if (method.equals("GET")) {
+            final RqMethod method = request.method();
+            if (method.equals(RqMethod.GET)) {
                 response = resource.get();
-            } else if (method.equals("PUT")) {
+            } else if (method.equals(RqMethod.PUT)) {
                 response = resource.put();
             } else {
-                response = new RsWithStatus(HttpURLConnection.HTTP_BAD_METHOD);
+                response = new RsWithStatus(RsStatus.METHOD_NOT_ALLOWED);
             }
         } else {
-            response = new RsWithStatus(HttpURLConnection.HTTP_NOT_FOUND);
+            response = new RsWithStatus(RsStatus.NOT_FOUND);
         }
         return response;
     }
