@@ -40,6 +40,7 @@ import org.reactivestreams.Publisher;
  * See <a href="https://docs.microsoft.com/en-us/nuget/api/package-publish-resource#push-a-package">Push a package</a>
  *
  * @since 0.1
+ * @todo Migrate to HTTP 0.5+ and use async Response, put() method should become non-blocking.
  */
 public final class Root implements Resource {
 
