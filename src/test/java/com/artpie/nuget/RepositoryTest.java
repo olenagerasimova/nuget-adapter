@@ -26,10 +26,9 @@ package com.artpie.nuget;
 
 import com.artipie.asto.Key;
 import com.artipie.asto.blocking.BlockingStorage;
-import com.artipie.asto.fs.FileStorage;
+import com.artipie.asto.memory.InMemoryStorage;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Path;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.json.Json;
@@ -42,7 +41,6 @@ import org.hamcrest.core.IsEqual;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 
 /**
  * Tests for {@link Repository}.
@@ -63,8 +61,8 @@ class RepositoryTest {
     private Repository repository;
 
     @BeforeEach
-    void init(final @TempDir Path temp) {
-        this.storage = new BlockingStorage(new FileStorage(temp));
+    void init() {
+        this.storage = new BlockingStorage(new InMemoryStorage());
         this.repository = new Repository(this.storage);
     }
 
