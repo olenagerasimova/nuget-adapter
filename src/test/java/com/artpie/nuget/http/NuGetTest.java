@@ -23,20 +23,18 @@
  */
 package com.artpie.nuget.http;
 
-import com.artipie.asto.fs.FileStorage;
+import com.artipie.asto.memory.InMemoryStorage;
 import com.artipie.http.Response;
 import com.artipie.http.hm.RsHasStatus;
+import com.artipie.http.rs.RsStatus;
 import com.google.common.io.Resources;
 import io.reactivex.Flowable;
-import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.ByteBuffer;
-import java.nio.file.Path;
 import java.util.Collections;
 import org.hamcrest.MatcherAssert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 
 /**
  * Tests for {@link NuGet}.
@@ -51,8 +49,8 @@ class NuGetTest {
     private NuGet nuget;
 
     @BeforeEach
-    void init(final @TempDir Path temp) {
-        this.nuget = new NuGet("/base", new FileStorage(temp));
+    void init() {
+        this.nuget = new NuGet("/base", new InMemoryStorage());
     }
 
     @Test
@@ -65,7 +63,7 @@ class NuGetTest {
         MatcherAssert.assertThat(
             "Resources from outside of base path should not be found",
             response,
-            new RsHasStatus(HttpURLConnection.HTTP_NOT_FOUND)
+            new RsHasStatus(RsStatus.NOT_FOUND)
         );
     }
 
@@ -79,7 +77,7 @@ class NuGetTest {
         MatcherAssert.assertThat(
             "Package content cannot be put",
             response,
-            new RsHasStatus(HttpURLConnection.HTTP_BAD_METHOD)
+            new RsHasStatus(RsStatus.METHOD_NOT_ALLOWED)
         );
     }
 
@@ -92,7 +90,7 @@ class NuGetTest {
         );
         MatcherAssert.assertThat(
             response,
-            new RsHasStatus(HttpURLConnection.HTTP_CREATED)
+            new RsHasStatus(RsStatus.CREATED)
         );
     }
 
@@ -103,7 +101,7 @@ class NuGetTest {
             Collections.emptyList(),
             Flowable.empty()
         );
-        MatcherAssert.assertThat(response, new RsHasStatus(HttpURLConnection.HTTP_NOT_FOUND));
+        MatcherAssert.assertThat(response, new RsHasStatus(RsStatus.NOT_FOUND));
     }
 
     @Test
@@ -113,7 +111,7 @@ class NuGetTest {
             Collections.emptyList(),
             Flowable.empty()
         );
-        MatcherAssert.assertThat(response, new RsHasStatus(HttpURLConnection.HTTP_BAD_METHOD));
+        MatcherAssert.assertThat(response, new RsHasStatus(RsStatus.METHOD_NOT_ALLOWED));
     }
 
     private static Flowable<ByteBuffer> nupkg() throws Exception {

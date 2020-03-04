@@ -27,12 +27,11 @@ package com.artpie.nuget.http;
 import com.artipie.asto.Key;
 import com.artipie.asto.Storage;
 import com.artipie.http.Response;
+import com.artipie.http.rs.RsStatus;
 import com.artipie.http.rs.RsWithStatus;
-import java.net.HttpURLConnection;
 import java.nio.ByteBuffer;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import org.reactivestreams.Publisher;
 
 /**
@@ -40,7 +39,6 @@ import org.reactivestreams.Publisher;
  * See <a href="https://docs.microsoft.com/en-us/nuget/api/package-publish-resource#push-a-package">Push a package</a>
  *
  * @since 0.1
- * @todo Migrate to HTTP 0.5+ and use async Response, put() method should become non-blocking.
  */
 public final class Root implements Resource {
 
@@ -60,32 +58,16 @@ public final class Root implements Resource {
 
     @Override
     public Response get() {
-        return new RsWithStatus(HttpURLConnection.HTTP_BAD_METHOD);
+        return new RsWithStatus(RsStatus.METHOD_NOT_ALLOWED);
     }
 
     @Override
     public Response put(final Publisher<ByteBuffer> body) {
-        Response response;
-        try {
-            response = this.putAsync(body).get();
-        } catch (final InterruptedException | ExecutionException ex) {
-            response = new RsWithStatus(HttpURLConnection.HTTP_INTERNAL_ERROR);
-        }
-        return response;
-    }
-
-    /**
-     * Serve PUT method async.
-     *
-     * @param body Request body.
-     * @return Response to request.
-     */
-    private CompletableFuture<Response> putAsync(final Publisher<ByteBuffer> body) {
-        return CompletableFuture
+        return connection -> CompletableFuture
             .supplyAsync(() -> new Key.From(UUID.randomUUID().toString()))
             .thenCompose(
-                key -> this.storage.save(key, body).thenApply(
-                    ignored -> new RsWithStatus(HttpURLConnection.HTTP_CREATED)
+                key -> this.storage.save(key, body).thenCompose(
+                    ignored -> new RsWithStatus(RsStatus.CREATED).send(connection)
                 )
             );
     }

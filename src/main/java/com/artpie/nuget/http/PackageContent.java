@@ -24,8 +24,8 @@
 package com.artpie.nuget.http;
 
 import com.artipie.http.Response;
+import com.artipie.http.rs.RsStatus;
 import com.artipie.http.rs.RsWithStatus;
-import java.net.HttpURLConnection;
 import java.nio.ByteBuffer;
 import org.reactivestreams.Publisher;
 
@@ -43,6 +43,6 @@ public final class PackageContent implements Resource {
 
     @Override
     public Response put(final Publisher<ByteBuffer> body) {
-        return new RsWithStatus(HttpURLConnection.HTTP_BAD_METHOD);
+        return new RsWithStatus(RsStatus.METHOD_NOT_ALLOWED);
     }
 }
