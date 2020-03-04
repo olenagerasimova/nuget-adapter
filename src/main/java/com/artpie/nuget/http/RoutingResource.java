@@ -21,54 +21,82 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-
 package com.artpie.nuget.http;
 
-import com.artipie.asto.Key;
-import com.artipie.asto.Storage;
 import com.artipie.http.Response;
 import com.artipie.http.rs.RsStatus;
 import com.artipie.http.rs.RsWithStatus;
 import java.nio.ByteBuffer;
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
+import java.util.Arrays;
+import java.util.Comparator;
 import org.reactivestreams.Publisher;
 
 /**
- * Root resource. Used as endpoint to push a package.
- * See <a href="https://docs.microsoft.com/en-us/nuget/api/package-publish-resource#push-a-package">Push a package</a>
+ * Resource delegating requests handling to other resources, found by routing path.
  *
  * @since 0.1
  */
-public final class Root implements Resource {
+public final class RoutingResource implements Resource {
 
     /**
-     * Storage to read content from.
+     * Resource path.
      */
-    private final Storage storage;
+    private final String path;
+
+    /**
+     * Routes.
+     */
+    private final Route[] routes;
 
     /**
      * Ctor.
      *
-     * @param storage Storage to read content from.
+     * @param path Resource path.
+     * @param routes Routes.
      */
-    public Root(final Storage storage) {
-        this.storage = storage;
+    public RoutingResource(final String path, final Route... routes) {
+        this.path = path;
+        this.routes = Arrays.copyOf(routes, routes.length);
     }
 
     @Override
     public Response get() {
-        return new RsWithStatus(RsStatus.METHOD_NOT_ALLOWED);
+        return this.resource().get();
     }
 
     @Override
     public Response put(final Publisher<ByteBuffer> body) {
-        return connection -> CompletableFuture
-            .supplyAsync(() -> new Key.From(UUID.randomUUID().toString()))
-            .thenCompose(
-                key -> this.storage.save(key, body).thenCompose(
-                    ignored -> new RsWithStatus(RsStatus.CREATED).send(connection)
-                )
-            );
+        return this.resource().put(body);
+    }
+
+    /**
+     * Find resource by path.
+     *
+     * @return Resource found by path.
+     */
+    private Resource resource() {
+        return Arrays.stream(this.routes)
+            .filter(r -> this.path.startsWith(r.path()))
+            .max(Comparator.comparing(Route::path))
+            .map(r -> r.resource(this.path))
+            .orElse(new Absent());
+    }
+
+    /**
+     * Absent resource, sends HTTP 404 Not Found response to every request.
+     *
+     * @since 0.1
+     */
+    private static class Absent implements Resource {
+
+        @Override
+        public Response get() {
+            return new RsWithStatus(RsStatus.NOT_FOUND);
+        }
+
+        @Override
+        public Response put(final Publisher<ByteBuffer> body) {
+            return new RsWithStatus(RsStatus.NOT_FOUND);
+        }
     }
 }

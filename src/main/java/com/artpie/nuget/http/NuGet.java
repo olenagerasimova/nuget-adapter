@@ -93,12 +93,10 @@ public final class NuGet implements Slice {
      * @return Resource found by path.
      */
     private Resource resource(final String path) {
-        final Resource resource;
-        if (path.isEmpty()) {
-            resource = new Root(this.storage);
-        } else {
-            resource = new PackageContent(path, this.storage);
-        }
-        return resource;
+        return new RoutingResource(
+            path,
+            new PackagePublish(this.storage),
+            new PackageContent(this.storage)
+        );
     }
 }
