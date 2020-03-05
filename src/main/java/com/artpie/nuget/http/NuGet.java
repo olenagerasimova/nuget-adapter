@@ -76,7 +76,7 @@ public final class NuGet implements Slice {
             if (method.equals(RqMethod.GET)) {
                 response = resource.get();
             } else if (method.equals(RqMethod.PUT)) {
-                response = resource.put();
+                response = resource.put(body);
             } else {
                 response = new RsWithStatus(RsStatus.METHOD_NOT_ALLOWED);
             }
@@ -95,7 +95,7 @@ public final class NuGet implements Slice {
     private Resource resource(final String path) {
         final Resource resource;
         if (path.isEmpty()) {
-            resource = new Root();
+            resource = new Root(this.storage);
         } else {
             resource = new PackageContent(path, this.storage);
         }

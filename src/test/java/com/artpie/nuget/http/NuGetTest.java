@@ -31,7 +31,10 @@ import com.artipie.http.Response;
 import com.artipie.http.hm.RsHasBody;
 import com.artipie.http.hm.RsHasStatus;
 import com.artipie.http.rs.RsStatus;
+import com.google.common.io.Resources;
 import io.reactivex.Flowable;
+import java.net.URL;
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Collections;
 import org.hamcrest.MatcherAssert;
@@ -127,6 +130,19 @@ class NuGetTest {
     }
 
     @Test
+    void shouldPutRoot() throws Exception {
+        final Response response = this.nuget.response(
+            "PUT /base",
+            Collections.emptyList(),
+            NuGetTest.nupkg()
+        );
+        MatcherAssert.assertThat(
+            response,
+            new RsHasStatus(RsStatus.CREATED)
+        );
+    }
+
+    @Test
     void shouldFailGetRootFromNotBasePath() {
         final Response response = this.nuget.response(
             "GET /not-base",
@@ -144,5 +160,11 @@ class NuGetTest {
             Flowable.empty()
         );
         MatcherAssert.assertThat(response, new RsHasStatus(RsStatus.METHOD_NOT_ALLOWED));
+    }
+
+    private static Flowable<ByteBuffer> nupkg() throws Exception {
+        final URL resource = Thread.currentThread().getContextClassLoader()
+            .getResource("newtonsoft.json/12.0.3/newtonsoft.json.12.0.3.nupkg");
+        return Flowable.fromArray(ByteBuffer.wrap(Resources.toByteArray(resource)));
     }
 }
