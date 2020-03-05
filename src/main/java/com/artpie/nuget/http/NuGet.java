@@ -66,8 +66,7 @@ public final class NuGet implements Slice {
     public Response response(
         final String line,
         final Iterable<Map.Entry<String, String>> headers,
-        final Publisher<ByteBuffer> body
-    ) {
+        final Publisher<ByteBuffer> body) {
         final Response response;
         final RequestLineFrom request = new RequestLineFrom(line);
         final String path = request.uri().getPath();
@@ -98,7 +97,7 @@ public final class NuGet implements Slice {
         if (path.isEmpty()) {
             resource = new Root(this.storage);
         } else {
-            resource = new PackageContent();
+            resource = new PackageContent(path, this.storage);
         }
         return resource;
     }

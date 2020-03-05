@@ -23,10 +23,15 @@
  */
 package com.artpie.nuget.http;
 
+import com.artipie.asto.Key;
+import com.artipie.asto.Storage;
 import com.artipie.http.Response;
 import com.artipie.http.rs.RsStatus;
 import com.artipie.http.rs.RsWithStatus;
 import java.nio.ByteBuffer;
+import java.util.Collections;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 import org.reactivestreams.Publisher;
 
 /**
@@ -36,13 +41,70 @@ import org.reactivestreams.Publisher;
  * @since 0.1
  */
 public final class PackageContent implements Resource {
+
+    /**
+     * Resource path.
+     */
+    private final String path;
+
+    /**
+     * Storage to read content from.
+     */
+    private final Storage storage;
+
+    /**
+     * Ctor.
+     *
+     * @param path Resource path.
+     * @param storage Storage to read content from.
+     */
+    public PackageContent(final String path, final Storage storage) {
+        this.path = path;
+        this.storage = storage;
+    }
+
     @Override
     public Response get() {
-        throw new UnsupportedOperationException();
+        return connection -> CompletableFuture
+            .supplyAsync(this::key)
+            .thenCompose(
+                key -> this.storage.exists(key).thenCompose(
+                    exists -> {
+                        final CompletionStage<Void> sent;
+                        if (exists) {
+                            sent = this.storage.value(key).thenCompose(
+                                data -> connection.accept(
+                                    RsStatus.OK,
+                                    Collections.emptyList(),
+                                    data
+                                )
+                            );
+                        } else {
+                            sent = new RsWithStatus(RsStatus.NOT_FOUND).send(connection);
+                        }
+                        return sent;
+                    }
+                )
+            );
     }
 
     @Override
     public Response put(final Publisher<ByteBuffer> body) {
         return new RsWithStatus(RsStatus.METHOD_NOT_ALLOWED);
+    }
+
+    /**
+     * Builds key to storage value from path.
+     *
+     * @return Key to storage value.
+     */
+    private Key.From key() {
+        final String normalized;
+        if (this.path.charAt(0) == '/') {
+            normalized = this.path.substring(1);
+        } else {
+            normalized = this.path;
+        }
+        return new Key.From(normalized);
     }
 }
