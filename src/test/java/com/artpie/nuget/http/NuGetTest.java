@@ -23,12 +23,19 @@
  */
 package com.artpie.nuget.http;
 
+import com.artipie.asto.Key;
+import com.artipie.asto.Storage;
+import com.artipie.asto.blocking.BlockingStorage;
+import com.artipie.asto.memory.InMemoryStorage;
 import com.artipie.http.Response;
+import com.artipie.http.hm.RsHasBody;
 import com.artipie.http.hm.RsHasStatus;
 import com.artipie.http.rs.RsStatus;
 import io.reactivex.Flowable;
+import java.util.Arrays;
 import java.util.Collections;
 import org.hamcrest.MatcherAssert;
+import org.hamcrest.core.AllOf;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -40,13 +47,42 @@ import org.junit.jupiter.api.Test;
 class NuGetTest {
 
     /**
+     * Storage used in tests.
+     */
+    private Storage storage;
+
+    /**
      * Tested NuGet slice.
      */
     private NuGet nuget;
 
     @BeforeEach
     void init() {
-        this.nuget = new NuGet("/base");
+        this.storage = new InMemoryStorage();
+        this.nuget = new NuGet("/base", this.storage);
+    }
+
+    @Test
+    void shouldGetPackageContent() {
+        final byte[] data = "data".getBytes();
+        new BlockingStorage(this.storage).save(
+            new Key.From("package", "1.0.0", "content.nupkg"),
+            data
+        );
+        MatcherAssert.assertThat(
+            "Package content should be returned in response",
+            this.nuget.response(
+                "GET /base/package/1.0.0/content.nupkg",
+                Collections.emptyList(),
+                Flowable.empty()
+            ),
+            new AllOf<>(
+                Arrays.asList(
+                    new RsHasStatus(RsStatus.OK),
+                    new RsHasBody(data)
+                )
+            )
+        );
     }
 
     @Test
@@ -59,6 +95,19 @@ class NuGetTest {
         MatcherAssert.assertThat(
             "Resources from outside of base path should not be found",
             response,
+            new RsHasStatus(RsStatus.NOT_FOUND)
+        );
+    }
+
+    @Test
+    void shouldFailGetPackageContentWhenNotExists() {
+        MatcherAssert.assertThat(
+            "Not existing content should not be found",
+            this.nuget.response(
+                "GET /base/package/1.0.0/logo.png",
+                Collections.emptyList(),
+                Flowable.empty()
+            ),
             new RsHasStatus(RsStatus.NOT_FOUND)
         );
     }
