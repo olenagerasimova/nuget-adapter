@@ -196,19 +196,6 @@ class NuGetTest {
         );
     }
 
-    @Test
-    void shouldFailPutPackageVersions() {
-        final Response response = this.nuget.response(
-            "PUT /base/package2/index.json",
-            Collections.emptyList(),
-            Flowable.empty()
-        );
-        MatcherAssert.assertThat(
-            response,
-            new RsHasStatus(RsStatus.METHOD_NOT_ALLOWED)
-        );
-    }
-
     private static Flowable<ByteBuffer> nupkg() throws Exception {
         final URL resource = Thread.currentThread().getContextClassLoader()
             .getResource("newtonsoft.json/12.0.3/newtonsoft.json.12.0.3.nupkg");
