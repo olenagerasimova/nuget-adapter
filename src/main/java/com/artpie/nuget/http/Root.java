@@ -73,12 +73,11 @@ public final class Root implements Resource {
             .thenCompose(
                 key -> this.storage.save(key, body).thenCompose(
                     ignored -> {
-                        final Repository repository = new Repository(
-                            new BlockingStorage(this.storage)
-                        );
                         RsStatus status;
                         try {
-                            repository.add(key);
+                            new Repository(
+                                new BlockingStorage(this.storage)
+                            ).add(key);
                             status = RsStatus.CREATED;
                         } catch (final IOException ex) {
                             throw new IllegalStateException(ex);

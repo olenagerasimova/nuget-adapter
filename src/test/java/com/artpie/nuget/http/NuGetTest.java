@@ -142,12 +142,13 @@ class NuGetTest {
 
     @Test
     void shouldFailPutPackage() {
-        final Flowable<ByteBuffer> bad = Flowable.fromArray(
-            ByteBuffer.wrap("not a zip".getBytes())
-        );
-        final Response response = this.putPackage(bad);
         MatcherAssert.assertThat(
-            response,
+            "Should fail to add package which is not a ZIP archive",
+            this.putPackage(
+                Flowable.fromArray(
+                    ByteBuffer.wrap("not a zip".getBytes())
+                )
+            ),
             new RsHasStatus(RsStatus.BAD_REQUEST)
         );
     }
@@ -157,9 +158,9 @@ class NuGetTest {
         this.putPackage(nupkg()).send(
             (status, headers, body) -> CompletableFuture.allOf()
         ).toCompletableFuture().join();
-        final Response response = this.putPackage(nupkg());
         MatcherAssert.assertThat(
-            response,
+            "Should fail to add same package when it is already present in the repository",
+            this.putPackage(nupkg()),
             new RsHasStatus(RsStatus.CONFLICT)
         );
     }
