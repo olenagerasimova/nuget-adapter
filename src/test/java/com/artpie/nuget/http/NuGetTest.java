@@ -39,6 +39,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
 import org.hamcrest.MatcherAssert;
+import org.hamcrest.Matchers;
 import org.hamcrest.core.AllOf;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -183,6 +184,38 @@ class NuGetTest {
             Flowable.empty()
         );
         MatcherAssert.assertThat(response, new RsHasStatus(RsStatus.METHOD_NOT_ALLOWED));
+    }
+
+    @Test
+    void shouldGetPackageVersions() {
+        final byte[] data = "example".getBytes();
+        new BlockingStorage(this.storage).save(
+            new Key.From("package2", "index.json"),
+            data
+        );
+        MatcherAssert.assertThat(
+            this.nuget.response(
+                "GET /base/package2/index.json",
+                Collections.emptyList(),
+                Flowable.empty()
+            ),
+            Matchers.allOf(
+                new RsHasStatus(RsStatus.OK),
+                new RsHasBody(data)
+            )
+        );
+    }
+
+    @Test
+    void shouldFailGetPackageVersionsWhenNotExists() {
+        MatcherAssert.assertThat(
+            this.nuget.response(
+                "GET /base/unknown-package/index.json",
+                Collections.emptyList(),
+                Flowable.empty()
+            ),
+            new RsHasStatus(RsStatus.NOT_FOUND)
+        );
     }
 
     private Response putPackage(final Flowable<ByteBuffer> pack) {
