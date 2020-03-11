@@ -24,60 +24,25 @@
 package com.artpie.nuget.http;
 
 import com.artipie.http.Response;
+import com.artipie.http.rs.RsStatus;
+import com.artipie.http.rs.RsWithStatus;
 import java.nio.ByteBuffer;
-import java.util.Arrays;
-import java.util.Comparator;
 import org.reactivestreams.Publisher;
 
 /**
- * Resource delegating requests handling to other resources, found by routing path.
+ * Absent resource, sends HTTP 404 Not Found response to every request.
  *
  * @since 0.1
  */
-public final class RoutingResource implements Resource {
-
-    /**
-     * Resource path.
-     */
-    private final String path;
-
-    /**
-     * Routes.
-     */
-    private final Route[] routes;
-
-    /**
-     * Ctor.
-     *
-     * @param path Resource path.
-     * @param routes Routes.
-     */
-    public RoutingResource(final String path, final Route... routes) {
-        this.path = path;
-        this.routes = Arrays.copyOf(routes, routes.length);
-    }
+class Absent implements Resource {
 
     @Override
     public Response get() {
-        return this.resource().get();
+        return new RsWithStatus(RsStatus.NOT_FOUND);
     }
 
     @Override
     public Response put(final Publisher<ByteBuffer> body) {
-        return this.resource().put(body);
+        return new RsWithStatus(RsStatus.NOT_FOUND);
     }
-
-    /**
-     * Find resource by path.
-     *
-     * @return Resource found by path.
-     */
-    private Resource resource() {
-        return Arrays.stream(this.routes)
-            .filter(r -> this.path.startsWith(r.path()))
-            .max(Comparator.comparing(Route::path))
-            .map(r -> r.resource(this.path))
-            .orElse(new Absent());
-    }
-
 }

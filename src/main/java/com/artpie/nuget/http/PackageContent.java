@@ -64,7 +64,7 @@ public final class PackageContent implements Route {
 
     @Override
     public Resource resource(final String path) {
-        return new Value(path, this.storage);
+        return new PackageResource(path, this.storage);
     }
 
     /**
@@ -72,7 +72,7 @@ public final class PackageContent implements Route {
      *
      * @since 0.1
      */
-    private class Value implements Resource {
+    private class PackageResource implements Resource {
 
         /**
          * Resource path.
@@ -90,7 +90,7 @@ public final class PackageContent implements Route {
          * @param path Resource path.
          * @param storage Storage to read content from.
          */
-        Value(final String path, final Storage storage) {
+        PackageResource(final String path, final Storage storage) {
             this.path = path;
             this.storage = storage;
         }
@@ -99,21 +99,17 @@ public final class PackageContent implements Route {
         public Response get() {
             return connection -> this.existing()
                 .thenCompose(
-                    found -> {
-                        final CompletionStage<Void> sent;
-                        if (found.isPresent()) {
-                            sent = this.storage.value(found.get()).thenCompose(
-                                data -> connection.accept(
-                                    RsStatus.OK,
-                                    Collections.emptyList(),
-                                    data
-                                )
-                            );
-                        } else {
-                            sent = new RsWithStatus(RsStatus.NOT_FOUND).send(connection);
-                        }
-                        return sent;
-                    }
+                    existing -> existing.<CompletionStage<Void>>map(
+                        key -> this.storage.value(key).thenCompose(
+                            data -> connection.accept(
+                                RsStatus.OK,
+                                Collections.emptyList(),
+                                data
+                            )
+                        )
+                    ).orElseGet(
+                        () -> new RsWithStatus(RsStatus.NOT_FOUND).send(connection)
+                    )
                 );
         }
 
