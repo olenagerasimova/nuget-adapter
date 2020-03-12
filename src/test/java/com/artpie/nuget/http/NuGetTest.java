@@ -37,6 +37,7 @@ import java.net.URL;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.concurrent.CompletableFuture;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
 import org.hamcrest.core.AllOf;
@@ -133,14 +134,35 @@ class NuGetTest {
 
     @Test
     void shouldPutPackagePublish() throws Exception {
-        final Response response = this.nuget.response(
-            "PUT /base/package",
-            Collections.emptyList(),
-            NuGetTest.nupkg()
-        );
+        final Response response = this.putPackage(nupkg());
         MatcherAssert.assertThat(
             response,
             new RsHasStatus(RsStatus.CREATED)
+        );
+    }
+
+    @Test
+    void shouldFailPutPackage() {
+        MatcherAssert.assertThat(
+            "Should fail to add package which is not a ZIP archive",
+            this.putPackage(
+                Flowable.fromArray(
+                    ByteBuffer.wrap("not a zip".getBytes())
+                )
+            ),
+            new RsHasStatus(RsStatus.BAD_REQUEST)
+        );
+    }
+
+    @Test
+    void shouldFailPutSamePackage() throws Exception {
+        this.putPackage(nupkg()).send(
+            (status, headers, body) -> CompletableFuture.allOf()
+        ).toCompletableFuture().join();
+        MatcherAssert.assertThat(
+            "Should fail to add same package when it is already present in the repository",
+            this.putPackage(nupkg()),
+            new RsHasStatus(RsStatus.CONFLICT)
         );
     }
 
@@ -194,6 +216,10 @@ class NuGetTest {
             ),
             new RsHasStatus(RsStatus.NOT_FOUND)
         );
+    }
+
+    private Response putPackage(final Flowable<ByteBuffer> pack) {
+        return this.nuget.response("PUT /base/package", Collections.emptyList(), pack);
     }
 
     private static Flowable<ByteBuffer> nupkg() throws Exception {
