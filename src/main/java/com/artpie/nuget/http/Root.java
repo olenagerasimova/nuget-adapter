@@ -26,9 +26,14 @@ package com.artpie.nuget.http;
 
 import com.artipie.asto.Key;
 import com.artipie.asto.Storage;
+import com.artipie.asto.blocking.BlockingStorage;
 import com.artipie.http.Response;
 import com.artipie.http.rs.RsStatus;
 import com.artipie.http.rs.RsWithStatus;
+import com.artpie.nuget.InvalidPackageException;
+import com.artpie.nuget.PackageVersionAlreadyExistsException;
+import com.artpie.nuget.Repository;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -67,7 +72,22 @@ public final class Root implements Resource {
             .supplyAsync(() -> new Key.From(UUID.randomUUID().toString()))
             .thenCompose(
                 key -> this.storage.save(key, body).thenCompose(
-                    ignored -> new RsWithStatus(RsStatus.CREATED).send(connection)
+                    ignored -> {
+                        RsStatus status;
+                        try {
+                            new Repository(
+                                new BlockingStorage(this.storage)
+                            ).add(key);
+                            status = RsStatus.CREATED;
+                        } catch (final IOException ex) {
+                            throw new IllegalStateException(ex);
+                        } catch (final InvalidPackageException ex) {
+                            status = RsStatus.BAD_REQUEST;
+                        } catch (final PackageVersionAlreadyExistsException ex) {
+                            status = RsStatus.CONFLICT;
+                        }
+                        return new RsWithStatus(status).send(connection);
+                    }
                 )
             );
     }
