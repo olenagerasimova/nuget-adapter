@@ -78,7 +78,7 @@ class NuGetTest {
         MatcherAssert.assertThat(
             "Package content should be returned in response",
             this.nuget.response(
-                "GET /base/package/1.0.0/content.nupkg",
+                "GET /base/content/package/1.0.0/content.nupkg",
                 Collections.emptyList(),
                 Flowable.empty()
             ),
@@ -94,7 +94,7 @@ class NuGetTest {
     @Test
     void shouldFailGetPackageContentFromNotBasePath() {
         final Response response = this.nuget.response(
-            "GET /not-base/package/1.0.0/content.nupkg",
+            "GET /not-base/content/package/1.0.0/content.nupkg",
             Collections.emptyList(),
             Flowable.empty()
         );
@@ -110,7 +110,7 @@ class NuGetTest {
         MatcherAssert.assertThat(
             "Not existing content should not be found",
             this.nuget.response(
-                "GET /base/package/1.0.0/logo.png",
+                "GET /base/content/package/1.0.0/logo.png",
                 Collections.emptyList(),
                 Flowable.empty()
             ),
@@ -121,7 +121,7 @@ class NuGetTest {
     @Test
     void shouldFailPutPackageContent() {
         final Response response = this.nuget.response(
-            "PUT /base/package/1.0.0/content.nupkg",
+            "PUT /base/content/package/1.0.0/content.nupkg",
             Collections.emptyList(),
             Flowable.empty()
         );
@@ -133,7 +133,7 @@ class NuGetTest {
     }
 
     @Test
-    void shouldPutRoot() throws Exception {
+    void shouldPutPackagePublish() throws Exception {
         final Response response = this.putPackage(nupkg());
         MatcherAssert.assertThat(
             response,
@@ -167,9 +167,9 @@ class NuGetTest {
     }
 
     @Test
-    void shouldFailGetRootFromNotBasePath() {
+    void shouldFailGetPackagePublishFromNotBasePath() {
         final Response response = this.nuget.response(
-            "GET /not-base",
+            "GET /not-base/package",
             Collections.emptyList(),
             Flowable.empty()
         );
@@ -177,9 +177,9 @@ class NuGetTest {
     }
 
     @Test
-    void shouldFailGetRoot() {
+    void shouldFailGetPackagePublish() {
         final Response response = this.nuget.response(
-            "GET /base",
+            "GET /base/package",
             Collections.emptyList(),
             Flowable.empty()
         );
@@ -195,7 +195,7 @@ class NuGetTest {
         );
         MatcherAssert.assertThat(
             this.nuget.response(
-                "GET /base/package2/index.json",
+                "GET /base/content/package2/index.json",
                 Collections.emptyList(),
                 Flowable.empty()
             ),
@@ -210,7 +210,7 @@ class NuGetTest {
     void shouldFailGetPackageVersionsWhenNotExists() {
         MatcherAssert.assertThat(
             this.nuget.response(
-                "GET /base/unknown-package/index.json",
+                "GET /base/content/unknown-package/index.json",
                 Collections.emptyList(),
                 Flowable.empty()
             ),
@@ -219,7 +219,7 @@ class NuGetTest {
     }
 
     private Response putPackage(final Flowable<ByteBuffer> pack) {
-        return this.nuget.response("PUT /base", Collections.emptyList(), pack);
+        return this.nuget.response("PUT /base/package", Collections.emptyList(), pack);
     }
 
     private static Flowable<ByteBuffer> nupkg() throws Exception {
