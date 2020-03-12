@@ -129,6 +129,12 @@ SOFTWARE.
       <artifactId>log4j</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>com.artipie</groupId>
+      <artifactId>vertx-server</artifactId>
+      <version>0.2.1</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
   <build>
     <testResources>
