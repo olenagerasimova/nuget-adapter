@@ -24,11 +24,19 @@
 
 package com.artpie.nuget;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
+import org.hamcrest.Matcher;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
+import org.hamcrest.core.AllOf;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 /**
@@ -123,5 +131,43 @@ class VersionTest {
     void shouldNotNormalize(final String original) {
         final Version version = new Version(original);
         Assertions.assertThrows(RuntimeException.class, version::normalized);
+    }
+
+    @ParameterizedTest
+    @MethodSource("ordered")
+    void shouldCompare(
+        final List<String> lesser,
+        final String target,
+        final List<String> greater
+    ) {
+        final Version version = new Version(target);
+        MatcherAssert.assertThat(
+            version,
+            new AllOf<Version>(
+                Stream.of(
+                    Stream.of(Matchers.comparesEqualTo(version)),
+                    lesser.stream().map(Version::new).map(Matchers::greaterThan),
+                    greater.stream().map(Version::new).map(Matchers::lessThan)
+                ).<Matcher<? super Version>>flatMap(self -> self).collect(Collectors.toList())
+            )
+        );
+    }
+
+    @SuppressWarnings({"PMD.UnusedPrivateMethod", "PMD.AvoidUsingHardCodedIP"})
+    private static Stream<Object[]> ordered() {
+        return Stream.of(
+            new String[] {"0.1", "0.2", "0.11", "1.0", "2.0", "2.1", "18.0"},
+            new String[] {"3.0", "3.0.1", "3.0.2", "3.0.10", "3.1"},
+            new String[] {"4.0.1", "4.0.1.1", "4.0.1.2", "4.0.1.17", "4.0.2"}
+        ).map(Arrays::asList).flatMap(
+            ordered -> IntStream.range(0, ordered.size()).mapToObj(
+                index -> {
+                    final List<String> lesser = ordered.subList(0, index);
+                    final String target = ordered.get(index);
+                    final List<String> greater = ordered.subList(index + 1, ordered.size());
+                    return new Object[] {lesser, target, greater};
+                }
+            )
+        );
     }
 }
