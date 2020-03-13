@@ -34,12 +34,6 @@ import java.util.regex.Pattern;
  * See <a href="https://docs.microsoft.com/en-us/nuget/concepts/package-versioning">Package versioning</a>.
  * Comparison of version strings is implemented using SemVer 2.0.0's <a href="https://semver.org/spec/v2.0.0.html#spec-item-11">version precedence rules</a>.
  *
- * @todo #19:60min `compareTo` method should respect labels comparison rules of SevVer spec
- *  Example from spec that is not supported yet,
- *  because comparison rules for labels are quite complex:
- *  1.0.0-alpha < 1.0.0-alpha.1 < 1.0.0-alpha.beta
- *  < 1.0.0-beta < 1.0.0-beta.2 < 1.0.0-beta.11
- *  < 1.0.0-rc.1 < 1.0.0.
  * @since 0.1
  */
 @SuppressWarnings("PMD.TooManyMethods")
@@ -97,7 +91,7 @@ public final class Version implements Comparable<Version> {
                 }
             }
         );
-        this.group("label").ifPresent(
+        this.label().ifPresent(
             label -> builder.append('-').append(label)
         );
         return builder.toString();
@@ -110,6 +104,29 @@ public final class Version implements Comparable<Version> {
             .thenComparingInt(version -> Integer.parseInt(version.minor()))
             .thenComparingInt(version -> version.patch().map(Integer::parseInt).orElse(0))
             .thenComparingInt(version -> version.revision().map(Integer::parseInt).orElse(0))
+            .thenComparing(
+                (Version o1, Version o2) -> {
+                    final Optional<String> one = o1.label();
+                    final Optional<String> two = o2.label();
+                    final int result;
+                    if (one.isPresent()) {
+                        if (two.isPresent()) {
+                            result = Comparator
+                                .comparing(VersionLabel::new)
+                                .compare(one.get(), two.get());
+                        } else {
+                            result = -1;
+                        }
+                    } else {
+                        if (two.isPresent()) {
+                            result = 1;
+                        } else {
+                            result = 0;
+                        }
+                    }
+                    return result;
+                }
+            )
             .compare(this, that);
     }
 
@@ -156,6 +173,15 @@ public final class Version implements Comparable<Version> {
      */
     private Optional<String> revision() {
         return this.group("revision");
+    }
+
+    /**
+     * Label part of version.
+     *
+     * @return Label part of version, none if absent.
+     */
+    private Optional<String> label() {
+        return this.group("label");
     }
 
     /**
