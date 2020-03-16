@@ -72,7 +72,7 @@ class NuGetServiceIndexTest {
             new AllOf<>(
                 Arrays.asList(
                     new RsHasStatus(RsStatus.OK),
-                    new RsHasBody(new IsServiceIndexJson())
+                    new RsHasBody(new IsValidServiceIndex())
                 )
             )
         );
@@ -93,7 +93,7 @@ class NuGetServiceIndexTest {
      *
      * @since 0.1
      */
-    private static class IsServiceIndexJson extends TypeSafeMatcher<byte[]> {
+    private static class IsValidServiceIndex extends TypeSafeMatcher<byte[]> {
 
         @Override
         public void describeTo(final Description description) {
@@ -107,7 +107,7 @@ class NuGetServiceIndexTest {
                 root = reader.readObject();
             }
             return root.getString("version").equals("3.0.0")
-                && root.getJsonArray("resources") != null;
+                && root.getJsonArray("resources").isEmpty();
         }
     }
 }
