@@ -99,7 +99,7 @@ class RepositoryHttpIT {
     void shouldInstallAddedPackage() throws Exception {
         this.addPackage();
         MatcherAssert.assertThat(
-            run(
+            runNuGet(
                 "install",
                 "Newtonsoft.Json", "-Version", "12.0.3",
                 "-NoCache"
@@ -115,11 +115,12 @@ class RepositoryHttpIT {
         new Repository(blocking).add(key);
     }
 
-    private String run(final String... args) throws IOException, InterruptedException {
-        final Path stdout = this.temp.resolve(
+    private String runNuGet(final String... args) throws IOException, InterruptedException {
+        final Path tmp = this.temp;
+        final Path stdout = tmp.resolve(
             String.format("%s-stdout.txt", UUID.randomUUID().toString())
         );
-        final Path project = this.temp.resolve("project");
+        final Path project = tmp.resolve("project");
         project.toFile().mkdirs();
         new ProcessBuilder()
             .directory(project.toFile())
