@@ -95,6 +95,7 @@ public final class NuGet implements Slice {
     private Resource resource(final String path) {
         return new RoutingResource(
             path,
+            new ServiceIndex(),
             new PackagePublish(this.storage),
             new PackageContent(this.storage)
         );
