@@ -48,6 +48,7 @@ import org.junit.jupiter.api.Test;
  * Tests for {@link NuGet}.
  *
  * @since 0.1
+ * @checkstyle ClassDataAbstractionCouplingCheck (2 lines)
  */
 @SuppressWarnings("PMD.TooManyMethods")
 class NuGetTest {
@@ -63,9 +64,9 @@ class NuGetTest {
     private NuGet nuget;
 
     @BeforeEach
-    void init() {
+    void init() throws Exception {
         this.storage = new InMemoryStorage();
-        this.nuget = new NuGet("/base", this.storage);
+        this.nuget = new NuGet(new URL("http://localhost"), "/base", this.storage);
     }
 
     @Test
