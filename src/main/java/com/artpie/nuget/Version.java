@@ -34,6 +34,7 @@ import java.util.regex.Pattern;
  * See <a href="https://docs.microsoft.com/en-us/nuget/concepts/package-versioning">Package versioning</a>.
  * Comparison of version strings is implemented using SemVer 2.0.0's <a href="https://semver.org/spec/v2.0.0.html#spec-item-11">version precedence rules</a>.
  *
+ * @todo `compareTo` method should respect labels comparison rules of SevVer spec
  * @since 0.1
  */
 @SuppressWarnings("PMD.TooManyMethods")
