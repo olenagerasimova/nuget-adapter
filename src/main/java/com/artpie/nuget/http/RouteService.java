@@ -25,6 +25,7 @@ package com.artpie.nuget.http;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Optional;
 
 /**
  * Service that is located by {@link Route}.
@@ -64,12 +65,9 @@ final class RouteService implements Service {
     @Override
     public String url() {
         final String path = String.format("%s%s", this.base.getPath(), this.route.path());
-        final String file;
-        if (this.base.getQuery() == null) {
-            file = path;
-        } else {
-            file = String.format("%s?%s", path, this.base.getQuery());
-        }
+        final String file = Optional.ofNullable(this.base.getQuery())
+            .map(query -> String.format("%s?%s", path, this.base.getQuery()))
+            .orElse(path);
         try {
             return new URL(this.base.getProtocol(), this.base.getHost(), this.base.getPort(), file)
                 .toString();

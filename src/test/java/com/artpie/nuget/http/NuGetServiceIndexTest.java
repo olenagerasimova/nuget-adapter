@@ -39,8 +39,8 @@ import javax.json.JsonReader;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.MatcherAssert;
-import org.hamcrest.Matchers;
 import org.hamcrest.TypeSafeMatcher;
+import org.hamcrest.collection.IsIterableContainingInAnyOrder;
 import org.hamcrest.core.AllOf;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -84,14 +84,16 @@ class NuGetServiceIndexTest {
                     new RsHasStatus(RsStatus.OK),
                     new RsHasBody(
                         new IsValidServiceIndex(
-                            Matchers.contains(
-                                new IsService(
-                                    "PackagePublish/2.0.0",
-                                    String.format("%s/package", this.url)
-                                ),
-                                new IsService(
-                                    "PackageBaseAddress/3.0.0",
-                                    String.format("%s/content", this.url)
+                            new IsIterableContainingInAnyOrder<>(
+                                Arrays.asList(
+                                    new IsService(
+                                        "PackagePublish/2.0.0",
+                                        String.format("%s/package", this.url)
+                                    ),
+                                    new IsService(
+                                        "PackageBaseAddress/3.0.0",
+                                        String.format("%s/content", this.url)
+                                    )
                                 )
                             )
                         )
@@ -142,7 +144,7 @@ class NuGetServiceIndexTest {
             }
             return root.getString("version").equals("3.0.0")
                 && this.services.matches(
-                    root.getJsonArray("resources").getValuesAs(JsonObject.class)
+                root.getJsonArray("resources").getValuesAs(JsonObject.class)
             );
         }
     }
