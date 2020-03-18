@@ -21,28 +21,48 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.artpie.nuget.http;
+package com.artpie.nuget.http.metadata;
 
-import com.artipie.http.Response;
-import com.artipie.http.rs.RsStatus;
-import com.artipie.http.rs.RsWithStatus;
-import java.nio.ByteBuffer;
-import org.reactivestreams.Publisher;
+import com.artpie.nuget.http.Absent;
+import com.artpie.nuget.http.Resource;
+import com.artpie.nuget.http.Route;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
- * Absent resource, sends HTTP 404 Not Found response to every request.
+ * Package metadata route.
+ * See <a href="https://docs.microsoft.com/en-us/nuget/api/registration-base-url-resource">Package Metadata</a>
  *
  * @since 0.1
  */
-public final class Absent implements Resource {
+public final class PackageMetadata implements Route {
+
+    /**
+     * Base path for the route.
+     */
+    private static final String BASE = "/registrations";
+
+    /**
+     * RegEx pattern for pages path.
+     */
+    private static final Pattern PAGES = Pattern.compile(
+        String.format("%s/(?<id>[^/]+)/index.json$", PackageMetadata.BASE)
+    );
 
     @Override
-    public Response get() {
-        return new RsWithStatus(RsStatus.NOT_FOUND);
+    public String path() {
+        return PackageMetadata.BASE;
     }
 
     @Override
-    public Response put(final Publisher<ByteBuffer> body) {
-        return new RsWithStatus(RsStatus.NOT_FOUND);
+    public Resource resource(final String path) {
+        final Matcher matcher = PAGES.matcher(path);
+        final Resource resource;
+        if (matcher.find()) {
+            resource = new Pages();
+        } else {
+            resource = new Absent();
+        }
+        return resource;
     }
 }

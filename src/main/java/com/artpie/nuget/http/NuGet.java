@@ -30,6 +30,7 @@ import com.artipie.http.rq.RequestLineFrom;
 import com.artipie.http.rq.RqMethod;
 import com.artipie.http.rs.RsStatus;
 import com.artipie.http.rs.RsWithStatus;
+import com.artpie.nuget.http.metadata.PackageMetadata;
 import java.nio.ByteBuffer;
 import java.util.Map;
 import org.reactivestreams.Publisher;
@@ -97,7 +98,8 @@ public final class NuGet implements Slice {
             path,
             new ServiceIndex(),
             new PackagePublish(this.storage),
-            new PackageContent(this.storage)
+            new PackageContent(this.storage),
+            new PackageMetadata()
         );
     }
 }
