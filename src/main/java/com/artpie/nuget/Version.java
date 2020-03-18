@@ -35,6 +35,11 @@ import java.util.regex.Pattern;
  * Comparison of version strings is implemented using SemVer 2.0.0's <a href="https://semver.org/spec/v2.0.0.html#spec-item-11">version precedence rules</a>.
  *
  * @todo `compareTo` method should respect labels comparison rules of SevVer spec
+ *  Example from spec that is not supported yet,
+ *  because comparison rules for labels are quite complex:
+ *  1.0.0-alpha < 1.0.0-alpha.1 < 1.0.0-alpha.beta
+ *  < 1.0.0-beta < 1.0.0-beta.2 < 1.0.0-beta.11
+ *  < 1.0.0-rc.1 < 1.0.0.
  * @since 0.1
  */
 @SuppressWarnings("PMD.TooManyMethods")
