@@ -96,6 +96,10 @@ class RepositoryTest {
             this.versions(id.versionsKey()),
             Matchers.contains(version)
         );
+        MatcherAssert.assertThat(
+            this.storage.exists(source),
+            new IsEqual<>(false)
+        );
     }
 
     @Test
@@ -141,12 +145,14 @@ class RepositoryTest {
 
     @Test
     void shouldFailToAddPackageWhenItAlreadyExists() throws Exception {
-        final Key.From source = new Key.From("tmp");
-        this.storage.save(source, this.nupkg().bytes());
-        this.repository.add(source);
+        final Key.From first = new Key.From("first");
+        this.storage.save(first, this.nupkg().bytes());
+        this.repository.add(first);
+        final Key.From second = new Key.From("second");
+        this.storage.save(second, this.nupkg().bytes());
         Assertions.assertThrows(
             PackageVersionAlreadyExistsException.class,
-            () -> this.repository.add(source)
+            () -> this.repository.add(second)
         );
     }
 

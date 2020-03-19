@@ -24,7 +24,6 @@
 
 package com.artpie.nuget;
 
-import com.artipie.asto.Key;
 import com.artipie.asto.blocking.BlockingStorage;
 import com.artipie.asto.memory.InMemoryStorage;
 import com.google.common.io.ByteSource;
@@ -50,19 +49,6 @@ class NupkgTest {
     @BeforeEach
     void init() {
         this.name = "newtonsoft.json.12.0.3.nupkg";
-    }
-
-    @Test
-    void shouldSave() throws Exception {
-        final BlockingStorage storage = new BlockingStorage(new InMemoryStorage());
-        final String id = "newtonsoft.json";
-        final String version = "12.0.3";
-        new Nupkg(ByteSource.wrap(new NewtonJsonResource(this.name).bytes()))
-            .save(storage, new PackageIdentity(new PackageId(id), new Version(version)));
-        MatcherAssert.assertThat(
-            storage.value(new Key.From(id, version, this.name)),
-            Matchers.equalTo(new NewtonJsonResource(this.name).bytes())
-        );
     }
 
     @Test

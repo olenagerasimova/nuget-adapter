@@ -72,7 +72,7 @@ public final class Repository {
         if (!this.storage.list(id.rootKey()).isEmpty()) {
             throw new PackageVersionAlreadyExistsException(id.toString());
         }
-        nupkg.save(this.storage, id);
+        this.storage.move(key, id.nupkgKey());
         nupkg.hash().save(this.storage, id);
         nuspec.save(this.storage);
         final Versions versions = this.versions(nuspec.packageId());
