@@ -24,19 +24,30 @@
 
 package com.artpie.nuget;
 
+import java.util.Comparator;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
  * Version of package.
  * See <a href="https://docs.microsoft.com/en-us/nuget/concepts/package-versioning">Package versioning</a>.
+ * Comparison of version strings is implemented using SemVer 2.0.0's <a href="https://semver.org/spec/v2.0.0.html#spec-item-11">version precedence rules</a>.
  *
+ * @todo #19:60min `compareTo` method should respect labels comparison rules of SevVer spec
+ *  Example from spec that is not supported yet,
+ *  because comparison rules for labels are quite complex:
+ *  1.0.0-alpha < 1.0.0-alpha.1 < 1.0.0-alpha.beta
+ *  < 1.0.0-beta < 1.0.0-beta.2 < 1.0.0-beta.11
+ *  < 1.0.0-rc.1 < 1.0.0.
  * @since 0.1
  */
-public final class Version {
+@SuppressWarnings("PMD.TooManyMethods")
+public final class Version implements Comparable<Version> {
 
     /**
      * RegEx pattern for matching version string.
+     *
      * @checkstyle StringLiteralsConcatenationCheck (7 lines)
      */
     private static final Pattern PATTERN = Pattern.compile(
@@ -71,32 +82,90 @@ public final class Version {
      * @return Normalized version string.
      */
     public String normalized() {
-        final Matcher matcher = this.matcher();
         final StringBuilder builder = new StringBuilder()
-            .append(removeLeadingZeroes(matcher.group("major")))
+            .append(removeLeadingZeroes(this.major()))
             .append('.')
-            .append(removeLeadingZeroes(matcher.group("minor")));
-        final String patch = matcher.group("patch");
-        if (patch != null) {
-            builder.append('.').append(removeLeadingZeroes(patch));
-        }
-        final String revision = matcher.group("revision");
-        if (revision != null) {
-            final String rev = removeLeadingZeroes(revision);
-            if (!rev.equals("0")) {
-                builder.append('.').append(rev);
+            .append(removeLeadingZeroes(this.minor()));
+        this.patch().ifPresent(
+            patch -> builder.append('.').append(removeLeadingZeroes(patch))
+        );
+        this.revision().ifPresent(
+            revision -> {
+                final String rev = removeLeadingZeroes(revision);
+                if (!rev.equals("0")) {
+                    builder.append('.').append(rev);
+                }
             }
-        }
-        final String label = matcher.group("label");
-        if (label != null) {
-            builder.append('-').append(label);
-        }
+        );
+        this.group("label").ifPresent(
+            label -> builder.append('-').append(label)
+        );
         return builder.toString();
+    }
+
+    @Override
+    public int compareTo(final Version that) {
+        return Comparator
+            .<Version>comparingInt(version -> Integer.parseInt(version.major()))
+            .thenComparingInt(version -> Integer.parseInt(version.minor()))
+            .thenComparingInt(version -> version.patch().map(Integer::parseInt).orElse(0))
+            .thenComparingInt(version -> version.revision().map(Integer::parseInt).orElse(0))
+            .compare(this, that);
     }
 
     @Override
     public String toString() {
         return this.raw;
+    }
+
+    /**
+     * Major version.
+     *
+     * @return String representation of major version.
+     */
+    private String major() {
+        return this.group("major").orElseThrow(
+            () -> new IllegalStateException("Major identifier is missing")
+        );
+    }
+
+    /**
+     * Minor version.
+     *
+     * @return String representation of minor version.
+     */
+    private String minor() {
+        return this.group("minor").orElseThrow(
+            () -> new IllegalStateException("Minor identifier is missing")
+        );
+    }
+
+    /**
+     * Patch part of version.
+     *
+     * @return Patch part of version, none if absent.
+     */
+    private Optional<String> patch() {
+        return this.group("patch");
+    }
+
+    /**
+     * Revision part of version.
+     *
+     * @return Revision part of version, none if absent.
+     */
+    private Optional<String> revision() {
+        return this.group("revision");
+    }
+
+    /**
+     * Get named group from RegEx matcher.
+     *
+     * @param name Group name.
+     * @return Group value, or nothing if absent.
+     */
+    private Optional<String> group(final String name) {
+        return Optional.ofNullable(this.matcher().group(name));
     }
 
     /**
