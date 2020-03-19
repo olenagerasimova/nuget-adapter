@@ -31,6 +31,7 @@ import com.artipie.http.rs.RsStatus;
 import com.artpie.nuget.http.NuGet;
 import io.reactivex.Flowable;
 import java.io.ByteArrayInputStream;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.Collections;
 import javax.json.Json;
@@ -57,8 +58,11 @@ class NuGetPackageMetadataTest {
     private NuGet nuget;
 
     @BeforeEach
-    void init() {
-        this.nuget = new NuGet("/base", new InMemoryStorage());
+    void init() throws Exception {
+        this.nuget = new NuGet(
+            new URL("http://localhost:4321/repo"),
+            "/base", new InMemoryStorage()
+        );
     }
 
     @Test
