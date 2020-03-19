@@ -95,4 +95,14 @@ public final class Repository {
         }
         return versions;
     }
+
+    /**
+     * Read package description in .nuspec format.
+     *
+     * @param identity Package identity consisting of package id and version.
+     * @return Package description in .nuspec format.
+     */
+    public Nuspec nuspec(final PackageIdentity identity) {
+        return new Nuspec(ByteSource.wrap(this.storage.value(identity.nuspecKey())));
+    }
 }

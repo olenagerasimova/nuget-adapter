@@ -38,6 +38,8 @@ import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
 import org.hamcrest.collection.IsEmptyCollection;
 import org.hamcrest.core.IsEqual;
+import org.hamcrest.core.IsNot;
+import org.hamcrest.core.IsNull;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -153,6 +155,31 @@ class RepositoryTest {
         Assertions.assertThrows(
             PackageVersionAlreadyExistsException.class,
             () -> this.repository.add(second)
+        );
+    }
+
+    @Test
+    void shouldReadNuspec() {
+        final PackageIdentity identity = new PackageIdentity(
+            new PackageId("UsefulLib"),
+            new Version("2.0")
+        );
+        this.storage.save(identity.nuspecKey(), "some data".getBytes());
+        MatcherAssert.assertThat(
+            this.repository.nuspec(identity),
+            new IsNot<>(new IsNull<>())
+        );
+    }
+
+    @Test
+    void shouldFailToReadNuspecWhenValueAbsent() {
+        final PackageIdentity identity = new PackageIdentity(
+            new PackageId("MyPack"),
+            new Version("1.0")
+        );
+        Assertions.assertThrows(
+            Exception.class,
+            () -> this.repository.nuspec(identity)
         );
     }
 
