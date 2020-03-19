@@ -29,11 +29,14 @@ import com.artipie.asto.blocking.BlockingStorage;
 import com.google.common.io.ByteSource;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.List;
+import java.util.stream.Collectors;
 import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonArrayBuilder;
 import javax.json.JsonObject;
 import javax.json.JsonReader;
+import javax.json.JsonString;
 import javax.json.JsonWriter;
 
 /**
@@ -99,6 +102,23 @@ public final class Versions {
                     .build()
             )
         );
+    }
+
+    /**
+     * Read all package versions.
+     *
+     * @return All versions sorted by natural order.
+     * @throws IOException In case of any I/O problems.
+     */
+    public List<Version> all() throws IOException {
+        return this.json()
+            .getJsonArray(Versions.ARRAY)
+            .getValuesAs(JsonString.class)
+            .stream()
+            .map(JsonString::getString)
+            .map(Version::new)
+            .sorted()
+            .collect(Collectors.toList());
     }
 
     /**
