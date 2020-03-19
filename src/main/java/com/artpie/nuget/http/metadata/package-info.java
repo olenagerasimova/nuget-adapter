@@ -21,28 +21,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.artpie.nuget.http;
-
-import com.artipie.http.Response;
-import com.artipie.http.rs.RsStatus;
-import com.artipie.http.rs.RsWithStatus;
-import java.nio.ByteBuffer;
-import org.reactivestreams.Publisher;
 
 /**
- * Absent resource, sends HTTP 404 Not Found response to every request.
+ * NuGet repository Package Metadata service.
+ * See <a href="https://docs.microsoft.com/en-us/nuget/api/registration-base-url-resource">Package Metadata</a>
  *
  * @since 0.1
  */
-public final class Absent implements Resource {
-
-    @Override
-    public Response get() {
-        return new RsWithStatus(RsStatus.NOT_FOUND);
-    }
-
-    @Override
-    public Response put(final Publisher<ByteBuffer> body) {
-        return new RsWithStatus(RsStatus.NOT_FOUND);
-    }
-}
+package com.artpie.nuget.http.metadata;

@@ -30,6 +30,7 @@ import com.artipie.http.rq.RequestLineFrom;
 import com.artipie.http.rq.RqMethod;
 import com.artipie.http.rs.RsStatus;
 import com.artipie.http.rs.RsWithStatus;
+import com.artpie.nuget.http.metadata.PackageMetadata;
 import java.net.URL;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
@@ -40,6 +41,7 @@ import org.reactivestreams.Publisher;
  * NuGet repository HTTP front end.
  *
  * @since 0.1
+ * @checkstyle ClassDataAbstractionCouplingCheck (2 lines)
  */
 public final class NuGet implements Slice {
 
@@ -113,7 +115,8 @@ public final class NuGet implements Slice {
                 )
             ),
             publish,
-            content
+            content,
+            new PackageMetadata()
         );
     }
 }
