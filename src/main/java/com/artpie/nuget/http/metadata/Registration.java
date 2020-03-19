@@ -37,12 +37,12 @@ import javax.json.JsonWriter;
 import org.reactivestreams.Publisher;
 
 /**
- * Registration pages resource.
+ * Registration resource.
  * See <a href="https://docs.microsoft.com/en-us/nuget/api/registration-base-url-resource#registration-pages-and-leaves">Registration pages and leaves</a>
  *
  * @since 0.1
  */
-class Pages implements Resource {
+class Registration implements Resource {
 
     @Override
     public Response get() {

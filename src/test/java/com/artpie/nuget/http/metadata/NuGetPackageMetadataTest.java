@@ -62,7 +62,7 @@ class NuGetPackageMetadataTest {
     }
 
     @Test
-    void shouldGetPages() {
+    void shouldGetRegistration() {
         final Response response = this.nuget.response(
             "GET /base/registrations/newtonsoft.json/index.json",
             Collections.emptyList(),
@@ -73,14 +73,14 @@ class NuGetPackageMetadataTest {
             new AllOf<>(
                 Arrays.asList(
                     new RsHasStatus(RsStatus.OK),
-                    new RsHasBody(new IsValidPages())
+                    new RsHasBody(new IsValidRegistration())
                 )
             )
         );
     }
 
     @Test
-    void shouldFailPutPages() {
+    void shouldFailPutRegistration() {
         final Response response = this.nuget.response(
             "PUT /base/registrations/newtonsoft.json/index.json",
             Collections.emptyList(),
@@ -90,15 +90,15 @@ class NuGetPackageMetadataTest {
     }
 
     /**
-     * Matcher for bytes array representing valid Service Index JSON.
+     * Matcher for bytes array representing valid Registration JSON.
      *
      * @since 0.1
      */
-    private static class IsValidPages extends TypeSafeMatcher<byte[]> {
+    private static class IsValidRegistration extends TypeSafeMatcher<byte[]> {
 
         @Override
         public void describeTo(final Description description) {
-            description.appendText("is pages JSON");
+            description.appendText("is registration JSON");
         }
 
         @Override

@@ -43,9 +43,9 @@ public final class PackageMetadata implements Route {
     private static final String BASE = "/registrations";
 
     /**
-     * RegEx pattern for pages path.
+     * RegEx pattern for registration path.
      */
-    private static final Pattern PAGES = Pattern.compile(
+    private static final Pattern REGISTRATION = Pattern.compile(
         String.format("%s/(?<id>[^/]+)/index.json$", PackageMetadata.BASE)
     );
 
@@ -56,10 +56,10 @@ public final class PackageMetadata implements Route {
 
     @Override
     public Resource resource(final String path) {
-        final Matcher matcher = PAGES.matcher(path);
+        final Matcher matcher = REGISTRATION.matcher(path);
         final Resource resource;
         if (matcher.find()) {
-            resource = new Pages();
+            resource = new Registration();
         } else {
             resource = new Absent();
         }
