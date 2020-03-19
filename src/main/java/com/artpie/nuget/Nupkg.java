@@ -24,7 +24,6 @@
 
 package com.artpie.nuget;
 
-import com.artipie.asto.blocking.BlockingStorage;
 import com.google.common.hash.Hashing;
 import com.google.common.io.ByteSource;
 import com.google.common.io.ByteStreams;
@@ -82,11 +81,5 @@ public final class Nupkg implements NuGetPackage {
     @Override
     public Hash hash() throws IOException {
         return new Hash(Hashing.sha512().hashBytes(this.content.read()));
-    }
-
-    @Override
-    public void save(final BlockingStorage storage, final PackageIdentity identity)
-        throws IOException {
-        storage.save(identity.nupkgKey(), this.content.read());
     }
 }
