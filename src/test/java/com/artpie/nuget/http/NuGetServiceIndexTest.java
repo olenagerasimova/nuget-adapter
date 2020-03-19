@@ -30,14 +30,17 @@ import com.artipie.http.hm.RsHasStatus;
 import com.artipie.http.rs.RsStatus;
 import io.reactivex.Flowable;
 import java.io.ByteArrayInputStream;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.Collections;
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonReader;
 import org.hamcrest.Description;
+import org.hamcrest.Matcher;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.TypeSafeMatcher;
+import org.hamcrest.collection.IsIterableContainingInAnyOrder;
 import org.hamcrest.core.AllOf;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -47,8 +50,14 @@ import org.junit.jupiter.api.Test;
  * Service index resource.
  *
  * @since 0.1
+ * @checkstyle ClassDataAbstractionCouplingCheck (2 lines)
  */
 class NuGetServiceIndexTest {
+
+    /**
+     * Base URL for services.
+     */
+    private URL url;
 
     /**
      * Tested NuGet slice.
@@ -56,8 +65,9 @@ class NuGetServiceIndexTest {
     private NuGet nuget;
 
     @BeforeEach
-    void init() {
-        this.nuget = new NuGet("/base", new InMemoryStorage());
+    void init() throws Exception {
+        this.url = new URL("http://localhost:4321/repo");
+        this.nuget = new NuGet(this.url, "/base", new InMemoryStorage());
     }
 
     @Test
@@ -72,7 +82,22 @@ class NuGetServiceIndexTest {
             new AllOf<>(
                 Arrays.asList(
                     new RsHasStatus(RsStatus.OK),
-                    new RsHasBody(new IsValidServiceIndex())
+                    new RsHasBody(
+                        new IsValidServiceIndex(
+                            new IsIterableContainingInAnyOrder<>(
+                                Arrays.asList(
+                                    new IsService(
+                                        "PackagePublish/2.0.0",
+                                        String.format("%s/package", this.url)
+                                    ),
+                                    new IsService(
+                                        "PackageBaseAddress/3.0.0",
+                                        String.format("%s/content", this.url)
+                                    )
+                                )
+                            )
+                        )
+                    )
                 )
             )
         );
@@ -93,11 +118,22 @@ class NuGetServiceIndexTest {
      *
      * @since 0.1
      */
-    private static class IsValidServiceIndex extends TypeSafeMatcher<byte[]> {
+    private class IsValidServiceIndex extends TypeSafeMatcher<byte[]> {
+
+        /**
+         * Matcher for services list.
+         */
+        private final Matcher<Iterable<? extends JsonObject>> services;
+
+        IsValidServiceIndex(final Matcher<Iterable<? extends JsonObject>> services) {
+            this.services = services;
+        }
 
         @Override
         public void describeTo(final Description description) {
-            description.appendText("is Service Index JSON");
+            description
+                .appendText("Service Index JSON with services ")
+                .appendDescriptionOf(this.services);
         }
 
         @Override
@@ -107,7 +143,44 @@ class NuGetServiceIndexTest {
                 root = reader.readObject();
             }
             return root.getString("version").equals("3.0.0")
-                && root.getJsonArray("resources").isEmpty();
+                && this.services.matches(
+                root.getJsonArray("resources").getValuesAs(JsonObject.class)
+            );
+        }
+    }
+
+    /**
+     * Matcher for JSON object representing service.
+     *
+     * @since 0.1
+     */
+    private class IsService extends TypeSafeMatcher<JsonObject> {
+
+        /**
+         * Expected service type.
+         */
+        private final String type;
+
+        /**
+         * Expected service id.
+         */
+        private final String id;
+
+        IsService(final String type, final String id) {
+            this.type = type;
+            this.id = id;
+        }
+
+        @Override
+        public void describeTo(final Description description) {
+            description
+                .appendText("service with type=").appendText(this.type)
+                .appendText(" and id=").appendText(this.id);
+        }
+
+        @Override
+        protected boolean matchesSafely(final JsonObject obj) {
+            return obj.getString("@type").equals(this.type) && obj.getString("@id").equals(this.id);
         }
     }
 }
