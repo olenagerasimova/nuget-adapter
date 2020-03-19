@@ -33,6 +33,7 @@ import com.artpie.nuget.http.NuGet;
 import com.google.common.collect.ImmutableList;
 import com.jcabi.log.Logger;
 import java.io.IOException;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.UUID;
@@ -75,16 +76,17 @@ class RepositoryHttpIT {
     private String source;
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws Exception {
         this.storage = new FileStorage(this.temp.resolve("repo"));
         final int port = 8080;
-        final String base = UUID.randomUUID().toString();
+        final String path = String.format("/%s", UUID.randomUUID().toString());
+        final String base = String.format("http://localhost:%s%s", port, path);
         this.server = new VertxSliceServer(
-            new NuGet(String.format("/%s", base), this.storage),
+            new NuGet(new URL(base), path, this.storage),
             port
         );
         this.server.start();
-        this.source = String.format("http://localhost:%s/%s/index.json", port, base);
+        this.source = String.format("%s/index.json", base);
     }
 
     @AfterEach

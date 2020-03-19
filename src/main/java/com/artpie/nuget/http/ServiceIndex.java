@@ -31,6 +31,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import javax.json.Json;
+import javax.json.JsonArrayBuilder;
 import javax.json.JsonObject;
 import javax.json.JsonWriter;
 import org.reactivestreams.Publisher;
@@ -42,6 +43,20 @@ import org.reactivestreams.Publisher;
  * @since 0.1
  */
 public final class ServiceIndex implements Route {
+
+    /**
+     * Services.
+     */
+    private final Iterable<Service> services;
+
+    /**
+     * Ctor.
+     *
+     * @param services Services.
+     */
+    public ServiceIndex(final Iterable<Service> services) {
+        this.services = services;
+    }
 
     @Override
     public String path() {
@@ -64,13 +79,21 @@ public final class ServiceIndex implements Route {
      *
      * @since 0.1
      */
-    private static class Index implements Resource {
+    private final class Index implements Resource {
 
         @Override
         public Response get() {
+            final JsonArrayBuilder resources = Json.createArrayBuilder();
+            for (final Service service : ServiceIndex.this.services) {
+                resources.add(
+                    Json.createObjectBuilder()
+                        .add("@id", service.url())
+                        .add("@type", service.type())
+                );
+            }
             final JsonObject json = Json.createObjectBuilder()
                 .add("version", "3.0.0")
-                .add("resources", Json.createArrayBuilder())
+                .add("resources", resources)
                 .build();
             try (ByteArrayOutputStream out = new ByteArrayOutputStream();
                 JsonWriter writer = Json.createWriter(out)) {
