@@ -104,29 +104,7 @@ public final class Version implements Comparable<Version> {
             .thenComparingInt(version -> Integer.parseInt(version.minor()))
             .thenComparingInt(version -> version.patch().map(Integer::parseInt).orElse(0))
             .thenComparingInt(version -> version.revision().map(Integer::parseInt).orElse(0))
-            .thenComparing(
-                (Version o1, Version o2) -> {
-                    final Optional<String> one = o1.label();
-                    final Optional<String> two = o2.label();
-                    final int result;
-                    if (one.isPresent()) {
-                        if (two.isPresent()) {
-                            result = Comparator
-                                .comparing(VersionLabel::new)
-                                .compare(one.get(), two.get());
-                        } else {
-                            result = -1;
-                        }
-                    } else {
-                        if (two.isPresent()) {
-                            result = 1;
-                        } else {
-                            result = 0;
-                        }
-                    }
-                    return result;
-                }
-            )
+            .thenComparing(Version::compareLabelTo)
             .compare(this, that);
     }
 
@@ -207,6 +185,34 @@ public final class Version implements Comparable<Version> {
             );
         }
         return matcher;
+    }
+
+    /**
+     * Compares labels with other version.
+     *
+     * @param that Other version to compare.
+     * @return Comparison result, by rules of {@link Comparable#compareTo(Object)}
+     */
+    private int compareLabelTo(final Version that) {
+        final Optional<String> one = this.label();
+        final Optional<String> two = that.label();
+        final int result;
+        if (one.isPresent()) {
+            if (two.isPresent()) {
+                result = Comparator
+                    .comparing(VersionLabel::new)
+                    .compare(one.get(), two.get());
+            } else {
+                result = -1;
+            }
+        } else {
+            if (two.isPresent()) {
+                result = 1;
+            } else {
+                result = 0;
+            }
+        }
+        return result;
     }
 
     /**
