@@ -103,6 +103,9 @@ public final class Repository {
      * @return Package description in .nuspec format.
      */
     public Nuspec nuspec(final PackageIdentity identity) {
+        if (!this.storage.exists(identity.nuspecKey())) {
+            throw new IllegalArgumentException(String.format("Cannot find package: %s", identity));
+        }
         return new Nuspec(ByteSource.wrap(this.storage.value(identity.nuspecKey())));
     }
 }

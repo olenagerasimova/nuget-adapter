@@ -38,8 +38,6 @@ import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
 import org.hamcrest.collection.IsEmptyCollection;
 import org.hamcrest.core.IsEqual;
-import org.hamcrest.core.IsNot;
-import org.hamcrest.core.IsNull;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -159,15 +157,22 @@ class RepositoryTest {
     }
 
     @Test
-    void shouldReadNuspec() {
+    void shouldReadNuspec() throws Exception {
         final PackageIdentity identity = new PackageIdentity(
             new PackageId("UsefulLib"),
             new Version("2.0")
         );
-        this.storage.save(identity.nuspecKey(), "some data".getBytes());
+        final String content = String.join(
+            "",
+            "<?xml version=\"1.0\"?>",
+            "<package xmlns=\"http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd\">",
+            "<metadata><id>UsefulLib</id></metadata>",
+            "</package>"
+        );
+        this.storage.save(identity.nuspecKey(), content.getBytes());
         MatcherAssert.assertThat(
-            this.repository.nuspec(identity),
-            new IsNot<>(new IsNull<>())
+            this.repository.nuspec(identity).packageId().lower(),
+            new IsEqual<>("usefullib")
         );
     }
 
@@ -178,7 +183,7 @@ class RepositoryTest {
             new Version("1.0")
         );
         Assertions.assertThrows(
-            Exception.class,
+            IllegalArgumentException.class,
             () -> this.repository.nuspec(identity)
         );
     }
