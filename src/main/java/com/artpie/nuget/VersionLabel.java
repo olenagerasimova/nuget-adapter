@@ -30,25 +30,25 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * Label or pre-release part of version.
- * See https://semver.org/spec/v2.0.0.html#spec-item-9.
+ * Label part of version.
+ * See <a href="https://semver.org/spec/v2.0.0.html#spec-item-9">https://semver.org/spec/v2.0.0.html#spec-item-9</a>.
  *
  * @since 0.1
  */
 final class VersionLabel implements Comparable<VersionLabel> {
 
     /**
-     * String representation.
+     * Version label string.
      */
-    private final String value;
+    private final String label;
 
     /**
      * Ctor.
      *
-     * @param value Version label string.
+     * @param label Version label string.
      */
-    VersionLabel(final String value) {
-        this.value = value;
+    VersionLabel(final String label) {
+        this.label = label;
     }
 
     @Override
@@ -79,7 +79,7 @@ final class VersionLabel implements Comparable<VersionLabel> {
      * @return List of identifiers.
      */
     private List<Identifier> identifiers() {
-        return Stream.of(this.value.split("\\."))
+        return Stream.of(this.label.split("\\."))
             .map(Identifier::new)
             .collect(Collectors.toList());
     }
