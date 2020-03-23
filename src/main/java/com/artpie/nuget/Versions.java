@@ -26,11 +26,11 @@ package com.artpie.nuget;
 
 import com.artipie.asto.Key;
 import com.artipie.asto.blocking.BlockingStorage;
+import com.google.common.collect.ImmutableList;
 import com.google.common.io.ByteSource;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.List;
-import java.util.stream.Collectors;
 import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonArrayBuilder;
@@ -118,7 +118,7 @@ public final class Versions {
             .map(JsonString::getString)
             .map(Version::new)
             .sorted()
-            .collect(Collectors.toList());
+            .collect(ImmutableList.toImmutableList());
     }
 
     /**
