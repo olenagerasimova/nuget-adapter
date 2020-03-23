@@ -162,14 +162,16 @@ class RepositoryTest {
             new PackageId("UsefulLib"),
             new Version("2.0")
         );
-        final String content = String.join(
-            "",
-            "<?xml version=\"1.0\"?>",
-            "<package xmlns=\"http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd\">",
-            "<metadata><id>UsefulLib</id></metadata>",
-            "</package>"
+        this.storage.save(
+            identity.nuspecKey(),
+            String.join(
+                "",
+                "<?xml version=\"1.0\"?>",
+                "<package xmlns=\"http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd\">",
+                "<metadata><id>UsefulLib</id></metadata>",
+                "</package>"
+            ).getBytes()
         );
-        this.storage.save(identity.nuspecKey(), content.getBytes());
         MatcherAssert.assertThat(
             this.repository.nuspec(identity).packageId().lower(),
             new IsEqual<>("usefullib")
