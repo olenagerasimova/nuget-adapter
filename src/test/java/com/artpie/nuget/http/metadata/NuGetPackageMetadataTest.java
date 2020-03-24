@@ -23,11 +23,15 @@
  */
 package com.artpie.nuget.http.metadata;
 
+import com.artipie.asto.blocking.BlockingStorage;
 import com.artipie.asto.memory.InMemoryStorage;
 import com.artipie.http.Response;
 import com.artipie.http.hm.RsHasBody;
 import com.artipie.http.hm.RsHasStatus;
 import com.artipie.http.rs.RsStatus;
+import com.artpie.nuget.PackageId;
+import com.artpie.nuget.Version;
+import com.artpie.nuget.Versions;
 import com.artpie.nuget.http.NuGet;
 import io.reactivex.Flowable;
 import java.io.ByteArrayInputStream;
@@ -49,6 +53,7 @@ import org.junit.jupiter.api.Test;
  * Package metadata resource.
  *
  * @since 0.1
+ * @checkstyle ClassDataAbstractionCouplingCheck (2 lines)
  */
 class NuGetPackageMetadataTest {
 
@@ -57,16 +62,29 @@ class NuGetPackageMetadataTest {
      */
     private NuGet nuget;
 
+    /**
+     * Storage used by repository.
+     */
+    private InMemoryStorage storage;
+
     @BeforeEach
     void init() throws Exception {
+        this.storage = new InMemoryStorage();
         this.nuget = new NuGet(
             new URL("http://localhost:4321/repo"),
-            "/base", new InMemoryStorage()
+            "/base",
+            this.storage
         );
     }
 
     @Test
-    void shouldGetRegistration() {
+    void shouldGetRegistration() throws Exception {
+        new Versions()
+            .add(new Version("12.0.3"))
+            .save(
+                new BlockingStorage(this.storage),
+                new PackageId("Newtonsoft.Json").versionsKey()
+            );
         final Response response = this.nuget.response(
             "GET /base/registrations/newtonsoft.json/index.json",
             Collections.emptyList(),
@@ -111,8 +129,7 @@ class NuGetPackageMetadataTest {
             try (JsonReader reader = Json.createReader(new ByteArrayInputStream(bytes))) {
                 root = reader.readObject();
             }
-            return root.getInt("count") == 0
-                && root.getJsonArray("items").isEmpty();
+            return root.getInt("count") == root.getJsonArray("items").size();
         }
     }
 }

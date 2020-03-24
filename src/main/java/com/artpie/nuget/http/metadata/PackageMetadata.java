@@ -23,6 +23,8 @@
  */
 package com.artpie.nuget.http.metadata;
 
+import com.artpie.nuget.PackageId;
+import com.artpie.nuget.Repository;
 import com.artpie.nuget.http.Absent;
 import com.artpie.nuget.http.Resource;
 import com.artpie.nuget.http.Route;
@@ -49,6 +51,20 @@ public final class PackageMetadata implements Route {
         String.format("%s/(?<id>[^/]+)/index.json$", PackageMetadata.BASE)
     );
 
+    /**
+     * Repository to read data from.
+     */
+    private final Repository repository;
+
+    /**
+     * Ctor.
+     *
+     * @param repository Repository to read data from.
+     */
+    public PackageMetadata(final Repository repository) {
+        this.repository = repository;
+    }
+
     @Override
     public String path() {
         return PackageMetadata.BASE;
@@ -59,7 +75,7 @@ public final class PackageMetadata implements Route {
         final Matcher matcher = REGISTRATION.matcher(path);
         final Resource resource;
         if (matcher.find()) {
-            resource = new Registration();
+            resource = new Registration(this.repository, new PackageId(matcher.group("id")));
         } else {
             resource = new Absent();
         }
