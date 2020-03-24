@@ -25,10 +25,9 @@ package com.artpie.nuget;
 
 import com.artipie.asto.Key;
 import com.artipie.asto.blocking.BlockingStorage;
-import com.artipie.asto.fs.FileStorage;
+import com.artipie.asto.memory.InMemoryStorage;
 import com.google.common.io.ByteSource;
 import java.io.ByteArrayInputStream;
-import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -42,7 +41,6 @@ import org.hamcrest.collection.IsEmptyCollection;
 import org.hamcrest.core.IsEqual;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 
 /**
  * Tests for {@link Versions}.
@@ -58,8 +56,8 @@ class VersionsTest {
     private BlockingStorage storage;
 
     @BeforeEach
-    void init(final @TempDir Path temp) {
-        this.storage = new BlockingStorage(new FileStorage(temp));
+    void init() {
+        this.storage = new BlockingStorage(new InMemoryStorage());
     }
 
     @Test
@@ -79,6 +77,25 @@ class VersionsTest {
         MatcherAssert.assertThat(
             versions,
             Matchers.equalTo(Arrays.asList("1.0.0", version.normalized()))
+        );
+    }
+
+    @Test
+    void shouldGetAllVersionsWhenEmpty() throws Exception {
+        final Versions versions = new Versions(
+            ByteSource.wrap("{ \"versions\":[] }".getBytes())
+        );
+        MatcherAssert.assertThat(versions.all(), new IsEmptyCollection<>());
+    }
+
+    @Test
+    void shouldGetAllVersionsOrdered() throws Exception {
+        final Versions versions = new Versions(
+            ByteSource.wrap("{ \"versions\":[\"1.0.1\",\"0.1\",\"2.0\",\"1.0\"] }".getBytes())
+        );
+        MatcherAssert.assertThat(
+            versions.all().stream().map(Version::normalized).collect(Collectors.toList()),
+            new IsEqual<>(Arrays.asList("0.1", "1.0", "1.0.1", "2.0"))
         );
     }
 
