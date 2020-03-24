@@ -156,6 +156,40 @@ class RepositoryTest {
         );
     }
 
+    @Test
+    void shouldReadNuspec() throws Exception {
+        final PackageIdentity identity = new PackageIdentity(
+            new PackageId("UsefulLib"),
+            new Version("2.0")
+        );
+        this.storage.save(
+            identity.nuspecKey(),
+            String.join(
+                "",
+                "<?xml version=\"1.0\"?>",
+                "<package xmlns=\"http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd\">",
+                "<metadata><id>UsefulLib</id></metadata>",
+                "</package>"
+            ).getBytes()
+        );
+        MatcherAssert.assertThat(
+            this.repository.nuspec(identity).packageId().lower(),
+            new IsEqual<>("usefullib")
+        );
+    }
+
+    @Test
+    void shouldFailToReadNuspecWhenValueAbsent() {
+        final PackageIdentity identity = new PackageIdentity(
+            new PackageId("MyPack"),
+            new Version("1.0")
+        );
+        Assertions.assertThrows(
+            IllegalArgumentException.class,
+            () -> this.repository.nuspec(identity)
+        );
+    }
+
     private List<String> versions(final Key key) {
         final byte[] bytes = this.storage.value(key);
         try (JsonReader reader = Json.createReader(new ByteArrayInputStream(bytes))) {
