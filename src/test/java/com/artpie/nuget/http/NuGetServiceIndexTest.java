@@ -36,14 +36,17 @@ import java.util.Collections;
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonReader;
+import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.TypeSafeMatcher;
-import org.hamcrest.collection.IsIterableContainingInAnyOrder;
 import org.hamcrest.core.AllOf;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import wtf.g4s8.hamcrest.json.JsonContains;
+import wtf.g4s8.hamcrest.json.JsonHas;
+import wtf.g4s8.hamcrest.json.JsonValueIs;
 
 /**
  * Tests for {@link NuGet}.
@@ -83,16 +86,26 @@ class NuGetServiceIndexTest {
                 Arrays.asList(
                     new RsHasStatus(RsStatus.OK),
                     new RsHasBody(
-                        new IsValidServiceIndex(
-                            new IsIterableContainingInAnyOrder<>(
+                        new IsJson(
+                            new AllOf<>(
                                 Arrays.asList(
-                                    new IsService(
-                                        "PackagePublish/2.0.0",
-                                        String.format("%s/package", this.url)
-                                    ),
-                                    new IsService(
-                                        "PackageBaseAddress/3.0.0",
-                                        String.format("%s/content", this.url)
+                                    new JsonHas("version", new JsonValueIs("3.0.0")),
+                                    new JsonHas(
+                                        "resources",
+                                        new JsonContains(
+                                            new IsService(
+                                                "PackagePublish/2.0.0",
+                                                String.format("%s/package", this.url)
+                                            ),
+                                            new IsService(
+                                                "RegistrationsBaseUrl/Versioned",
+                                                String.format("%s/registrations", this.url)
+                                            ),
+                                            new IsService(
+                                                "PackageBaseAddress/3.0.0",
+                                                String.format("%s/content", this.url)
+                                            )
+                                        )
                                     )
                                 )
                             )
@@ -114,26 +127,24 @@ class NuGetServiceIndexTest {
     }
 
     /**
-     * Matcher for bytes array representing valid Service Index JSON.
+     * Matcher for bytes array representing JSON.
      *
      * @since 0.1
      */
-    private class IsValidServiceIndex extends TypeSafeMatcher<byte[]> {
+    private class IsJson extends TypeSafeMatcher<byte[]> {
 
         /**
-         * Matcher for services list.
+         * Matcher for JSON.
          */
-        private final Matcher<Iterable<? extends JsonObject>> services;
+        private final Matcher<? extends JsonObject> json;
 
-        IsValidServiceIndex(final Matcher<Iterable<? extends JsonObject>> services) {
-            this.services = services;
+        IsJson(final Matcher<? extends JsonObject> json) {
+            this.json = json;
         }
 
         @Override
         public void describeTo(final Description description) {
-            description
-                .appendText("Service Index JSON with services ")
-                .appendDescriptionOf(this.services);
+            description.appendText("JSON ").appendDescriptionOf(this.json);
         }
 
         @Override
@@ -142,10 +153,7 @@ class NuGetServiceIndexTest {
             try (JsonReader reader = Json.createReader(new ByteArrayInputStream(bytes))) {
                 root = reader.readObject();
             }
-            return root.getString("version").equals("3.0.0")
-                && this.services.matches(
-                root.getJsonArray("resources").getValuesAs(JsonObject.class)
-            );
+            return this.json.matches(root);
         }
     }
 
@@ -154,7 +162,7 @@ class NuGetServiceIndexTest {
      *
      * @since 0.1
      */
-    private class IsService extends TypeSafeMatcher<JsonObject> {
+    private class IsService extends BaseMatcher<JsonObject> {
 
         /**
          * Expected service type.
@@ -173,14 +181,21 @@ class NuGetServiceIndexTest {
 
         @Override
         public void describeTo(final Description description) {
-            description
-                .appendText("service with type=").appendText(this.type)
-                .appendText(" and id=").appendText(this.id);
+            this.delegate().describeTo(description);
         }
 
         @Override
-        protected boolean matchesSafely(final JsonObject obj) {
-            return obj.getString("@type").equals(this.type) && obj.getString("@id").equals(this.id);
+        public boolean matches(final Object item) {
+            return this.delegate().matches(item);
+        }
+
+        private Matcher<JsonObject> delegate() {
+            return new AllOf<>(
+                Arrays.asList(
+                    new JsonHas("@type", new JsonValueIs(this.type)),
+                    new JsonHas("@id", new JsonValueIs(this.id))
+                )
+            );
         }
     }
 }
