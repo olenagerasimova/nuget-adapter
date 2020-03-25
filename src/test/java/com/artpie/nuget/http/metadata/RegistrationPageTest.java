@@ -24,44 +24,41 @@
 package com.artpie.nuget.http.metadata;
 
 import com.artpie.nuget.Version;
+import java.util.Arrays;
 import java.util.List;
-import javax.json.Json;
-import javax.json.JsonObject;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import org.hamcrest.MatcherAssert;
+import org.hamcrest.core.AllOf;
+import org.junit.jupiter.api.Test;
+import wtf.g4s8.hamcrest.json.JsonContains;
+import wtf.g4s8.hamcrest.json.JsonHas;
+import wtf.g4s8.hamcrest.json.JsonValueIs;
 
 /**
- * Registrations page.
+ * Tests for {@link RegistrationPage}.
  *
  * @since 0.1
  */
-final class Page {
+class RegistrationPageTest {
 
-    /**
-     * Ordered list of versions on this page from lowest to highest.
-     */
-    private final List<Version> versions;
-
-    /**
-     * Ctor.
-     *
-     * @param versions Ordered list of versions on this page from lowest to highest.
-     */
-    Page(final List<Version> versions) {
-        this.versions = versions;
-    }
-
-    /**
-     * Generates page in JSON.
-     *
-     * @return Page JSON.
-     */
-    public JsonObject json() {
-        final Version lower = this.versions.get(0);
-        final Version upper = this.versions.get(this.versions.size() - 1);
-        return Json.createObjectBuilder()
-            .add("lower", lower.normalized())
-            .add("upper", upper.normalized())
-            .add("count", this.versions.size())
-            .add("items", Json.createArrayBuilder())
-            .build();
+    @Test
+    void shouldGenerateJson() {
+        final String lower = "0.1";
+        final String upper = "0.2";
+        final List<Version> versions = Stream.of(lower, "0.1.2", upper)
+            .map(Version::new)
+            .collect(Collectors.toList());
+        MatcherAssert.assertThat(
+            new RegistrationPage(versions).json(),
+            new AllOf<>(
+                Arrays.asList(
+                    new JsonHas("lower", new JsonValueIs(lower)),
+                    new JsonHas("upper", new JsonValueIs(upper)),
+                    new JsonHas("count", new JsonValueIs(versions.size())),
+                    new JsonHas("items", new JsonContains())
+                )
+            )
+        );
     }
 }
