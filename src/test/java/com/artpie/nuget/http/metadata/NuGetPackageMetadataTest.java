@@ -29,10 +29,12 @@ import com.artipie.http.Response;
 import com.artipie.http.hm.RsHasBody;
 import com.artipie.http.hm.RsHasStatus;
 import com.artipie.http.rs.RsStatus;
+import com.artpie.nuget.Nuspec;
 import com.artpie.nuget.PackageId;
 import com.artpie.nuget.Version;
 import com.artpie.nuget.Versions;
 import com.artpie.nuget.http.NuGet;
+import com.google.common.io.ByteSource;
 import io.reactivex.Flowable;
 import java.io.ByteArrayInputStream;
 import java.net.URL;
@@ -85,6 +87,17 @@ class NuGetPackageMetadataTest {
                 new BlockingStorage(this.storage),
                 new PackageId("Newtonsoft.Json").versionsKey()
             );
+        new Nuspec(
+            ByteSource.wrap(
+                String.join(
+                    "",
+                    "<?xml version=\"1.0\"?>",
+                    "<package xmlns=\"http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd\">",
+                    "<metadata><id>Newtonsoft.Json</id><version>12.0.3</version></metadata>",
+                    "</package>"
+                ).getBytes()
+            )
+        ).save(new BlockingStorage(this.storage));
         final Response response = this.nuget.response(
             "GET /base/registrations/newtonsoft.json/index.json",
             Collections.emptyList(),

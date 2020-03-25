@@ -23,11 +23,18 @@
  */
 package com.artpie.nuget.http.metadata;
 
+import com.artipie.asto.blocking.BlockingStorage;
+import com.artipie.asto.memory.InMemoryStorage;
+import com.artpie.nuget.PackageId;
+import com.artpie.nuget.PackageIdentity;
+import com.artpie.nuget.Repository;
 import com.artpie.nuget.Version;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.json.JsonObject;
+import org.hamcrest.Matcher;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.core.AllOf;
 import org.junit.jupiter.api.Test;
@@ -39,24 +46,62 @@ import wtf.g4s8.hamcrest.json.JsonValueIs;
  * Tests for {@link RegistrationPage}.
  *
  * @since 0.1
+ * @checkstyle ClassDataAbstractionCouplingCheck (2 lines)
  */
 class RegistrationPageTest {
 
     @Test
-    void shouldGenerateJson() {
+    void shouldGenerateJson() throws Exception {
+        final BlockingStorage storage = new BlockingStorage(new InMemoryStorage());
+        final Repository repository = new Repository(storage);
+        final PackageId id = new PackageId("My.Lib");
         final String lower = "0.1";
         final String upper = "0.2";
         final List<Version> versions = Stream.of(lower, "0.1.2", upper)
             .map(Version::new)
             .collect(Collectors.toList());
+        for (final Version version : versions) {
+            storage.save(
+                new PackageIdentity(id, version).nuspecKey(),
+                String.join(
+                    "",
+                    "<?xml version=\"1.0\"?>",
+                    "<package xmlns=\"http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd\">",
+                    "<metadata>",
+                    String.format("<id>%s</id>", id.original()),
+                    String.format("<version>%s</version>", version.normalized()),
+                    "</metadata>",
+                    "</package>"
+                ).getBytes()
+            );
+        }
         MatcherAssert.assertThat(
-            new RegistrationPage(versions).json(),
+            new RegistrationPage(repository, id, versions).json(),
             new AllOf<>(
                 Arrays.asList(
                     new JsonHas("lower", new JsonValueIs(lower)),
                     new JsonHas("upper", new JsonValueIs(upper)),
                     new JsonHas("count", new JsonValueIs(versions.size())),
-                    new JsonHas("items", new JsonContains())
+                    new JsonHas(
+                        "items",
+                        new JsonContains(
+                            versions.stream()
+                                .map(version -> entryMatcher(id, version))
+                                .collect(Collectors.toList())
+                        )
+                    )
+                )
+            )
+        );
+    }
+
+    private static Matcher<JsonObject> entryMatcher(final PackageId id, final Version version) {
+        return new JsonHas(
+            "catalogEntry",
+            new AllOf<>(
+                Arrays.asList(
+                    new JsonHas("id", new JsonValueIs(id.original())),
+                    new JsonHas("version", new JsonValueIs(version.normalized()))
                 )
             )
         );

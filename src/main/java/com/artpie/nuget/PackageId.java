@@ -49,6 +49,15 @@ public final class PackageId {
     }
 
     /**
+     * Get as case-sensitive original string.
+     *
+     * @return Id as lowercase string.
+     */
+    public String original() {
+        return this.raw;
+    }
+
+    /**
      * Get as lowercase string.
      * See <a href="https://docs.microsoft.com/en-us/dotnet/api/system.string.tolowerinvariant?view=netstandard-2.0#System_String_ToLowerInvariant">.NET's System.String.ToLowerInvariant()</a>.
      *

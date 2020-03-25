@@ -34,15 +34,19 @@ import org.junit.jupiter.api.Test;
  */
 public class PackageIdTest {
 
-    /**
-     * Example package identity.
-     */
-    private final PackageId id = new PackageId("Newtonsoft.Json");
+    @Test
+    void shouldPreserveOriginal() {
+        final String id = "Microsoft.Extensions.Logging";
+        MatcherAssert.assertThat(
+            new PackageId(id).original(),
+            Matchers.is(id)
+        );
+    }
 
     @Test
     void shouldGenerateVersionsKey() {
         MatcherAssert.assertThat(
-            this.id.versionsKey().string(),
+            new PackageId("Newtonsoft.Json").versionsKey().string(),
             Matchers.is("newtonsoft.json/index.json")
         );
     }
@@ -50,8 +54,8 @@ public class PackageIdTest {
     @Test
     void shouldGenerateLower() {
         MatcherAssert.assertThat(
-            this.id.lower(),
-            Matchers.is("newtonsoft.json")
+            new PackageId("My.Lib").lower(),
+            Matchers.is("my.lib")
         );
     }
 }
