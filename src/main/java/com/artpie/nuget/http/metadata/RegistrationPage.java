@@ -48,6 +48,11 @@ final class RegistrationPage {
     private final Repository repository;
 
     /**
+     * Package content storage.
+     */
+    private final ContentStorage content;
+
+    /**
      * Package identifier.
      */
     private final PackageId id;
@@ -61,14 +66,22 @@ final class RegistrationPage {
      * Ctor.
      *
      * @param repository Repository.
+     * @param content Package content storage.
      * @param id Package identifier.
      * @param versions Ordered list of versions on this page from lowest to highest.
+     * @todo #87:60min Refactor RegistrationPage class, reduce number of fields.
+     *  Probably it is needed to extract some abstraction for creating leaf objects,
+     *  that will join `repository` and `content` fields and produce leaf JSON for package identity.
+     * @checkstyle ParameterNumberCheck (2 line)
      */
     RegistrationPage(
         final Repository repository,
+        final ContentStorage content,
         final PackageId id,
-        final List<Version> versions) {
+        final List<Version> versions
+    ) {
         this.repository = repository;
+        this.content = content;
         this.id = id;
         this.versions = versions;
     }
@@ -116,6 +129,7 @@ final class RegistrationPage {
                     .add("id", nuspec.packageId().original())
                     .add("version", nuspec.version().normalized())
             )
+            .add("packageContent", this.content.url(identity).toString())
             .build();
     }
 }
