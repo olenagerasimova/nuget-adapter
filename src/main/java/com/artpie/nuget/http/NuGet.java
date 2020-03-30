@@ -24,12 +24,14 @@
 package com.artpie.nuget.http;
 
 import com.artipie.asto.Storage;
+import com.artipie.asto.blocking.BlockingStorage;
 import com.artipie.http.Response;
 import com.artipie.http.Slice;
 import com.artipie.http.rq.RequestLineFrom;
 import com.artipie.http.rq.RqMethod;
 import com.artipie.http.rs.RsStatus;
 import com.artipie.http.rs.RsWithStatus;
+import com.artpie.nuget.Repository;
 import com.artpie.nuget.http.metadata.PackageMetadata;
 import java.net.URL;
 import java.nio.ByteBuffer;
@@ -105,7 +107,9 @@ public final class NuGet implements Slice {
      */
     private Resource resource(final String path) {
         final PackagePublish publish = new PackagePublish(this.storage);
-        final PackageMetadata metadata = new PackageMetadata();
+        final PackageMetadata metadata = new PackageMetadata(
+            new Repository(new BlockingStorage(this.storage))
+        );
         final PackageContent content = new PackageContent(this.storage);
         return new RoutingResource(
             path,
