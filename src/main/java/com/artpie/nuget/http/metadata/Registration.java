@@ -110,6 +110,6 @@ class Registration implements Resource {
      */
     private List<RegistrationPage> pages() throws IOException {
         final List<Version> versions = this.repository.versions(this.id).all();
-        return Collections.singletonList(new RegistrationPage(versions));
+        return Collections.singletonList(new RegistrationPage(this.repository, this.id, versions));
     }
 }

@@ -23,9 +23,15 @@
  */
 package com.artpie.nuget.http.metadata;
 
+import com.artpie.nuget.Nuspec;
+import com.artpie.nuget.PackageId;
+import com.artpie.nuget.PackageIdentity;
+import com.artpie.nuget.Repository;
 import com.artpie.nuget.Version;
+import java.io.IOException;
 import java.util.List;
 import javax.json.Json;
+import javax.json.JsonArrayBuilder;
 import javax.json.JsonObject;
 
 /**
@@ -37,6 +43,16 @@ import javax.json.JsonObject;
 final class RegistrationPage {
 
     /**
+     * Repository.
+     */
+    private final Repository repository;
+
+    /**
+     * Package identifier.
+     */
+    private final PackageId id;
+
+    /**
      * Ordered list of versions on this page from lowest to highest.
      */
     private final List<Version> versions;
@@ -44,9 +60,16 @@ final class RegistrationPage {
     /**
      * Ctor.
      *
+     * @param repository Repository.
+     * @param id Package identifier.
      * @param versions Ordered list of versions on this page from lowest to highest.
      */
-    RegistrationPage(final List<Version> versions) {
+    RegistrationPage(
+        final Repository repository,
+        final PackageId id,
+        final List<Version> versions) {
+        this.repository = repository;
+        this.id = id;
         this.versions = versions;
     }
 
@@ -54,15 +77,40 @@ final class RegistrationPage {
      * Generates page in JSON.
      *
      * @return Page JSON.
+     * @throws IOException In case exception occurred on reading data from repository.
      */
-    public JsonObject json() {
+    public JsonObject json() throws IOException {
         final Version lower = this.versions.get(0);
         final Version upper = this.versions.get(this.versions.size() - 1);
+        final JsonArrayBuilder items = Json.createArrayBuilder();
+        for (final Version version : this.versions) {
+            items.add(this.leaf(new PackageIdentity(this.id, version)));
+        }
         return Json.createObjectBuilder()
             .add("lower", lower.normalized())
             .add("upper", upper.normalized())
             .add("count", this.versions.size())
-            .add("items", Json.createArrayBuilder())
+            .add("items", items)
+            .build();
+    }
+
+    /**
+     * Builds registration leaf.
+     * See <a href="https://docs.microsoft.com/en-us/nuget/api/registration-base-url-resource#registration-leaf-object-in-a-page"></a>
+     *
+     * @param identity Package identity.
+     * @return JSON representing registration leaf.
+     * @throws IOException In case exception occurred on reading data from repository.
+     */
+    private JsonObject leaf(final PackageIdentity identity) throws IOException {
+        final Nuspec nuspec = this.repository.nuspec(identity);
+        return Json.createObjectBuilder()
+            .add(
+                "catalogEntry",
+                Json.createObjectBuilder()
+                    .add("id", nuspec.packageId().original())
+                    .add("version", nuspec.version().normalized())
+            )
             .build();
     }
 }
