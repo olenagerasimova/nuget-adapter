@@ -51,7 +51,7 @@ public final class PackageId {
     /**
      * Get as case-sensitive original string.
      *
-     * @return Id as lowercase string.
+     * @return Original string.
      */
     public String original() {
         return this.raw;
