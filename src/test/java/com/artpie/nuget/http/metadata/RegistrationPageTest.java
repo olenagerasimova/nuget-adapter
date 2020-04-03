@@ -30,6 +30,7 @@ import com.artpie.nuget.PackageIdentity;
 import com.artpie.nuget.Repository;
 import com.artpie.nuget.Version;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -37,6 +38,8 @@ import javax.json.JsonObject;
 import org.hamcrest.Matcher;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.core.AllOf;
+import org.hamcrest.core.StringContains;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import wtf.g4s8.hamcrest.json.JsonContains;
 import wtf.g4s8.hamcrest.json.JsonHas;
@@ -90,6 +93,28 @@ class RegistrationPageTest {
                                 .collect(Collectors.toList())
                         )
                     )
+                )
+            )
+        );
+    }
+
+    @Test
+    void shouldFailToGenerateJsonWhenEmpty() {
+        final String id = "Some.Lib";
+        final Throwable throwable = Assertions.assertThrows(
+            IllegalStateException.class,
+            () -> new RegistrationPage(
+                new Repository(new BlockingStorage(new InMemoryStorage())),
+                new PackageId(id),
+                Collections.emptyList()
+            ).json()
+        );
+        MatcherAssert.assertThat(
+            throwable.getMessage(),
+            new AllOf<>(
+                Arrays.asList(
+                    new StringContains(true, "Registration page contains no versions"),
+                    new StringContains(false, id)
                 )
             )
         );

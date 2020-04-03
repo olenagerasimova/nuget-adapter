@@ -80,6 +80,11 @@ final class RegistrationPage {
      * @throws IOException In case exception occurred on reading data from repository.
      */
     public JsonObject json() throws IOException {
+        if (this.versions.isEmpty()) {
+            throw new IllegalStateException(
+                String.format("Registration page contains no versions: '%s'", this.id)
+            );
+        }
         final Version lower = this.versions.get(0);
         final Version upper = this.versions.get(this.versions.size() - 1);
         final JsonArrayBuilder items = Json.createArrayBuilder();

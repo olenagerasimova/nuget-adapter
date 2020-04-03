@@ -115,6 +115,24 @@ class NuGetPackageMetadataTest {
     }
 
     @Test
+    void shouldGetRegistrationsWhenEmpty() {
+        final Response response = this.nuget.response(
+            "GET /base/registrations/my.lib/index.json",
+            Collections.emptyList(),
+            Flowable.empty()
+        );
+        MatcherAssert.assertThat(
+            response,
+            new AllOf<>(
+                Arrays.asList(
+                    new RsHasStatus(RsStatus.OK),
+                    new RsHasBody(new IsValidRegistration())
+                )
+            )
+        );
+    }
+
+    @Test
     void shouldFailPutRegistration() {
         final Response response = this.nuget.response(
             "PUT /base/registrations/newtonsoft.json/index.json",
