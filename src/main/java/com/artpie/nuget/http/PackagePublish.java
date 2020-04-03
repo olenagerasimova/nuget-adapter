@@ -24,6 +24,7 @@
 
 package com.artpie.nuget.http;
 
+import com.artipie.asto.Content;
 import com.artipie.asto.Key;
 import com.artipie.asto.Storage;
 import com.artipie.asto.blocking.BlockingStorage;
@@ -103,7 +104,7 @@ public final class PackagePublish implements Route {
             return connection -> CompletableFuture
                 .supplyAsync(() -> new Key.From(UUID.randomUUID().toString()))
                 .thenCompose(
-                    key -> this.storage.save(key, body).thenCompose(
+                    key -> this.storage.save(key, new Content.From(body)).thenCompose(
                         ignored -> {
                             RsStatus status;
                             try {

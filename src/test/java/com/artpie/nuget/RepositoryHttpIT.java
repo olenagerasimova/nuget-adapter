@@ -27,7 +27,7 @@ package com.artpie.nuget;
 import com.artipie.asto.Key;
 import com.artipie.asto.Storage;
 import com.artipie.asto.blocking.BlockingStorage;
-import com.artipie.asto.fs.FileStorage;
+import com.artipie.asto.memory.InMemoryStorage;
 import com.artipie.vertx.VertxSliceServer;
 import com.artpie.nuget.http.NuGet;
 import com.google.common.collect.ImmutableList;
@@ -77,7 +77,7 @@ class RepositoryHttpIT {
 
     @BeforeEach
     void setUp() throws Exception {
-        this.storage = new FileStorage(this.temp.resolve("repo"));
+        this.storage = new InMemoryStorage();
         final int port = 8080;
         final String path = String.format("/%s", UUID.randomUUID().toString());
         final String base = String.format("http://localhost:%s%s", port, path);
