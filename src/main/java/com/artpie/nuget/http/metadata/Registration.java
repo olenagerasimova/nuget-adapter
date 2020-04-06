@@ -56,9 +56,9 @@ class Registration implements Resource {
     private final Repository repository;
 
     /**
-     * Package content storage.
+     * Package content location.
      */
-    private final ContentStorage content;
+    private final ContentLocation content;
 
     /**
      * Package identifier.
@@ -69,11 +69,12 @@ class Registration implements Resource {
      * Ctor.
      *
      * @param repository Repository to read data from.
-     * @param content Package content storage.
+     * @param content Package content location.
      * @param id Package identifier.
      */
     Registration(
-        final Repository repository, final ContentStorage content,
+        final Repository repository,
+        final ContentLocation content,
         final PackageId id) {
         this.repository = repository;
         this.content = content;

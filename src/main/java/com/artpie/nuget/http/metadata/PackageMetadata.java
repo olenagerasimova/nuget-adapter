@@ -57,9 +57,9 @@ public final class PackageMetadata implements Route {
     private final Repository repository;
 
     /**
-     * Package content storage.
+     * Package content location.
      */
-    private final ContentStorage content;
+    private final ContentLocation content;
 
     /**
      * Ctor.
@@ -67,10 +67,7 @@ public final class PackageMetadata implements Route {
      * @param repository Repository to read data from.
      * @param content Package content storage.
      */
-    public PackageMetadata(
-        final Repository repository,
-        final ContentStorage content
-    ) {
+    public PackageMetadata(final Repository repository, final ContentLocation content) {
         this.repository = repository;
         this.content = content;
     }

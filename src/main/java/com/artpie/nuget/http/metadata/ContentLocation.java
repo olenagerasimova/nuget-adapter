@@ -27,11 +27,11 @@ import com.artpie.nuget.PackageIdentity;
 import java.net.URL;
 
 /**
- * Package content storage.
+ * Package content location.
  *
  * @since 0.1
  */
-public interface ContentStorage {
+public interface ContentLocation {
 
     /**
      * Get URL for package content.

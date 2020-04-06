@@ -29,7 +29,7 @@ import com.artipie.http.Response;
 import com.artipie.http.rs.RsStatus;
 import com.artipie.http.rs.RsWithStatus;
 import com.artpie.nuget.PackageIdentity;
-import com.artpie.nuget.http.metadata.ContentStorage;
+import com.artpie.nuget.http.metadata.ContentLocation;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.ByteBuffer;
@@ -45,7 +45,7 @@ import org.reactivestreams.Publisher;
  *
  * @since 0.1
  */
-public final class PackageContent implements Route, ContentStorage {
+public final class PackageContent implements Route, ContentLocation {
 
     /**
      * Base URL of repository.

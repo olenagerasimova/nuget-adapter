@@ -48,9 +48,9 @@ final class RegistrationPage {
     private final Repository repository;
 
     /**
-     * Package content storage.
+     * Package content location.
      */
-    private final ContentStorage content;
+    private final ContentLocation content;
 
     /**
      * Package identifier.
@@ -66,7 +66,7 @@ final class RegistrationPage {
      * Ctor.
      *
      * @param repository Repository.
-     * @param content Package content storage.
+     * @param content Package content location.
      * @param id Package identifier.
      * @param versions Ordered list of versions on this page from lowest to highest.
      * @todo #87:60min Refactor RegistrationPage class, reduce number of fields.
@@ -76,7 +76,7 @@ final class RegistrationPage {
      */
     RegistrationPage(
         final Repository repository,
-        final ContentStorage content,
+        final ContentLocation content,
         final PackageId id,
         final List<Version> versions
     ) {
