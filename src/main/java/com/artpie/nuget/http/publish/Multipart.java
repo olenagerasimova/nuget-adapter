@@ -46,6 +46,11 @@ import org.reactivestreams.Publisher;
 public final class Multipart {
 
     /**
+     * Size of multipart stream buffer.
+     */
+    private static final int BUFFER = 4096;
+
+    /**
      * Request headers.
      */
     private final Iterable<Map.Entry<String, String>> headers;
@@ -81,28 +86,8 @@ public final class Multipart {
                 .map(Remaining::new)
                 .map(Remaining::bytes)
                 .map(ByteArrayInputStream::new)
-                .map(
-                    input -> {
-                        final int buffer = 4096;
-                        final MultipartStream stream = new MultipartStream(
-                            input,
-                            this.boundary(),
-                            buffer,
-                            null
-                        );
-                        final ByteArrayOutputStream bos = new ByteArrayOutputStream();
-                        try {
-                            if (!stream.skipPreamble()) {
-                                throw new IllegalStateException("Body has no parts");
-                            }
-                            stream.readHeaders();
-                            stream.readBodyData(bos);
-                        } catch (final IOException ex) {
-                            throw new IllegalStateException("Failed to read body as multipart", ex);
-                        }
-                        return ByteBuffer.wrap(bos.toByteArray());
-                    }
-                )
+                .map(input -> new MultipartStream(input, this.boundary(), Multipart.BUFFER, null))
+                .map(Multipart::first)
                 .toFlowable()
         );
     }
@@ -127,5 +112,25 @@ public final class Multipart {
             String.format("Boundary not specified: '%s'", header)
         );
         return boundary.getBytes(StandardCharsets.ISO_8859_1);
+    }
+
+    /**
+     * Read first part from stream.
+     *
+     * @param stream Multipart stream.
+     * @return Binary content of first part.
+     */
+    private static ByteBuffer first(final MultipartStream stream) {
+        final ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        try {
+            if (!stream.skipPreamble()) {
+                throw new IllegalStateException("Body has no parts");
+            }
+            stream.readHeaders();
+            stream.readBodyData(bos);
+        } catch (final IOException ex) {
+            throw new IllegalStateException("Failed to read body as multipart", ex);
+        }
+        return ByteBuffer.wrap(bos.toByteArray());
     }
 }

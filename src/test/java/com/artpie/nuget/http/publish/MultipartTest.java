@@ -31,6 +31,7 @@ import java.util.Collections;
 import org.cactoos.map.MapEntry;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.core.IsEqual;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -65,6 +66,37 @@ class MultipartTest {
         MatcherAssert.assertThat(
             new Remaining(new Concatenation(multipart.first()).single().blockingGet()).bytes(),
             new IsEqual<>("data".getBytes())
+        );
+    }
+
+    @Test
+    void shouldFailIfNoContentTypeHeader() {
+        final Multipart multipart = new Multipart(Collections.emptySet(), Flowable.empty());
+        final Throwable throwable = Assertions.assertThrows(
+            IllegalStateException.class,
+            () -> Flowable.fromPublisher(multipart.first()).blockingFirst()
+        );
+        MatcherAssert.assertThat(
+            throwable.getMessage(),
+            new IsEqual<>("Cannot find header \"Content-Type\"")
+        );
+    }
+
+    @Test
+    void shouldFailIfNoParts() {
+        final Multipart multipart = new Multipart(
+            Collections.singleton(
+                new MapEntry<>("content-type", "multipart/form-data; boundary=123")
+            ),
+            Flowable.just(ByteBuffer.wrap("--123--".getBytes()))
+        );
+        final Throwable throwable = Assertions.assertThrows(
+            IllegalStateException.class,
+            () -> Flowable.fromPublisher(multipart.first()).blockingFirst()
+        );
+        MatcherAssert.assertThat(
+            throwable.getMessage(),
+            new IsEqual<>("Body has no parts")
         );
     }
 }
