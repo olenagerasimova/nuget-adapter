@@ -107,10 +107,11 @@ public final class NuGet implements Slice {
      */
     private Resource resource(final String path) {
         final PackagePublish publish = new PackagePublish(this.storage);
+        final PackageContent content = new PackageContent(this.url, this.storage);
         final PackageMetadata metadata = new PackageMetadata(
-            new Repository(new BlockingStorage(this.storage))
+            new Repository(new BlockingStorage(this.storage)),
+            content
         );
-        final PackageContent content = new PackageContent(this.storage);
         return new RoutingResource(
             path,
             new ServiceIndex(
