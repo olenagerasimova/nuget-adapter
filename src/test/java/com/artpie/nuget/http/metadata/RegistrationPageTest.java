@@ -29,6 +29,8 @@ import com.artpie.nuget.PackageId;
 import com.artpie.nuget.PackageIdentity;
 import com.artpie.nuget.Repository;
 import com.artpie.nuget.Version;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -79,7 +81,7 @@ class RegistrationPageTest {
             );
         }
         MatcherAssert.assertThat(
-            new RegistrationPage(repository, id, versions).json(),
+            new RegistrationPage(repository, RegistrationPageTest::contentUrl, id, versions).json(),
             new AllOf<>(
                 Arrays.asList(
                     new JsonHas("lower", new JsonValueIs(lower)),
@@ -105,6 +107,7 @@ class RegistrationPageTest {
             IllegalStateException.class,
             () -> new RegistrationPage(
                 new Repository(new BlockingStorage(new InMemoryStorage())),
+                RegistrationPageTest::contentUrl,
                 new PackageId(id),
                 Collections.emptyList()
             ).json()
@@ -121,14 +124,34 @@ class RegistrationPageTest {
     }
 
     private static Matcher<JsonObject> entryMatcher(final PackageId id, final Version version) {
-        return new JsonHas(
-            "catalogEntry",
-            new AllOf<>(
-                Arrays.asList(
-                    new JsonHas("id", new JsonValueIs(id.original())),
-                    new JsonHas("version", new JsonValueIs(version.normalized()))
+        return new AllOf<>(
+            Arrays.asList(
+                new JsonHas(
+                    "catalogEntry",
+                    new AllOf<>(
+                        Arrays.asList(
+                            new JsonHas("id", new JsonValueIs(id.original())),
+                            new JsonHas("version", new JsonValueIs(version.normalized()))
+                        )
+                    )
+                ),
+                new JsonHas(
+                    "packageContent",
+                    new JsonValueIs(
+                        RegistrationPageTest.contentUrl(new PackageIdentity(id, version)).toString()
+                    )
                 )
             )
         );
+    }
+
+    private static URL contentUrl(final PackageIdentity identity) {
+        try {
+            return new URL(
+                String.format("http://localhost:8080/content/%s", identity.nupkgKey().string())
+            );
+        } catch (final MalformedURLException ex) {
+            throw new IllegalStateException(ex);
+        }
     }
 }

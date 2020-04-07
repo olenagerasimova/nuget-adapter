@@ -57,12 +57,19 @@ public final class PackageMetadata implements Route {
     private final Repository repository;
 
     /**
+     * Package content location.
+     */
+    private final ContentLocation content;
+
+    /**
      * Ctor.
      *
      * @param repository Repository to read data from.
+     * @param content Package content storage.
      */
-    public PackageMetadata(final Repository repository) {
+    public PackageMetadata(final Repository repository, final ContentLocation content) {
         this.repository = repository;
+        this.content = content;
     }
 
     @Override
@@ -75,7 +82,11 @@ public final class PackageMetadata implements Route {
         final Matcher matcher = REGISTRATION.matcher(path);
         final Resource resource;
         if (matcher.find()) {
-            resource = new Registration(this.repository, new PackageId(matcher.group("id")));
+            resource = new Registration(
+                this.repository,
+                this.content,
+                new PackageId(matcher.group("id"))
+            );
         } else {
             resource = new Absent();
         }

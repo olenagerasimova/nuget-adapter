@@ -28,6 +28,10 @@ import com.artipie.asto.Storage;
 import com.artipie.http.Response;
 import com.artipie.http.rs.RsStatus;
 import com.artipie.http.rs.RsWithStatus;
+import com.artpie.nuget.PackageIdentity;
+import com.artpie.nuget.http.metadata.ContentLocation;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.nio.ByteBuffer;
 import java.util.Collections;
 import java.util.Optional;
@@ -41,7 +45,12 @@ import org.reactivestreams.Publisher;
  *
  * @since 0.1
  */
-public final class PackageContent implements Route {
+public final class PackageContent implements Route, ContentLocation {
+
+    /**
+     * Base URL of repository.
+     */
+    private final URL base;
 
     /**
      * Storage to read content from.
@@ -51,9 +60,11 @@ public final class PackageContent implements Route {
     /**
      * Ctor.
      *
+     * @param base Base URL of repository.
      * @param storage Storage to read content from.
      */
-    public PackageContent(final Storage storage) {
+    public PackageContent(final URL base, final Storage storage) {
+        this.base = base;
         this.storage = storage;
     }
 
@@ -65,6 +76,24 @@ public final class PackageContent implements Route {
     @Override
     public Resource resource(final String path) {
         return new PackageResource(path, this.storage);
+    }
+
+    @Override
+    public URL url(final PackageIdentity identity) {
+        final String relative = String.format(
+            "%s%s/%s",
+            this.base.getPath(),
+            this.path(),
+            identity.nupkgKey().string()
+        );
+        try {
+            return new URL(this.base, relative);
+        } catch (final MalformedURLException ex) {
+            throw new IllegalStateException(
+                String.format("Failed to build URL from base: '%s'", this.base),
+                ex
+            );
+        }
     }
 
     /**
@@ -155,10 +184,10 @@ public final class PackageContent implements Route {
          * @return Key to storage value, if there is one.
          */
         private Optional<Key> key() {
-            final String base = String.format("%s/", path());
+            final String prefix = String.format("%s/", path());
             final Optional<Key> parsed;
-            if (this.path.startsWith(base)) {
-                parsed = Optional.of(new Key.From(this.path.substring(base.length())));
+            if (this.path.startsWith(prefix)) {
+                parsed = Optional.of(new Key.From(this.path.substring(prefix.length())));
             } else {
                 parsed = Optional.empty();
             }

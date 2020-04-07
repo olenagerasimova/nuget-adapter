@@ -56,6 +56,11 @@ class Registration implements Resource {
     private final Repository repository;
 
     /**
+     * Package content location.
+     */
+    private final ContentLocation content;
+
+    /**
      * Package identifier.
      */
     private final PackageId id;
@@ -64,10 +69,15 @@ class Registration implements Resource {
      * Ctor.
      *
      * @param repository Repository to read data from.
+     * @param content Package content location.
      * @param id Package identifier.
      */
-    Registration(final Repository repository, final PackageId id) {
+    Registration(
+        final Repository repository,
+        final ContentLocation content,
+        final PackageId id) {
         this.repository = repository;
+        this.content = content;
         this.id = id;
     }
 
@@ -115,7 +125,7 @@ class Registration implements Resource {
             pages = Collections.emptyList();
         } else {
             pages = Collections.singletonList(
-                new RegistrationPage(this.repository, this.id, versions)
+                new RegistrationPage(this.repository, this.content, this.id, versions)
             );
         }
         return pages;
