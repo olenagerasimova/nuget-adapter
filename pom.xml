@@ -72,7 +72,7 @@ SOFTWARE.
     <dependency>
       <groupId>com.artipie</groupId>
       <artifactId>asto</artifactId>
-      <version>0.14.3</version>
+      <version>0.17</version>
     </dependency>
     <dependency>
       <groupId>javax.json</groupId>
@@ -87,7 +87,12 @@ SOFTWARE.
     <dependency>
       <groupId>com.artipie</groupId>
       <artifactId>http</artifactId>
-      <version>0.5</version>
+      <version>0.7.1</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-fileupload</groupId>
+      <artifactId>commons-fileupload</artifactId>
+      <version>1.4</version>
     </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
