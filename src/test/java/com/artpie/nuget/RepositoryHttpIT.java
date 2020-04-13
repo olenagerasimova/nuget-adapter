@@ -41,7 +41,6 @@ import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -97,7 +96,6 @@ class RepositoryHttpIT {
     }
 
     @Test
-    @Disabled("Not implemented")
     void shouldInstallAddedPackage() throws Exception {
         this.addPackage();
         MatcherAssert.assertThat(
@@ -128,7 +126,7 @@ class RepositoryHttpIT {
             .directory(project.toFile())
             .command(
                 ImmutableList.<String>builder()
-                    .add("nuget")
+                    .add(RepositoryHttpIT.command())
                     .add(args)
                     .add("-Source", this.source)
                     .add("-Verbosity", "detailed")
@@ -141,5 +139,15 @@ class RepositoryHttpIT {
         final String log = new String(Files.readAllBytes(stdout));
         Logger.debug(this, "Full stdout/stderr:\n%s", log);
         return log;
+    }
+
+    private static String command() {
+        final String cmd;
+        if (System.getProperty("os.name").startsWith("Windows")) {
+            cmd = "nuget.exe";
+        } else {
+            cmd = "nuget";
+        }
+        return cmd;
     }
 }
