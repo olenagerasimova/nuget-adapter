@@ -57,3 +57,11 @@ $ mvn clean install -Pqulice
 ```
 
 To avoid build errors use Maven 3.2+.
+
+The test suite of this project include some integration tests which require NuGet client to be installed.
+NuGet client may be downloaded from official site [nuget.org](https://www.nuget.org/downloads).
+Integration tests could also be skipped using Maven's `skipITs` options:
+
+```
+$ mvn clean install -Pqulice -DskipITs
+```
