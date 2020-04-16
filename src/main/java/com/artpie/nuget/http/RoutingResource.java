@@ -63,8 +63,10 @@ public final class RoutingResource implements Resource {
     }
 
     @Override
-    public Response put(final Publisher<ByteBuffer> body) {
-        return this.resource().put(body);
+    public Response put(
+        final Headers headers,
+        final Publisher<ByteBuffer> body) {
+        return this.resource().put(headers, body);
     }
 
     /**

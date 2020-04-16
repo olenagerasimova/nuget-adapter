@@ -143,7 +143,9 @@ public final class PackageContent implements Route, ContentLocation {
         }
 
         @Override
-        public Response put(final Publisher<ByteBuffer> body) {
+        public Response put(
+            final Headers headers,
+            final Publisher<ByteBuffer> body) {
             return new RsWithStatus(RsStatus.METHOD_NOT_ALLOWED);
         }
 

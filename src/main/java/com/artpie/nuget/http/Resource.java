@@ -43,8 +43,9 @@ public interface Resource {
     /**
      * Serve PUT method.
      *
+     * @param headers Request headers.
      * @param body Request body.
      * @return Response to request.
      */
-    Response put(Publisher<ByteBuffer> body);
+    Response put(Headers headers, Publisher<ByteBuffer> body);
 }

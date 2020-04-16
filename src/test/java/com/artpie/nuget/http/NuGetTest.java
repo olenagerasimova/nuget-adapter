@@ -33,11 +33,15 @@ import com.artipie.http.hm.RsHasStatus;
 import com.artipie.http.rs.RsStatus;
 import com.google.common.io.Resources;
 import io.reactivex.Flowable;
+import java.io.ByteArrayOutputStream;
 import java.net.URL;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
+import org.apache.http.HttpEntity;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.cactoos.map.MapEntry;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
 import org.hamcrest.core.AllOf;
@@ -143,14 +147,10 @@ class NuGetTest {
     }
 
     @Test
-    void shouldFailPutPackage() {
+    void shouldFailPutPackage() throws Exception {
         MatcherAssert.assertThat(
             "Should fail to add package which is not a ZIP archive",
-            this.putPackage(
-                Flowable.fromArray(
-                    ByteBuffer.wrap("not a zip".getBytes())
-                )
-            ),
+            this.putPackage("not a zip".getBytes()),
             new RsHasStatus(RsStatus.BAD_REQUEST)
         );
     }
@@ -219,13 +219,24 @@ class NuGetTest {
         );
     }
 
-    private Response putPackage(final Flowable<ByteBuffer> pack) {
-        return this.nuget.response("PUT /base/package", Collections.emptyList(), pack);
+    private Response putPackage(final byte[] pack) throws Exception {
+        final HttpEntity entity = MultipartEntityBuilder.create()
+            .addBinaryBody("package.nupkg", pack)
+            .build();
+        final ByteArrayOutputStream sink = new ByteArrayOutputStream();
+        entity.writeTo(sink);
+        return this.nuget.response(
+            "PUT /base/package",
+            Collections.singleton(
+                new MapEntry<>("Content-Type", entity.getContentType().getValue())
+            ),
+            Flowable.fromArray(ByteBuffer.wrap(sink.toByteArray()))
+        );
     }
 
-    private static Flowable<ByteBuffer> nupkg() throws Exception {
+    private static byte[] nupkg() throws Exception {
         final URL resource = Thread.currentThread().getContextClassLoader()
             .getResource("newtonsoft.json/12.0.3/newtonsoft.json.12.0.3.nupkg");
-        return Flowable.fromArray(ByteBuffer.wrap(Resources.toByteArray(resource)));
+        return Resources.toByteArray(resource);
     }
 }
