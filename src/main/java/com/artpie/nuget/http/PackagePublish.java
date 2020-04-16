@@ -36,7 +36,6 @@ import com.artpie.nuget.Repository;
 import com.artpie.nuget.http.publish.Multipart;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import org.reactivestreams.Publisher;
@@ -102,7 +101,7 @@ public final class PackagePublish implements Route {
 
         @Override
         public Response put(
-            final Iterable<Map.Entry<String, String>> headers,
+            final Headers headers,
             final Publisher<ByteBuffer> body
         ) {
             return connection -> CompletableFuture

@@ -30,7 +30,6 @@ import com.artipie.http.rs.RsWithStatus;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.Map;
 import javax.json.Json;
 import javax.json.JsonArrayBuilder;
 import javax.json.JsonObject;
@@ -111,7 +110,7 @@ public final class ServiceIndex implements Route {
 
         @Override
         public Response put(
-            final Iterable<Map.Entry<String, String>> headers,
+            final Headers headers,
             final Publisher<ByteBuffer> body) {
             return new RsWithStatus(RsStatus.METHOD_NOT_ALLOWED);
         }

@@ -34,7 +34,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.ByteBuffer;
 import java.util.Collections;
-import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
@@ -145,7 +144,7 @@ public final class PackageContent implements Route, ContentLocation {
 
         @Override
         public Response put(
-            final Iterable<Map.Entry<String, String>> headers,
+            final Headers headers,
             final Publisher<ByteBuffer> body) {
             return new RsWithStatus(RsStatus.METHOD_NOT_ALLOWED);
         }

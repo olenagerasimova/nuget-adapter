@@ -25,7 +25,6 @@ package com.artpie.nuget.http;
 
 import com.artipie.http.Response;
 import java.nio.ByteBuffer;
-import java.util.Map;
 import org.reactivestreams.Publisher;
 
 /**
@@ -48,5 +47,5 @@ public interface Resource {
      * @param body Request body.
      * @return Response to request.
      */
-    Response put(Iterable<Map.Entry<String, String>> headers, Publisher<ByteBuffer> body);
+    Response put(Headers headers, Publisher<ByteBuffer> body);
 }

@@ -23,28 +23,52 @@
  */
 package com.artpie.nuget.http;
 
-import com.artipie.http.Response;
-import com.artipie.http.rs.RsStatus;
-import com.artipie.http.rs.RsWithStatus;
-import java.nio.ByteBuffer;
-import org.reactivestreams.Publisher;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Spliterator;
+import java.util.function.Consumer;
 
 /**
- * Absent resource, sends HTTP 404 Not Found response to every request.
+ * HTTP request headers.
  *
  * @since 0.1
  */
-public final class Absent implements Resource {
+public interface Headers extends Iterable<Map.Entry<String, String>> {
 
-    @Override
-    public Response get() {
-        return new RsWithStatus(RsStatus.NOT_FOUND);
-    }
+    /**
+     * {@link Headers} created from {@link Iterable}.
+     *
+     * @since 0.1
+     */
+    final class From implements Headers {
 
-    @Override
-    public Response put(
-        final Headers headers,
-        final Publisher<ByteBuffer> body) {
-        return new RsWithStatus(RsStatus.NOT_FOUND);
+        /**
+         * Origin headers.
+         */
+        private final Iterable<Map.Entry<String, String>> origin;
+
+        /**
+         * Ctor.
+         *
+         * @param origin Origin headers.
+         */
+        public From(final Iterable<Map.Entry<String, String>> origin) {
+            this.origin = origin;
+        }
+
+        @Override
+        public Iterator<Map.Entry<String, String>> iterator() {
+            return this.origin.iterator();
+        }
+
+        @Override
+        public void forEach(final Consumer<? super Map.Entry<String, String>> action) {
+            this.origin.forEach(action);
+        }
+
+        @Override
+        public Spliterator<Map.Entry<String, String>> spliterator() {
+            return this.origin.spliterator();
+        }
     }
 }
