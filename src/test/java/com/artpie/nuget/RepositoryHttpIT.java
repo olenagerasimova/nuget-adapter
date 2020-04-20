@@ -89,7 +89,15 @@ class RepositoryHttpIT {
     }
 
     @Test
-    void shouldPushAndInstallPackage() throws Exception {
+    void shouldPushPackage() throws Exception {
+        MatcherAssert.assertThat(
+            this.pushPackage(),
+            new StringContains(false, "Your package was pushed.")
+        );
+    }
+
+    @Test
+    void shouldInstallPushedPackage() throws Exception {
         this.pushPackage();
         MatcherAssert.assertThat(
             runNuGet(
@@ -101,16 +109,13 @@ class RepositoryHttpIT {
         );
     }
 
-    private void pushPackage() throws Exception {
+    private String pushPackage() throws Exception {
         final String file = UUID.randomUUID().toString();
         Files.write(
             this.temp.resolve(file),
             new NewtonJsonResource("newtonsoft.json.12.0.3.nupkg").bytes()
         );
-        MatcherAssert.assertThat(
-            runNuGet("push", file),
-            new StringContains(false, "Your package was pushed.")
-        );
+        return runNuGet("push", file);
     }
 
     private String runNuGet(final String... args) throws IOException, InterruptedException {
