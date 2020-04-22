@@ -24,10 +24,8 @@
 
 package com.artpie.nuget;
 
-import com.artipie.asto.Key;
-import com.artipie.asto.Storage;
-import com.artipie.asto.blocking.BlockingStorage;
 import com.artipie.asto.memory.InMemoryStorage;
+import com.artipie.http.slice.LoggingSlice;
 import com.artipie.vertx.VertxSliceServer;
 import com.artpie.nuget.http.NuGet;
 import com.google.common.collect.ImmutableList;
@@ -39,6 +37,7 @@ import java.nio.file.Path;
 import java.util.UUID;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
+import org.hamcrest.core.StringContains;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -60,11 +59,6 @@ class RepositoryHttpIT {
     Path temp;
 
     /**
-     * Storage used by repository.
-     */
-    private Storage storage;
-
-    /**
      * HTTP server hosting NuGet repository.
      */
     private VertxSliceServer server;
@@ -76,12 +70,11 @@ class RepositoryHttpIT {
 
     @BeforeEach
     void setUp() throws Exception {
-        this.storage = new InMemoryStorage();
         final int port = 8080;
         final String path = String.format("/%s", UUID.randomUUID().toString());
         final String base = String.format("http://localhost:%s%s", port, path);
         this.server = new VertxSliceServer(
-            new NuGet(new URL(base), path, this.storage),
+            new LoggingSlice(new NuGet(new URL(base), path, new InMemoryStorage())),
             port
         );
         this.server.start();
@@ -96,8 +89,16 @@ class RepositoryHttpIT {
     }
 
     @Test
-    void shouldInstallAddedPackage() throws Exception {
-        this.addPackage();
+    void shouldPushPackage() throws Exception {
+        MatcherAssert.assertThat(
+            this.pushPackage(),
+            new StringContains(false, "Your package was pushed.")
+        );
+    }
+
+    @Test
+    void shouldInstallPushedPackage() throws Exception {
+        this.pushPackage();
         MatcherAssert.assertThat(
             runNuGet(
                 "install",
@@ -108,22 +109,21 @@ class RepositoryHttpIT {
         );
     }
 
-    private void addPackage() throws Exception {
-        final BlockingStorage blocking = new BlockingStorage(this.storage);
-        final Key.From key = new Key.From(UUID.randomUUID().toString());
-        blocking.save(key, new NewtonJsonResource("newtonsoft.json.12.0.3.nupkg").bytes());
-        new Repository(blocking).add(key);
+    private String pushPackage() throws Exception {
+        final String file = UUID.randomUUID().toString();
+        Files.write(
+            this.temp.resolve(file),
+            new NewtonJsonResource("newtonsoft.json.12.0.3.nupkg").bytes()
+        );
+        return runNuGet("push", file);
     }
 
     private String runNuGet(final String... args) throws IOException, InterruptedException {
-        final Path tmp = this.temp;
-        final Path stdout = tmp.resolve(
+        final Path stdout = this.temp.resolve(
             String.format("%s-stdout.txt", UUID.randomUUID().toString())
         );
-        final Path project = tmp.resolve("project");
-        project.toFile().mkdirs();
-        new ProcessBuilder()
-            .directory(project.toFile())
+        final int code = new ProcessBuilder()
+            .directory(this.temp.toFile())
             .command(
                 ImmutableList.<String>builder()
                     .add(RepositoryHttpIT.command())
@@ -138,6 +138,9 @@ class RepositoryHttpIT {
             .waitFor();
         final String log = new String(Files.readAllBytes(stdout));
         Logger.debug(this, "Full stdout/stderr:\n%s", log);
+        if (code != 0) {
+            throw new IllegalStateException(String.format("Not OK exit code: %d", code));
+        }
         return log;
     }
 
