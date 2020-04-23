@@ -99,7 +99,7 @@ class NuGetPackageMetadataTest {
             )
         ).save(new BlockingStorage(this.storage));
         final Response response = this.nuget.response(
-            "GET /base/registrations/newtonsoft.json/index.json",
+            "GET /base/registrations/newtonsoft.json/index.json HTTP/1.1",
             Collections.emptyList(),
             Flowable.empty()
         );
@@ -117,7 +117,7 @@ class NuGetPackageMetadataTest {
     @Test
     void shouldGetRegistrationsWhenEmpty() {
         final Response response = this.nuget.response(
-            "GET /base/registrations/my.lib/index.json",
+            "GET /base/registrations/my.lib/index.json HTTP/1.1",
             Collections.emptyList(),
             Flowable.empty()
         );
@@ -135,7 +135,7 @@ class NuGetPackageMetadataTest {
     @Test
     void shouldFailPutRegistration() {
         final Response response = this.nuget.response(
-            "PUT /base/registrations/newtonsoft.json/index.json",
+            "PUT /base/registrations/newtonsoft.json/index.json HTTP/1.1",
             Collections.emptyList(),
             Flowable.empty()
         );
