@@ -27,6 +27,7 @@ import com.artipie.asto.Key;
 import com.artipie.asto.Storage;
 import com.artipie.asto.blocking.BlockingStorage;
 import com.artipie.asto.memory.InMemoryStorage;
+import com.artipie.http.Headers;
 import com.artipie.http.Response;
 import com.artipie.http.hm.RsHasBody;
 import com.artipie.http.hm.RsHasStatus;
@@ -41,7 +42,6 @@ import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
 import org.apache.http.HttpEntity;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
-import org.cactoos.map.MapEntry;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
 import org.hamcrest.core.AllOf;
@@ -83,7 +83,7 @@ class NuGetTest {
         MatcherAssert.assertThat(
             "Package content should be returned in response",
             this.nuget.response(
-                "GET /base/content/package/1.0.0/content.nupkg",
+                "GET /base/content/package/1.0.0/content.nupkg HTTP/1.1",
                 Collections.emptyList(),
                 Flowable.empty()
             ),
@@ -99,7 +99,7 @@ class NuGetTest {
     @Test
     void shouldFailGetPackageContentFromNotBasePath() {
         final Response response = this.nuget.response(
-            "GET /not-base/content/package/1.0.0/content.nupkg",
+            "GET /not-base/content/package/1.0.0/content.nupkg HTTP/1.1",
             Collections.emptyList(),
             Flowable.empty()
         );
@@ -115,7 +115,7 @@ class NuGetTest {
         MatcherAssert.assertThat(
             "Not existing content should not be found",
             this.nuget.response(
-                "GET /base/content/package/1.0.0/logo.png",
+                "GET /base/content/package/1.0.0/logo.png HTTP/1.1",
                 Collections.emptyList(),
                 Flowable.empty()
             ),
@@ -126,7 +126,7 @@ class NuGetTest {
     @Test
     void shouldFailPutPackageContent() {
         final Response response = this.nuget.response(
-            "PUT /base/content/package/1.0.0/content.nupkg",
+            "PUT /base/content/package/1.0.0/content.nupkg HTTP/1.1",
             Collections.emptyList(),
             Flowable.empty()
         );
@@ -170,7 +170,7 @@ class NuGetTest {
     @Test
     void shouldFailGetPackagePublishFromNotBasePath() {
         final Response response = this.nuget.response(
-            "GET /not-base/package",
+            "GET /not-base/package HTTP/1.1",
             Collections.emptyList(),
             Flowable.empty()
         );
@@ -180,7 +180,7 @@ class NuGetTest {
     @Test
     void shouldFailGetPackagePublish() {
         final Response response = this.nuget.response(
-            "GET /base/package",
+            "GET /base/package HTTP/1.1",
             Collections.emptyList(),
             Flowable.empty()
         );
@@ -196,7 +196,7 @@ class NuGetTest {
         );
         MatcherAssert.assertThat(
             this.nuget.response(
-                "GET /base/content/package2/index.json",
+                "GET /base/content/package2/index.json HTTP/1.1",
                 Collections.emptyList(),
                 Flowable.empty()
             ),
@@ -211,7 +211,7 @@ class NuGetTest {
     void shouldFailGetPackageVersionsWhenNotExists() {
         MatcherAssert.assertThat(
             this.nuget.response(
-                "GET /base/content/unknown-package/index.json",
+                "GET /base/content/unknown-package/index.json HTTP/1.1",
                 Collections.emptyList(),
                 Flowable.empty()
             ),
@@ -226,9 +226,9 @@ class NuGetTest {
         final ByteArrayOutputStream sink = new ByteArrayOutputStream();
         entity.writeTo(sink);
         return this.nuget.response(
-            "PUT /base/package",
-            Collections.singleton(
-                new MapEntry<>("Content-Type", entity.getContentType().getValue())
+            "PUT /base/package HTTP/1.1",
+            new Headers.From(
+                "Content-Type", entity.getContentType().getValue()
             ),
             Flowable.fromArray(ByteBuffer.wrap(sink.toByteArray()))
         );

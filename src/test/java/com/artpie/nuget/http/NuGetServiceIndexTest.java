@@ -76,7 +76,7 @@ class NuGetServiceIndexTest {
     @Test
     void shouldGetIndex() {
         final Response response = this.nuget.response(
-            "GET /base/index.json",
+            "GET /base/index.json HTTP/1.1",
             Collections.emptyList(),
             Flowable.empty()
         );
@@ -119,7 +119,7 @@ class NuGetServiceIndexTest {
     @Test
     void shouldFailPutIndex() {
         final Response response = this.nuget.response(
-            "PUT /base/index.json",
+            "PUT /base/index.json HTTP/1.1",
             Collections.emptyList(),
             Flowable.empty()
         );
