@@ -33,7 +33,7 @@ Then, make an instance of `Repository` class with storage as an argument.
 Finally, instruct `Repository` to add the package to repository:
 
 ```java
-import com.artpie.nuget;
+import com.artipie.nuget;
 Repository repo = new Repository(storage);
 repo.add(new Key.From("package.nupkg"));
 ```
