@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package com.artipie.nuget.http;
+package com.artipie.nuget.http.publish;
 
 import com.artipie.asto.Key;
 import com.artipie.asto.Storage;
@@ -35,7 +35,8 @@ import com.artipie.http.rs.RsWithStatus;
 import com.artipie.nuget.InvalidPackageException;
 import com.artipie.nuget.PackageVersionAlreadyExistsException;
 import com.artipie.nuget.Repository;
-import com.artipie.nuget.http.publish.Multipart;
+import com.artipie.nuget.http.Resource;
+import com.artipie.nuget.http.Route;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.UUID;

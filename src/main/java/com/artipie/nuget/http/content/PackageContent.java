@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.artipie.nuget.http;
+package com.artipie.nuget.http.content;
 
 import com.artipie.asto.Key;
 import com.artipie.asto.Storage;
@@ -32,6 +32,8 @@ import com.artipie.http.rs.RsStatus;
 import com.artipie.http.rs.RsWithBody;
 import com.artipie.http.rs.RsWithStatus;
 import com.artipie.nuget.PackageIdentity;
+import com.artipie.nuget.http.Resource;
+import com.artipie.nuget.http.Route;
 import com.artipie.nuget.http.metadata.ContentLocation;
 import java.net.MalformedURLException;
 import java.net.URL;

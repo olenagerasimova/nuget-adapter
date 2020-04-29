@@ -21,13 +21,16 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.artipie.nuget.http;
+package com.artipie.nuget.http.index;
 
 import com.artipie.http.Headers;
 import com.artipie.http.Response;
 import com.artipie.http.rs.RsStatus;
 import com.artipie.http.rs.RsWithBody;
 import com.artipie.http.rs.RsWithStatus;
+import com.artipie.nuget.http.Absent;
+import com.artipie.nuget.http.Resource;
+import com.artipie.nuget.http.Route;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;

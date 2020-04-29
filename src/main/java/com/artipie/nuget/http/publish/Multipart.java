@@ -43,7 +43,7 @@ import org.reactivestreams.Publisher;
  *
  * @since 0.1
  */
-public final class Multipart {
+final class Multipart {
 
     /**
      * Size of multipart stream buffer.
@@ -66,7 +66,7 @@ public final class Multipart {
      * @param headers Request headers.
      * @param body Request body.
      */
-    public Multipart(
+    Multipart(
         final Iterable<Map.Entry<String, String>> headers,
         final Publisher<ByteBuffer> body
     ) {

@@ -21,26 +21,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.artipie.nuget.http;
 
 /**
- * Service that is listed in {@link ServiceIndex}.
+ * Tests for NuGet repository Package Content service related classes.
  *
  * @since 0.1
  */
-public interface Service {
-
-    /**
-     * URL to the resource.
-     *
-     * @return URL to the resource.
-     */
-    String url();
-
-    /**
-     * Service type.
-     *
-     * @return A string constant representing the resource type.
-     */
-    String type();
-}
+package com.artipie.nuget.http.content;

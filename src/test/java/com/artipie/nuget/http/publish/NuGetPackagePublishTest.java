@@ -1,0 +1,138 @@
+/*
+ * MIT License
+ *
+ * Copyright (c) 2020 Artipie
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+package com.artipie.nuget.http.publish;
+
+import com.artipie.asto.memory.InMemoryStorage;
+import com.artipie.http.Headers;
+import com.artipie.http.Response;
+import com.artipie.http.hm.RsHasStatus;
+import com.artipie.http.rs.RsStatus;
+import com.artipie.nuget.http.NuGet;
+import com.google.common.io.Resources;
+import io.reactivex.Flowable;
+import java.io.ByteArrayOutputStream;
+import java.net.URL;
+import java.nio.ByteBuffer;
+import java.util.Collections;
+import java.util.concurrent.CompletableFuture;
+import org.apache.http.HttpEntity;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.hamcrest.MatcherAssert;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+/**
+ * Tests for {@link NuGet}.
+ * Package publish resource.
+ *
+ * @since 0.1
+ * @checkstyle ClassDataAbstractionCouplingCheck (2 lines)
+ */
+class NuGetPackagePublishTest {
+
+    /**
+     * Tested NuGet slice.
+     */
+    private NuGet nuget;
+
+    @BeforeEach
+    void init() throws Exception {
+        this.nuget = new NuGet(
+            new URL("http://localhost"),
+            "/base",
+            new InMemoryStorage()
+        );
+    }
+
+    @Test
+    void shouldPutPackagePublish() throws Exception {
+        final Response response = this.putPackage(nupkg());
+        MatcherAssert.assertThat(
+            response,
+            new RsHasStatus(RsStatus.CREATED)
+        );
+    }
+
+    @Test
+    void shouldFailPutPackage() throws Exception {
+        MatcherAssert.assertThat(
+            "Should fail to add package which is not a ZIP archive",
+            this.putPackage("not a zip".getBytes()),
+            new RsHasStatus(RsStatus.BAD_REQUEST)
+        );
+    }
+
+    @Test
+    void shouldFailPutSamePackage() throws Exception {
+        this.putPackage(nupkg()).send(
+            (status, headers, body) -> CompletableFuture.allOf()
+        ).toCompletableFuture().join();
+        MatcherAssert.assertThat(
+            "Should fail to add same package when it is already present in the repository",
+            this.putPackage(nupkg()),
+            new RsHasStatus(RsStatus.CONFLICT)
+        );
+    }
+
+    @Test
+    void shouldFailGetPackagePublishFromNotBasePath() {
+        final Response response = this.nuget.response(
+            "GET /not-base/package HTTP/1.1",
+            Collections.emptyList(),
+            Flowable.empty()
+        );
+        MatcherAssert.assertThat(response, new RsHasStatus(RsStatus.NOT_FOUND));
+    }
+
+    @Test
+    void shouldFailGetPackagePublish() {
+        final Response response = this.nuget.response(
+            "GET /base/package HTTP/1.1",
+            Collections.emptyList(),
+            Flowable.empty()
+        );
+        MatcherAssert.assertThat(response, new RsHasStatus(RsStatus.METHOD_NOT_ALLOWED));
+    }
+
+    private Response putPackage(final byte[] pack) throws Exception {
+        final HttpEntity entity = MultipartEntityBuilder.create()
+            .addBinaryBody("package.nupkg", pack)
+            .build();
+        final ByteArrayOutputStream sink = new ByteArrayOutputStream();
+        entity.writeTo(sink);
+        return this.nuget.response(
+            "PUT /base/package HTTP/1.1",
+            new Headers.From(
+                "Content-Type", entity.getContentType().getValue()
+            ),
+            Flowable.fromArray(ByteBuffer.wrap(sink.toByteArray()))
+        );
+    }
+
+    private static byte[] nupkg() throws Exception {
+        final URL resource = Thread.currentThread().getContextClassLoader()
+            .getResource("newtonsoft.json/12.0.3/newtonsoft.json.12.0.3.nupkg");
+        return Resources.toByteArray(resource);
+    }
+}

@@ -23,6 +23,7 @@
  */
 package com.artipie.nuget.http;
 
+import com.artipie.nuget.http.index.Service;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Optional;
