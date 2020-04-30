@@ -26,6 +26,6 @@
  * NuGet repository Package Content service.
  * See <a href="https://docs.microsoft.com/en-us/nuget/api/package-base-address-resource">Package Content</a>
  *  *
- * @since 0.1
+ * @since 0.2
  */
 package com.artipie.nuget.http.content;

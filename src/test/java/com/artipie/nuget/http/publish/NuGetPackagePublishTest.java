@@ -46,7 +46,7 @@ import org.junit.jupiter.api.Test;
  * Tests for {@link NuGet}.
  * Package publish resource.
  *
- * @since 0.1
+ * @since 0.2
  * @checkstyle ClassDataAbstractionCouplingCheck (2 lines)
  */
 class NuGetPackagePublishTest {

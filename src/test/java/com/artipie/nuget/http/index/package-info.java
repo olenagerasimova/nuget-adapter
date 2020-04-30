@@ -25,6 +25,6 @@
 /**
  * Tests for NuGet repository Service Index service related classes.
  *
- * @since 0.1
+ * @since 0.2
  */
 package com.artipie.nuget.http.index;

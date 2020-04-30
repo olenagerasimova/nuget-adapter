@@ -26,6 +26,6 @@
  * NuGet repository Service Index service.
  * See <a href="https://docs.microsoft.com/en-us/nuget/api/service-index">Service Index</a>
  *
- * @since 0.1
+ * @since 0.2
  */
 package com.artipie.nuget.http.index;
