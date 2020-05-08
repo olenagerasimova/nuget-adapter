@@ -21,26 +21,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.artipie.nuget.http;
 
 /**
- * Service that is listed in {@link ServiceIndex}.
+ * NuGet repository Service Index service.
+ * See <a href="https://docs.microsoft.com/en-us/nuget/api/service-index">Service Index</a>
  *
- * @since 0.1
+ * @since 0.2
  */
-public interface Service {
-
-    /**
-     * URL to the resource.
-     *
-     * @return URL to the resource.
-     */
-    String url();
-
-    /**
-     * Service type.
-     *
-     * @return A string constant representing the resource type.
-     */
-    String type();
-}
+package com.artipie.nuget.http.index;

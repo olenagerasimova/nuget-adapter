@@ -21,13 +21,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.artipie.nuget.http;
+package com.artipie.nuget.http.index;
 
 import com.artipie.asto.memory.InMemoryStorage;
 import com.artipie.http.Response;
 import com.artipie.http.hm.RsHasBody;
 import com.artipie.http.hm.RsHasStatus;
 import com.artipie.http.rs.RsStatus;
+import com.artipie.nuget.http.NuGet;
 import io.reactivex.Flowable;
 import java.io.ByteArrayInputStream;
 import java.net.URL;
