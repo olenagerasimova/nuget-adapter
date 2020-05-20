@@ -129,7 +129,7 @@ public final class PackageContent implements Route, ContentLocation {
         }
 
         @Override
-        public Response get() {
+        public Response get(final Headers headers) {
             return new AsyncResponse(
                 this.existing().thenCompose(
                     existing -> existing.<CompletionStage<Response>>map(

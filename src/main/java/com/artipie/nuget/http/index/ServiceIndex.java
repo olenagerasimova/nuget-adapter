@@ -86,7 +86,7 @@ public final class ServiceIndex implements Route {
     private final class Index implements Resource {
 
         @Override
-        public Response get() {
+        public Response get(final Headers headers) {
             final JsonArrayBuilder resources = Json.createArrayBuilder();
             for (final Service service : ServiceIndex.this.services) {
                 resources.add(

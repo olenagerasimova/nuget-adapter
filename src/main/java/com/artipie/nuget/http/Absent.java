@@ -38,7 +38,7 @@ import org.reactivestreams.Publisher;
 public final class Absent implements Resource {
 
     @Override
-    public Response get() {
+    public Response get(final Headers headers) {
         return new RsWithStatus(RsStatus.NOT_FOUND);
     }
 

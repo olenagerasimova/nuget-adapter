@@ -91,7 +91,7 @@ public final class NuGet implements Slice {
             final Resource resource = this.resource(path.substring(this.base.length()));
             final RqMethod method = request.method();
             if (method.equals(RqMethod.GET)) {
-                response = resource.get();
+                response = resource.get(new Headers.From(headers));
             } else if (method.equals(RqMethod.PUT)) {
                 response = resource.put(new Headers.From(headers), body);
             } else {

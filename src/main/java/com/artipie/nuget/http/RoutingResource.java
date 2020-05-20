@@ -59,8 +59,8 @@ public final class RoutingResource implements Resource {
     }
 
     @Override
-    public Response get() {
-        return this.resource().get();
+    public Response get(final Headers headers) {
+        return this.resource().get(headers);
     }
 
     @Override
