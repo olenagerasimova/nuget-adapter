@@ -64,9 +64,14 @@ class RepositoryHttpIT {
     private VertxSliceServer server;
 
     /**
-     * NuGet client repository URI.
+     * Packages source name in config.
      */
     private String source;
+
+    /**
+     * NuGet config file path.
+     */
+    private Path config;
 
     @BeforeEach
     void setUp() throws Exception {
@@ -78,7 +83,12 @@ class RepositoryHttpIT {
             port
         );
         this.server.start();
-        this.source = String.format("%s/index.json", base);
+        this.source = "artipie-nuget-test";
+        this.config = this.temp.resolve("NuGet.Config");
+        Files.write(
+            this.config,
+            this.configXml(String.format("%s/index.json", base), "Aladdin", "OpenSesame")
+        );
     }
 
     @AfterEach
@@ -118,6 +128,24 @@ class RepositoryHttpIT {
         return runNuGet("push", file);
     }
 
+    private byte[] configXml(final String url, final String user, final String pwd) {
+        return String.join(
+            "",
+            "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n",
+            "<configuration>",
+            "<packageSources>",
+            String.format("<add key=\"%s\" value=\"%s\" />", this.source, url),
+            "</packageSources>",
+            "<packageSourceCredentials>",
+            String.format("<%s>", this.source),
+            String.format("<add key=\"Username\" value=\"%s\"/>", user),
+            String.format("<add key=\"ClearTextPassword\" value=\"%s\"/>", pwd),
+            String.format("</%s>", this.source),
+            "</packageSourceCredentials>",
+            "</configuration>"
+        ).getBytes();
+    }
+
     private String runNuGet(final String... args) throws IOException, InterruptedException {
         final Path stdout = this.temp.resolve(
             String.format("%s-stdout.txt", UUID.randomUUID().toString())
@@ -128,6 +156,7 @@ class RepositoryHttpIT {
                 ImmutableList.<String>builder()
                     .add(RepositoryHttpIT.command())
                     .add(args)
+                    .add("-ConfigFile", this.config.toString())
                     .add("-Source", this.source)
                     .add("-Verbosity", "detailed")
                     .build()
