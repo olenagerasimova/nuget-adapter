@@ -37,9 +37,10 @@ public interface Resource {
     /**
      * Serve GET method.
      *
+     * @param headers Request headers.
      * @return Response to request.
      */
-    Response get();
+    Response get(Headers headers);
 
     /**
      * Serve PUT method.

@@ -83,7 +83,7 @@ class Registration implements Resource {
     }
 
     @Override
-    public Response get() {
+    public Response get(final Headers headers) {
         try {
             final List<RegistrationPage> pages = this.pages();
             final JsonArrayBuilder items = Json.createArrayBuilder();

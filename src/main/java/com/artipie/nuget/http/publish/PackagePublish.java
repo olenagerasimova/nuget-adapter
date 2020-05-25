@@ -98,7 +98,7 @@ public final class PackagePublish implements Route {
         }
 
         @Override
-        public Response get() {
+        public Response get(final Headers headers) {
             return new RsWithStatus(RsStatus.METHOD_NOT_ALLOWED);
         }
 
