@@ -46,7 +46,7 @@ import org.junit.jupiter.api.Test;
  * @since 0.2
  * @checkstyle ClassDataAbstractionCouplingCheck (500 lines)
  */
-class ResourceFromSliceTest {
+final class ResourceFromSliceTest {
 
     /**
      * HTTP version string.
