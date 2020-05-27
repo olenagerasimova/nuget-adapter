@@ -28,6 +28,11 @@ import com.artipie.asto.blocking.BlockingStorage;
 import com.artipie.http.Headers;
 import com.artipie.http.Response;
 import com.artipie.http.Slice;
+import com.artipie.http.auth.Authentication;
+import com.artipie.http.auth.BasicIdentities;
+import com.artipie.http.auth.Identities;
+import com.artipie.http.auth.Permission;
+import com.artipie.http.auth.Permissions;
 import com.artipie.http.rq.RequestLineFrom;
 import com.artipie.http.rq.RqMethod;
 import com.artipie.http.rs.RsStatus;
@@ -47,6 +52,7 @@ import org.reactivestreams.Publisher;
  * NuGet repository HTTP front end.
  *
  * @since 0.1
+ * @checkstyle ParameterNumberCheck (500 lines)
  * @checkstyle ClassDataAbstractionCouplingCheck (2 lines)
  */
 public final class NuGet implements Slice {
@@ -67,6 +73,16 @@ public final class NuGet implements Slice {
     private final Storage storage;
 
     /**
+     * Access permissions.
+     */
+    private final Permissions perms;
+
+    /**
+     * User identities.
+     */
+    private final Identities users;
+
+    /**
      * Ctor.
      *
      * @param url Base URL.
@@ -74,16 +90,57 @@ public final class NuGet implements Slice {
      * @param storage Storage for packages.
      */
     public NuGet(final URL url, final String base, final Storage storage) {
+        this(url, base, storage, Permissions.FREE, Identities.ANONYMOUS);
+    }
+
+    /**
+     * Ctor.
+     *
+     * @param url Base URL.
+     * @param base Base path.
+     * @param storage Storage for packages.
+     * @param perms Access permissions.
+     * @param auth Auth details.
+     */
+    public NuGet(
+        final URL url,
+        final String base,
+        final Storage storage,
+        final Permissions perms,
+        final Authentication auth
+    ) {
+        this(url, base, storage, perms, new BasicIdentities(auth));
+    }
+
+    /**
+     * Ctor.
+     *
+     * @param url Base URL.
+     * @param base Base path.
+     * @param storage Storage for packages.
+     * @param perms Access permissions.
+     * @param users User identities.
+     */
+    private NuGet(
+        final URL url,
+        final String base,
+        final Storage storage,
+        final Permissions perms,
+        final Identities users
+    ) {
         this.url = url;
         this.base = base;
         this.storage = storage;
+        this.perms = perms;
+        this.users = users;
     }
 
     @Override
     public Response response(
         final String line,
         final Iterable<Map.Entry<String, String>> headers,
-        final Publisher<ByteBuffer> body) {
+        final Publisher<ByteBuffer> body
+    ) {
         final Response response;
         final RequestLineFrom request = new RequestLineFrom(line);
         final String path = request.uri().getPath();
@@ -126,7 +183,7 @@ public final class NuGet implements Slice {
                 )
             ),
             publish,
-            content,
+            new BasicAuthRoute(content, new Permission.ByName("read", this.perms), this.users),
             metadata
         );
     }

@@ -27,15 +27,18 @@ import com.artipie.asto.Key;
 import com.artipie.asto.Storage;
 import com.artipie.asto.blocking.BlockingStorage;
 import com.artipie.asto.memory.InMemoryStorage;
+import com.artipie.http.Headers;
 import com.artipie.http.Response;
 import com.artipie.http.hm.RsHasBody;
+import com.artipie.http.hm.RsHasHeaders;
 import com.artipie.http.hm.RsHasStatus;
+import com.artipie.http.rs.Header;
 import com.artipie.http.rs.RsStatus;
 import com.artipie.nuget.http.NuGet;
 import io.reactivex.Flowable;
 import java.net.URL;
 import java.util.Arrays;
-import java.util.Collections;
+import java.util.Optional;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
 import org.hamcrest.core.AllOf;
@@ -62,10 +65,31 @@ class NuGetPackageContentTest {
      */
     private NuGet nuget;
 
+    /**
+     * Valid auth headers.
+     */
+    private Headers auth;
+
     @BeforeEach
     void init() throws Exception {
         this.storage = new InMemoryStorage();
-        this.nuget = new NuGet(new URL("http://localhost"), "/base", this.storage);
+        final String user = "Aladdin";
+        this.nuget = new NuGet(
+            new URL("http://localhost"),
+            "/base",
+            this.storage,
+            (name, action) -> user.equals(name) && "read".equals(action),
+            (username, password) -> {
+                final Optional<String> result;
+                if (user.equals(username) && "OpenSesame".equals(password)) {
+                    result = Optional.of(username);
+                } else {
+                    result = Optional.empty();
+                }
+                return result;
+            }
+        );
+        this.auth = new Headers.From("Authorization", "Basic QWxhZGRpbjpPcGVuU2VzYW1l");
     }
 
     @Test
@@ -79,7 +103,7 @@ class NuGetPackageContentTest {
             "Package content should be returned in response",
             this.nuget.response(
                 "GET /base/content/package/1.0.0/content.nupkg HTTP/1.1",
-                Collections.emptyList(),
+                this.auth,
                 Flowable.empty()
             ),
             new AllOf<>(
@@ -95,7 +119,7 @@ class NuGetPackageContentTest {
     void shouldFailGetPackageContentFromNotBasePath() {
         final Response response = this.nuget.response(
             "GET /not-base/content/package/1.0.0/content.nupkg HTTP/1.1",
-            Collections.emptyList(),
+            this.auth,
             Flowable.empty()
         );
         MatcherAssert.assertThat(
@@ -111,7 +135,7 @@ class NuGetPackageContentTest {
             "Not existing content should not be found",
             this.nuget.response(
                 "GET /base/content/package/1.0.0/logo.png HTTP/1.1",
-                Collections.emptyList(),
+                this.auth,
                 Flowable.empty()
             ),
             new RsHasStatus(RsStatus.NOT_FOUND)
@@ -122,7 +146,7 @@ class NuGetPackageContentTest {
     void shouldFailPutPackageContent() {
         final Response response = this.nuget.response(
             "PUT /base/content/package/1.0.0/content.nupkg HTTP/1.1",
-            Collections.emptyList(),
+            this.auth,
             Flowable.empty()
         );
         MatcherAssert.assertThat(
@@ -142,7 +166,7 @@ class NuGetPackageContentTest {
         MatcherAssert.assertThat(
             this.nuget.response(
                 "GET /base/content/package2/index.json HTTP/1.1",
-                Collections.emptyList(),
+                this.auth,
                 Flowable.empty()
             ),
             Matchers.allOf(
@@ -157,10 +181,25 @@ class NuGetPackageContentTest {
         MatcherAssert.assertThat(
             this.nuget.response(
                 "GET /base/content/unknown-package/index.json HTTP/1.1",
-                Collections.emptyList(),
+                this.auth,
                 Flowable.empty()
             ),
             new RsHasStatus(RsStatus.NOT_FOUND)
+        );
+    }
+
+    @Test
+    void shouldFailGetPackageContentWithoutAuth() {
+        MatcherAssert.assertThat(
+            this.nuget.response(
+                "GET /base/content/package/2.0.0/content.nupkg HTTP/1.1",
+                Headers.EMPTY,
+                Flowable.empty()
+            ),
+            Matchers.allOf(
+                new RsHasStatus(RsStatus.UNAUTHORIZED),
+                new RsHasHeaders(new Header("WWW-Authenticate", "Basic"))
+            )
         );
     }
 }
