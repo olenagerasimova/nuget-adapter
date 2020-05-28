@@ -35,10 +35,10 @@ import com.artipie.http.hm.RsHasStatus;
 import com.artipie.http.rs.Header;
 import com.artipie.http.rs.RsStatus;
 import com.artipie.nuget.http.NuGet;
+import com.artipie.nuget.http.TestAuthentication;
 import io.reactivex.Flowable;
 import java.net.URL;
 import java.util.Arrays;
-import java.util.Optional;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
 import org.hamcrest.core.AllOf;
@@ -65,31 +65,16 @@ class NuGetPackageContentTest {
      */
     private NuGet nuget;
 
-    /**
-     * Valid auth headers.
-     */
-    private Headers auth;
-
     @BeforeEach
     void init() throws Exception {
         this.storage = new InMemoryStorage();
-        final String user = "Aladdin";
         this.nuget = new NuGet(
             new URL("http://localhost"),
             "/base",
             this.storage,
-            (name, action) -> user.equals(name) && "read".equals(action),
-            (username, password) -> {
-                final Optional<String> result;
-                if (user.equals(username) && "OpenSesame".equals(password)) {
-                    result = Optional.of(username);
-                } else {
-                    result = Optional.empty();
-                }
-                return result;
-            }
+            (name, action) -> TestAuthentication.USERNAME.equals(name) && NuGet.READ.equals(action),
+            new TestAuthentication()
         );
-        this.auth = new Headers.From("Authorization", "Basic QWxhZGRpbjpPcGVuU2VzYW1l");
     }
 
     @Test
@@ -103,7 +88,7 @@ class NuGetPackageContentTest {
             "Package content should be returned in response",
             this.nuget.response(
                 "GET /base/content/package/1.0.0/content.nupkg HTTP/1.1",
-                this.auth,
+                TestAuthentication.HEADERS,
                 Flowable.empty()
             ),
             new AllOf<>(
@@ -119,7 +104,7 @@ class NuGetPackageContentTest {
     void shouldFailGetPackageContentFromNotBasePath() {
         final Response response = this.nuget.response(
             "GET /not-base/content/package/1.0.0/content.nupkg HTTP/1.1",
-            this.auth,
+            TestAuthentication.HEADERS,
             Flowable.empty()
         );
         MatcherAssert.assertThat(
@@ -135,7 +120,7 @@ class NuGetPackageContentTest {
             "Not existing content should not be found",
             this.nuget.response(
                 "GET /base/content/package/1.0.0/logo.png HTTP/1.1",
-                this.auth,
+                TestAuthentication.HEADERS,
                 Flowable.empty()
             ),
             new RsHasStatus(RsStatus.NOT_FOUND)
@@ -146,7 +131,7 @@ class NuGetPackageContentTest {
     void shouldFailPutPackageContent() {
         final Response response = this.nuget.response(
             "PUT /base/content/package/1.0.0/content.nupkg HTTP/1.1",
-            this.auth,
+            TestAuthentication.HEADERS,
             Flowable.empty()
         );
         MatcherAssert.assertThat(
@@ -166,7 +151,7 @@ class NuGetPackageContentTest {
         MatcherAssert.assertThat(
             this.nuget.response(
                 "GET /base/content/package2/index.json HTTP/1.1",
-                this.auth,
+                TestAuthentication.HEADERS,
                 Flowable.empty()
             ),
             Matchers.allOf(
@@ -181,7 +166,7 @@ class NuGetPackageContentTest {
         MatcherAssert.assertThat(
             this.nuget.response(
                 "GET /base/content/unknown-package/index.json HTTP/1.1",
-                this.auth,
+                TestAuthentication.HEADERS,
                 Flowable.empty()
             ),
             new RsHasStatus(RsStatus.NOT_FOUND)

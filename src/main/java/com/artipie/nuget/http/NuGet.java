@@ -62,6 +62,16 @@ import org.reactivestreams.Publisher;
 public final class NuGet implements Slice {
 
     /**
+     * Read permission name.
+     */
+    public static final String READ = "read";
+
+    /**
+     * Write permission name.
+     */
+    public static final String WRITE = "write";
+
+    /**
      * Base URL.
      */
     private final URL url;
@@ -186,9 +196,24 @@ public final class NuGet implements Slice {
                     new RouteService(this.url, content, "PackageBaseAddress/3.0.0")
                 )
             ),
-            publish,
-            new BasicAuthRoute(content, new Permission.ByName("read", this.perms), this.users),
+            this.auth(publish, NuGet.WRITE),
+            this.auth(content, NuGet.READ),
             metadata
+        );
+    }
+
+    /**
+     * Create route supporting basic authentication.
+     *
+     * @param route Route requiring authentication.
+     * @param permission Permission name.
+     * @return Authenticated route.
+     */
+    private Route auth(final Route route, final String permission) {
+        return new BasicAuthRoute(
+            route,
+            new Permission.ByName(permission, this.perms),
+            this.users
         );
     }
 }
