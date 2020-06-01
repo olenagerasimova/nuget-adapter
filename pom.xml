@@ -85,7 +85,7 @@ SOFTWARE.
     <dependency>
       <groupId>com.artipie</groupId>
       <artifactId>http</artifactId>
-      <version>0.9.4</version>
+      <version>0.9.5</version>
       <exclusions>
         <exclusion>
           <groupId>org.apache.httpcomponents</groupId>

@@ -26,9 +26,14 @@ package com.artipie.nuget.http.publish;
 import com.artipie.asto.memory.InMemoryStorage;
 import com.artipie.http.Headers;
 import com.artipie.http.Response;
+import com.artipie.http.hm.ResponseMatcher;
 import com.artipie.http.hm.RsHasStatus;
+import com.artipie.http.rq.RequestLine;
+import com.artipie.http.rs.Header;
 import com.artipie.http.rs.RsStatus;
 import com.artipie.nuget.http.NuGet;
+import com.artipie.nuget.http.TestAuthentication;
+import com.artipie.nuget.http.TestPermissions;
 import com.google.common.io.Resources;
 import io.reactivex.Flowable;
 import java.io.ByteArrayOutputStream;
@@ -61,7 +66,9 @@ class NuGetPackagePublishTest {
         this.nuget = new NuGet(
             new URL("http://localhost"),
             "/base",
-            new InMemoryStorage()
+            new InMemoryStorage(),
+            new TestPermissions(TestAuthentication.USERNAME, NuGet.WRITE),
+            new TestAuthentication()
         );
     }
 
@@ -109,10 +116,22 @@ class NuGetPackagePublishTest {
     void shouldFailGetPackagePublish() {
         final Response response = this.nuget.response(
             "GET /base/package HTTP/1.1",
-            Collections.emptyList(),
+            new TestAuthentication.Headers(),
             Flowable.empty()
         );
         MatcherAssert.assertThat(response, new RsHasStatus(RsStatus.METHOD_NOT_ALLOWED));
+    }
+
+    @Test
+    void shouldFailPutPackageWithoutAuth() {
+        MatcherAssert.assertThat(
+            this.nuget.response(
+                "PUT /base/package HTTP/1.1",
+                Headers.EMPTY,
+                Flowable.fromArray(ByteBuffer.wrap("data".getBytes()))
+            ),
+            new ResponseMatcher(RsStatus.UNAUTHORIZED, new Header("WWW-Authenticate", "Basic"))
+        );
     }
 
     private Response putPackage(final byte[] pack) throws Exception {
@@ -122,9 +141,10 @@ class NuGetPackagePublishTest {
         final ByteArrayOutputStream sink = new ByteArrayOutputStream();
         entity.writeTo(sink);
         return this.nuget.response(
-            "PUT /base/package HTTP/1.1",
+            new RequestLine("PUT", "/base/package", "HTTP/1.1").toString(),
             new Headers.From(
-                "Content-Type", entity.getContentType().getValue()
+                new TestAuthentication.Header(),
+                new Header("Content-Type", entity.getContentType().getValue())
             ),
             Flowable.fromArray(ByteBuffer.wrap(sink.toByteArray()))
         );
@@ -135,4 +155,5 @@ class NuGetPackagePublishTest {
             .getResource("newtonsoft.json/12.0.3/newtonsoft.json.12.0.3.nupkg");
         return Resources.toByteArray(resource);
     }
+
 }
