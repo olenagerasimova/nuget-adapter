@@ -198,7 +198,7 @@ public final class NuGet implements Slice {
             ),
             this.auth(publish, NuGet.WRITE),
             this.auth(content, NuGet.READ),
-            metadata
+            this.auth(metadata, NuGet.READ)
         );
     }
 
