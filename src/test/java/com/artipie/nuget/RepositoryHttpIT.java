@@ -25,8 +25,10 @@
 package com.artipie.nuget;
 
 import com.artipie.asto.memory.InMemoryStorage;
+import com.artipie.http.auth.Permissions;
 import com.artipie.http.slice.LoggingSlice;
 import com.artipie.nuget.http.NuGet;
+import com.artipie.nuget.http.TestAuthentication;
 import com.artipie.vertx.VertxSliceServer;
 import com.google.common.collect.ImmutableList;
 import com.jcabi.log.Logger;
@@ -47,6 +49,10 @@ import org.junit.jupiter.api.io.TempDir;
  * Integration test for NuGet repository.
  *
  * @since 0.1
+ * @todo #84:30min Enable auth in tests on Linux.
+ *  NuGet client hangs up on pushing a package when authentication is required.
+ *  This prevents integration tests from running on Linux with auth enabled.
+ *  There might be a workaround for this issue.
  * @checkstyle ClassDataAbstractionCouplingCheck (2 lines)
  */
 class RepositoryHttpIT {
@@ -79,7 +85,15 @@ class RepositoryHttpIT {
         final String path = String.format("/%s", UUID.randomUUID().toString());
         final String base = String.format("http://localhost:%s%s", port, path);
         this.server = new VertxSliceServer(
-            new LoggingSlice(new NuGet(new URL(base), path, new InMemoryStorage())),
+            new LoggingSlice(
+                new NuGet(
+                    new URL(base),
+                    path,
+                    new InMemoryStorage(),
+                    this.permissions(),
+                    new TestAuthentication()
+                )
+            ),
             port
         );
         this.server.start();
@@ -87,7 +101,11 @@ class RepositoryHttpIT {
         this.config = this.temp.resolve("NuGet.Config");
         Files.write(
             this.config,
-            this.configXml(String.format("%s/index.json", base), "Aladdin", "OpenSesame")
+            this.configXml(
+                String.format("%s/index.json", base),
+                TestAuthentication.USERNAME,
+                TestAuthentication.PASSWORD
+            )
         );
     }
 
@@ -175,11 +193,25 @@ class RepositoryHttpIT {
 
     private static String command() {
         final String cmd;
-        if (System.getProperty("os.name").startsWith("Windows")) {
+        if (isWindows()) {
             cmd = "nuget.exe";
         } else {
             cmd = "nuget";
         }
         return cmd;
+    }
+
+    private Permissions permissions() {
+        final Permissions permissions;
+        if (isWindows()) {
+            permissions = (name, action) -> TestAuthentication.USERNAME.equals(name);
+        } else {
+            permissions = Permissions.FREE;
+        }
+        return permissions;
+    }
+
+    private static boolean isWindows() {
+        return System.getProperty("os.name").startsWith("Windows");
     }
 }

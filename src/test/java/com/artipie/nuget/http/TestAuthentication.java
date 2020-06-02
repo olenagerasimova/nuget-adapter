@@ -46,7 +46,7 @@ public final class TestAuthentication implements Authentication {
     /**
      * Password.
      */
-    private static final String PASSWORD = "OpenSesame";
+    public static final String PASSWORD = "OpenSesame";
 
     @Override
     public Optional<String> user(final String username, final String password) {

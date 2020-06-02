@@ -25,21 +25,25 @@ package com.artipie.nuget.http.metadata;
 
 import com.artipie.asto.blocking.BlockingStorage;
 import com.artipie.asto.memory.InMemoryStorage;
+import com.artipie.http.Headers;
 import com.artipie.http.Response;
+import com.artipie.http.hm.ResponseMatcher;
 import com.artipie.http.hm.RsHasBody;
 import com.artipie.http.hm.RsHasStatus;
+import com.artipie.http.rs.Header;
 import com.artipie.http.rs.RsStatus;
 import com.artipie.nuget.Nuspec;
 import com.artipie.nuget.PackageId;
 import com.artipie.nuget.Version;
 import com.artipie.nuget.Versions;
 import com.artipie.nuget.http.NuGet;
+import com.artipie.nuget.http.TestAuthentication;
+import com.artipie.nuget.http.TestPermissions;
 import com.google.common.io.ByteSource;
 import io.reactivex.Flowable;
 import java.io.ByteArrayInputStream;
 import java.net.URL;
 import java.util.Arrays;
-import java.util.Collections;
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonReader;
@@ -75,7 +79,9 @@ class NuGetPackageMetadataTest {
         this.nuget = new NuGet(
             new URL("http://localhost:4321/repo"),
             "/base",
-            this.storage
+            this.storage,
+            new TestPermissions(TestAuthentication.USERNAME, NuGet.READ),
+            new TestAuthentication()
         );
     }
 
@@ -100,7 +106,7 @@ class NuGetPackageMetadataTest {
         ).save(new BlockingStorage(this.storage));
         final Response response = this.nuget.response(
             "GET /base/registrations/newtonsoft.json/index.json HTTP/1.1",
-            Collections.emptyList(),
+            new TestAuthentication.Headers(),
             Flowable.empty()
         );
         MatcherAssert.assertThat(
@@ -118,7 +124,7 @@ class NuGetPackageMetadataTest {
     void shouldGetRegistrationsWhenEmpty() {
         final Response response = this.nuget.response(
             "GET /base/registrations/my.lib/index.json HTTP/1.1",
-            Collections.emptyList(),
+            new TestAuthentication.Headers(),
             Flowable.empty()
         );
         MatcherAssert.assertThat(
@@ -136,10 +142,22 @@ class NuGetPackageMetadataTest {
     void shouldFailPutRegistration() {
         final Response response = this.nuget.response(
             "PUT /base/registrations/newtonsoft.json/index.json HTTP/1.1",
-            Collections.emptyList(),
+            new TestAuthentication.Headers(),
             Flowable.empty()
         );
         MatcherAssert.assertThat(response, new RsHasStatus(RsStatus.METHOD_NOT_ALLOWED));
+    }
+
+    @Test
+    void shouldFailGetRegistrationWithoutAuth() {
+        MatcherAssert.assertThat(
+            this.nuget.response(
+                "GET /base/registrations/my-utils/index.json HTTP/1.1",
+                Headers.EMPTY,
+                Flowable.empty()
+            ),
+            new ResponseMatcher(RsStatus.UNAUTHORIZED, new Header("WWW-Authenticate", "Basic"))
+        );
     }
 
     /**
