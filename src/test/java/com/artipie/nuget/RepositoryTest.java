@@ -103,7 +103,7 @@ class RepositoryTest {
     }
 
     @Test
-    void shouldFailToAddInvalidPackage() {
+    void shouldFailToAddInvalidPackage() throws Exception {
         final Key.From source = new Key.From("invalid");
         this.storage.save(source, "not a zip".getBytes());
         Assertions.assertThrows(
@@ -190,7 +190,7 @@ class RepositoryTest {
         );
     }
 
-    private List<String> versions(final Key key) {
+    private List<String> versions(final Key key) throws Exception {
         final byte[] bytes = this.storage.value(key);
         try (JsonReader reader = Json.createReader(new ByteArrayInputStream(bytes))) {
             return reader.readObject()

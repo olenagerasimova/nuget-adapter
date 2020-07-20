@@ -41,7 +41,7 @@ import org.junit.jupiter.api.Test;
 class HashTest {
 
     @Test
-    void shouldSave() {
+    void shouldSave() throws Exception {
         final String id = "abc";
         final String version = "0.0.1";
         final BlockingStorage storage = new BlockingStorage(new InMemoryStorage());

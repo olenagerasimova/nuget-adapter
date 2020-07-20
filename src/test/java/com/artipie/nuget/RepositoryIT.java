@@ -29,7 +29,6 @@ import com.artipie.asto.blocking.BlockingStorage;
 import com.artipie.asto.fs.FileStorage;
 import com.google.common.collect.ImmutableList;
 import com.jcabi.log.Logger;
-import io.vertx.reactivex.core.Vertx;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -90,9 +89,7 @@ class RepositoryIT {
     }
 
     private void addPackage() throws Exception {
-        final BlockingStorage storage = new BlockingStorage(
-            new FileStorage(this.repo, Vertx.vertx().fileSystem())
-        );
+        final BlockingStorage storage = new BlockingStorage(new FileStorage(this.repo));
         final Key.From source = new Key.From("package.zip");
         storage.save(source, new NewtonJsonResource("newtonsoft.json.12.0.3.nupkg").bytes());
         final Repository repository = new Repository(storage);

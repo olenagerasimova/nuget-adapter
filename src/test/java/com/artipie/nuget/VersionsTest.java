@@ -130,7 +130,7 @@ class VersionsTest {
         return this.versions(sink);
     }
 
-    private List<String> versions(final Key key) {
+    private List<String> versions(final Key key) throws Exception {
         final byte[] bytes = this.storage.value(key);
         try (JsonReader reader = Json.createReader(new ByteArrayInputStream(bytes))) {
             return reader.readObject()

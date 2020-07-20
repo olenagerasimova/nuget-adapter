@@ -91,8 +91,9 @@ final class RegistrationPage {
      *
      * @return Page JSON.
      * @throws IOException In case exception occurred on reading data from repository.
+     * @throws InterruptedException In case executing thread has been interrupted.
      */
-    public JsonObject json() throws IOException {
+    public JsonObject json() throws IOException, InterruptedException {
         if (this.versions.isEmpty()) {
             throw new IllegalStateException(
                 String.format("Registration page contains no versions: '%s'", this.id)
@@ -119,8 +120,10 @@ final class RegistrationPage {
      * @param identity Package identity.
      * @return JSON representing registration leaf.
      * @throws IOException In case exception occurred on reading data from repository.
+     * @throws InterruptedException In case executing thread has been interrupted.
      */
-    private JsonObject leaf(final PackageIdentity identity) throws IOException {
+    private JsonObject leaf(final PackageIdentity identity)
+        throws IOException, InterruptedException {
         final Nuspec nuspec = this.repository.nuspec(identity);
         return Json.createObjectBuilder()
             .add(

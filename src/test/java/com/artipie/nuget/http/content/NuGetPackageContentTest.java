@@ -79,7 +79,7 @@ class NuGetPackageContentTest {
     }
 
     @Test
-    void shouldGetPackageContent() {
+    void shouldGetPackageContent() throws Exception {
         final byte[] data = "data".getBytes();
         new BlockingStorage(this.storage).save(
             new Key.From("package", "1.0.0", "content.nupkg"),
@@ -143,7 +143,7 @@ class NuGetPackageContentTest {
     }
 
     @Test
-    void shouldGetPackageVersions() {
+    void shouldGetPackageVersions() throws Exception {
         final byte[] data = "example".getBytes();
         new BlockingStorage(this.storage).save(
             new Key.From("package2", "index.json"),

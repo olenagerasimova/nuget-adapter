@@ -54,8 +54,10 @@ public final class Hash {
      *
      * @param storage Storage to use for saving.
      * @param identity Package identity.
+     * @throws InterruptedException In case executing thread has been interrupted.
      */
-    public void save(final BlockingStorage storage, final PackageIdentity identity) {
+    public void save(final BlockingStorage storage, final PackageIdentity identity)
+        throws InterruptedException {
         storage.save(identity.hashKey(), Base64.getEncoder().encode(this.value.asBytes()));
     }
 }

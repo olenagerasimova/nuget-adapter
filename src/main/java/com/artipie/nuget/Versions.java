@@ -127,8 +127,10 @@ public final class Versions {
      * @param storage Storage to use for saving.
      * @param key Key to store data at.
      * @throws IOException In case exception occurred on saving content.
+     * @throws InterruptedException In case executing thread has been interrupted.
      */
-    public void save(final BlockingStorage storage, final Key key) throws IOException {
+    public void save(final BlockingStorage storage, final Key key)
+        throws IOException, InterruptedException {
         storage.save(key, this.content.read());
     }
 
