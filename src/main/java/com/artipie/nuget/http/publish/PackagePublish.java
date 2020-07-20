@@ -120,7 +120,7 @@ public final class PackagePublish implements Route {
                                             new BlockingStorage(this.storage)
                                         ).add(key);
                                         status = RsStatus.CREATED;
-                                    } catch (final IOException ex) {
+                                    } catch (final IOException | InterruptedException ex) {
                                         throw new IllegalStateException(ex);
                                     } catch (final InvalidPackageException ex) {
                                         status = RsStatus.BAD_REQUEST;

@@ -103,7 +103,7 @@ class Registration implements Resource {
                     RsStatus.OK
                 );
             }
-        } catch (final IOException ex) {
+        } catch (final IOException | InterruptedException ex) {
             throw new IllegalStateException(ex);
         }
     }
@@ -120,8 +120,9 @@ class Registration implements Resource {
      *
      * @return List of pages.
      * @throws IOException In case exception occurred reading versions.
+     * @throws InterruptedException In case executing thread has been interrupted.
      */
-    private List<RegistrationPage> pages() throws IOException {
+    private List<RegistrationPage> pages() throws IOException, InterruptedException {
         final List<Version> versions = this.repository.versions(this.id).all();
         final List<RegistrationPage> pages;
         if (versions.isEmpty()) {

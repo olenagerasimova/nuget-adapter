@@ -55,11 +55,13 @@ public final class Repository {
      *
      * @param key Key to find content of .nupkg package.
      * @throws IOException In case exception occurred on operations with storage.
+     * @throws InterruptedException In case executing thread has been interrupted.
      * @throws InvalidPackageException If package content is invalid and so cannot be added.
      * @throws PackageVersionAlreadyExistsException If package version already in storage.
      */
     public void add(final Key key)
-        throws IOException, InvalidPackageException, PackageVersionAlreadyExistsException {
+        throws IOException, InterruptedException,
+        InvalidPackageException, PackageVersionAlreadyExistsException {
         final NuGetPackage nupkg = new Nupkg(ByteSource.wrap(this.storage.value(key)));
         final Nuspec nuspec;
         final PackageIdentity id;
@@ -84,8 +86,9 @@ public final class Repository {
      *
      * @param id Package identifier.
      * @return Versions of package.
+     * @throws InterruptedException In case executing thread has been interrupted.
      */
-    public Versions versions(final PackageId id) {
+    public Versions versions(final PackageId id) throws InterruptedException {
         final Key key = id.versionsKey();
         final Versions versions;
         if (this.storage.exists(key)) {
@@ -101,8 +104,9 @@ public final class Repository {
      *
      * @param identity Package identity consisting of package id and version.
      * @return Package description in .nuspec format.
+     * @throws InterruptedException In case executing thread has been interrupted.
      */
-    public Nuspec nuspec(final PackageIdentity identity) {
+    public Nuspec nuspec(final PackageIdentity identity) throws InterruptedException {
         if (!this.storage.exists(identity.nuspecKey())) {
             throw new IllegalArgumentException(String.format("Cannot find package: %s", identity));
         }

@@ -91,8 +91,9 @@ public final class Nuspec {
      *
      * @param storage Storage to use for saving.
      * @throws IOException In case exception occurred on reading document or writing it to storage.
+     * @throws InterruptedException In case executing thread has been interrupted.
      */
-    public void save(final BlockingStorage storage) throws IOException {
+    public void save(final BlockingStorage storage) throws IOException, InterruptedException {
         storage.save(this.identity().nuspecKey(), this.content.read());
     }
 
