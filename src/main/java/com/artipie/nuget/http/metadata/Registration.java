@@ -26,12 +26,12 @@ package com.artipie.nuget.http.metadata;
 import com.artipie.http.Headers;
 import com.artipie.http.Response;
 import com.artipie.http.rs.RsStatus;
-import com.artipie.http.rs.RsWithBody;
 import com.artipie.http.rs.RsWithStatus;
 import com.artipie.nuget.PackageId;
 import com.artipie.nuget.Repository;
 import com.artipie.nuget.Version;
 import com.artipie.nuget.http.Resource;
+import com.artipie.nuget.http.RsWithBodyNoHeaders;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -99,7 +99,7 @@ class Registration implements Resource {
                 writer.writeObject(json);
                 out.flush();
                 return new RsWithStatus(
-                    new RsWithBody(ByteBuffer.wrap(out.toByteArray())),
+                    new RsWithBodyNoHeaders(out.toByteArray()),
                     RsStatus.OK
                 );
             }

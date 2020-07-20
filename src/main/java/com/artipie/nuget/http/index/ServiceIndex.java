@@ -26,11 +26,11 @@ package com.artipie.nuget.http.index;
 import com.artipie.http.Headers;
 import com.artipie.http.Response;
 import com.artipie.http.rs.RsStatus;
-import com.artipie.http.rs.RsWithBody;
 import com.artipie.http.rs.RsWithStatus;
 import com.artipie.nuget.http.Absent;
 import com.artipie.nuget.http.Resource;
 import com.artipie.nuget.http.Route;
+import com.artipie.nuget.http.RsWithBodyNoHeaders;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -104,7 +104,7 @@ public final class ServiceIndex implements Route {
                 writer.writeObject(json);
                 out.flush();
                 return new RsWithStatus(
-                    new RsWithBody(ByteBuffer.wrap(out.toByteArray())),
+                    new RsWithBodyNoHeaders(out.toByteArray()),
                     RsStatus.OK
                 );
             } catch (final IOException ex) {

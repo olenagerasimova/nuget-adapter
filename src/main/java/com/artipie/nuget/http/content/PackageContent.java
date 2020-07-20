@@ -29,11 +29,11 @@ import com.artipie.http.Headers;
 import com.artipie.http.Response;
 import com.artipie.http.async.AsyncResponse;
 import com.artipie.http.rs.RsStatus;
-import com.artipie.http.rs.RsWithBody;
 import com.artipie.http.rs.RsWithStatus;
 import com.artipie.nuget.PackageIdentity;
 import com.artipie.nuget.http.Resource;
 import com.artipie.nuget.http.Route;
+import com.artipie.nuget.http.RsWithBodyNoHeaders;
 import com.artipie.nuget.http.metadata.ContentLocation;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -134,7 +134,7 @@ public final class PackageContent implements Route, ContentLocation {
                 this.existing().thenCompose(
                     existing -> existing.<CompletionStage<Response>>map(
                         key -> this.storage.value(key).thenApply(
-                            data -> new RsWithBody(new RsWithStatus(RsStatus.OK), data)
+                            data -> new RsWithBodyNoHeaders(new RsWithStatus(RsStatus.OK), data)
                         )
                     ).orElseGet(
                         () -> CompletableFuture.completedFuture(
