@@ -33,6 +33,8 @@ import com.artipie.http.headers.Header;
 import com.artipie.http.hm.ResponseMatcher;
 import com.artipie.http.hm.RsHasBody;
 import com.artipie.http.hm.RsHasStatus;
+import com.artipie.http.rq.RequestLine;
+import com.artipie.http.rq.RqMethod;
 import com.artipie.http.rs.RsStatus;
 import com.artipie.nuget.http.NuGet;
 import com.artipie.nuget.http.TestAuthentication;
@@ -51,9 +53,9 @@ import org.junit.jupiter.api.Test;
  * Package Content resource.
  *
  * @since 0.1
- * @checkstyle ClassDataAbstractionCouplingCheck (2 lines)
+ * @checkstyle ClassDataAbstractionCouplingCheck (500 lines)
  */
-@SuppressWarnings("PMD.TooManyMethods")
+@SuppressWarnings({"PMD.TooManyMethods", "PMD.AvoidDuplicateLiterals"})
 class NuGetPackageContentTest {
 
     /**
@@ -88,7 +90,10 @@ class NuGetPackageContentTest {
         MatcherAssert.assertThat(
             "Package content should be returned in response",
             this.nuget.response(
-                "GET /base/content/package/1.0.0/content.nupkg HTTP/1.1",
+                new RequestLine(
+                    RqMethod.GET,
+                    "/base/content/package/1.0.0/content.nupkg"
+                ).toString(),
                 new TestAuthentication.Headers(),
                 Flowable.empty()
             ),
@@ -104,7 +109,10 @@ class NuGetPackageContentTest {
     @Test
     void shouldFailGetPackageContentFromNotBasePath() {
         final Response response = this.nuget.response(
-            "GET /not-base/content/package/1.0.0/content.nupkg HTTP/1.1",
+            new RequestLine(
+                RqMethod.GET,
+                "/not-base/content/package/1.0.0/content.nupkg"
+            ).toString(),
             new TestAuthentication.Headers(),
             Flowable.empty()
         );
@@ -120,7 +128,10 @@ class NuGetPackageContentTest {
         MatcherAssert.assertThat(
             "Not existing content should not be found",
             this.nuget.response(
-                "GET /base/content/package/1.0.0/logo.png HTTP/1.1",
+                new RequestLine(
+                    RqMethod.GET,
+                    "/base/content/package/1.0.0/logo.png"
+                ).toString(),
                 new TestAuthentication.Headers(),
                 Flowable.empty()
             ),
@@ -131,7 +142,10 @@ class NuGetPackageContentTest {
     @Test
     void shouldFailPutPackageContent() {
         final Response response = this.nuget.response(
-            "PUT /base/content/package/1.0.0/content.nupkg HTTP/1.1",
+            new RequestLine(
+                RqMethod.PUT,
+                "/base/content/package/1.0.0/content.nupkg"
+            ).toString(),
             new TestAuthentication.Headers(),
             Flowable.empty()
         );
@@ -151,7 +165,10 @@ class NuGetPackageContentTest {
         );
         MatcherAssert.assertThat(
             this.nuget.response(
-                "GET /base/content/package2/index.json HTTP/1.1",
+                new RequestLine(
+                    RqMethod.GET,
+                    "/base/content/package2/index.json"
+                ).toString(),
                 new TestAuthentication.Headers(),
                 Flowable.empty()
             ),
@@ -166,7 +183,10 @@ class NuGetPackageContentTest {
     void shouldFailGetPackageVersionsWhenNotExists() {
         MatcherAssert.assertThat(
             this.nuget.response(
-                "GET /base/content/unknown-package/index.json HTTP/1.1",
+                new RequestLine(
+                    RqMethod.GET,
+                    "/base/content/unknown-package/index.json"
+                ).toString(),
                 new TestAuthentication.Headers(),
                 Flowable.empty()
             ),
@@ -178,7 +198,10 @@ class NuGetPackageContentTest {
     void shouldFailGetPackageContentWithoutAuth() {
         MatcherAssert.assertThat(
             this.nuget.response(
-                "GET /base/content/package/2.0.0/content.nupkg HTTP/1.1",
+                new RequestLine(
+                    RqMethod.GET,
+                    "/base/content/package/2.0.0/content.nupkg"
+                ).toString(),
                 Headers.EMPTY,
                 Flowable.empty()
             ),

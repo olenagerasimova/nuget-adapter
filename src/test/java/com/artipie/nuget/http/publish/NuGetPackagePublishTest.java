@@ -30,6 +30,7 @@ import com.artipie.http.headers.Header;
 import com.artipie.http.hm.ResponseMatcher;
 import com.artipie.http.hm.RsHasStatus;
 import com.artipie.http.rq.RequestLine;
+import com.artipie.http.rq.RqMethod;
 import com.artipie.http.rs.RsStatus;
 import com.artipie.nuget.http.NuGet;
 import com.artipie.nuget.http.TestAuthentication;
@@ -52,8 +53,9 @@ import org.junit.jupiter.api.Test;
  * Package publish resource.
  *
  * @since 0.2
- * @checkstyle ClassDataAbstractionCouplingCheck (2 lines)
+ * @checkstyle ClassDataAbstractionCouplingCheck (500 lines)
  */
+@SuppressWarnings("PMD.AvoidDuplicateLiterals")
 class NuGetPackagePublishTest {
 
     /**
@@ -105,7 +107,7 @@ class NuGetPackagePublishTest {
     @Test
     void shouldFailGetPackagePublishFromNotBasePath() {
         final Response response = this.nuget.response(
-            "GET /not-base/package HTTP/1.1",
+            new RequestLine(RqMethod.GET, "/not-base/package").toString(),
             Collections.emptyList(),
             Flowable.empty()
         );
@@ -115,7 +117,7 @@ class NuGetPackagePublishTest {
     @Test
     void shouldFailGetPackagePublish() {
         final Response response = this.nuget.response(
-            "GET /base/package HTTP/1.1",
+            new RequestLine(RqMethod.GET, "/base/package").toString(),
             new TestAuthentication.Headers(),
             Flowable.empty()
         );
@@ -126,7 +128,7 @@ class NuGetPackagePublishTest {
     void shouldFailPutPackageWithoutAuth() {
         MatcherAssert.assertThat(
             this.nuget.response(
-                "PUT /base/package HTTP/1.1",
+                new RequestLine(RqMethod.PUT, "/base/package").toString(),
                 Headers.EMPTY,
                 Flowable.fromArray(ByteBuffer.wrap("data".getBytes()))
             ),
@@ -141,7 +143,7 @@ class NuGetPackagePublishTest {
         final ByteArrayOutputStream sink = new ByteArrayOutputStream();
         entity.writeTo(sink);
         return this.nuget.response(
-            new RequestLine("PUT", "/base/package", "HTTP/1.1").toString(),
+            new RequestLine(RqMethod.PUT, "/base/package").toString(),
             new Headers.From(
                 new TestAuthentication.Header(),
                 new Header("Content-Type", entity.getContentType().getValue())

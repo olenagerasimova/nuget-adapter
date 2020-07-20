@@ -27,7 +27,6 @@ import com.artipie.http.auth.Authentication;
 import com.artipie.http.headers.Authorization;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Spliterator;
 import java.util.function.Consumer;
 
@@ -36,7 +35,7 @@ import java.util.function.Consumer;
  *
  * @since 0.2
  */
-public final class TestAuthentication implements Authentication {
+public final class TestAuthentication extends Authentication.Wrap {
 
     /**
      * User name.
@@ -48,15 +47,11 @@ public final class TestAuthentication implements Authentication {
      */
     public static final String PASSWORD = "OpenSesame";
 
-    @Override
-    public Optional<String> user(final String username, final String password) {
-        final Optional<String> auth;
-        if (USERNAME.equals(username) && PASSWORD.equals(password)) {
-            auth = Optional.of(username);
-        } else {
-            auth = Optional.empty();
-        }
-        return auth;
+    /**
+     * Ctor.
+     */
+    public TestAuthentication() {
+        super(new Authentication.Single(TestAuthentication.USERNAME, TestAuthentication.PASSWORD));
     }
 
     /**

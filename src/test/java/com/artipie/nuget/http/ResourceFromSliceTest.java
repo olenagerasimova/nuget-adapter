@@ -48,11 +48,6 @@ import org.junit.jupiter.api.Test;
  */
 final class ResourceFromSliceTest {
 
-    /**
-     * HTTP version string.
-     */
-    private static final String HTTP_VERSION = "HTTP/1.1";
-
     @Test
     void shouldDelegateGetResponse() {
         final RsStatus status = RsStatus.OK;
@@ -72,8 +67,7 @@ final class ResourceFromSliceTest {
                 new RsHasStatus(status),
                 new RsHasHeaders(header),
                 new RsHasBody(
-                    new RequestLine(RqMethod.GET.value(), path, ResourceFromSliceTest.HTTP_VERSION)
-                        .toString().getBytes()
+                    new RequestLine(RqMethod.GET, path).toString().getBytes()
                 )
             )
         );
@@ -104,11 +98,7 @@ final class ResourceFromSliceTest {
                 new RsHasBody(
                     String.join(
                         "",
-                        new RequestLine(
-                            RqMethod.PUT.value(),
-                            path,
-                            ResourceFromSliceTest.HTTP_VERSION
-                        ).toString(),
+                        new RequestLine(RqMethod.PUT, path).toString(),
                         content
                     ).getBytes()
                 )
