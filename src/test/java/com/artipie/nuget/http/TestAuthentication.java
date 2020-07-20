@@ -24,7 +24,7 @@
 package com.artipie.nuget.http;
 
 import com.artipie.http.auth.Authentication;
-import com.artipie.http.auth.BasicAuthorizationHeader;
+import com.artipie.http.headers.Authorization;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
@@ -64,14 +64,14 @@ public final class TestAuthentication implements Authentication {
      *
      * @since 0.2
      */
-    public static final class Header extends com.artipie.http.rs.Header.Wrap {
+    public static final class Header extends com.artipie.http.headers.Header.Wrap {
 
         /**
          * Ctor.
          */
         public Header() {
             super(
-                new BasicAuthorizationHeader(
+                new Authorization.Basic(
                     TestAuthentication.USERNAME,
                     TestAuthentication.PASSWORD
                 )

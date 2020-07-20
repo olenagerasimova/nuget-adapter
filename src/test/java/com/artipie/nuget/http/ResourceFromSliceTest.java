@@ -25,12 +25,12 @@ package com.artipie.nuget.http;
 
 import com.artipie.http.Headers;
 import com.artipie.http.Response;
+import com.artipie.http.headers.Header;
 import com.artipie.http.hm.RsHasBody;
 import com.artipie.http.hm.RsHasHeaders;
 import com.artipie.http.hm.RsHasStatus;
 import com.artipie.http.rq.RequestLine;
 import com.artipie.http.rq.RqMethod;
-import com.artipie.http.rs.Header;
 import com.artipie.http.rs.RsFull;
 import com.artipie.http.rs.RsStatus;
 import io.reactivex.Flowable;
