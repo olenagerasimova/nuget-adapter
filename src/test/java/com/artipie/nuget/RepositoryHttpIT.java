@@ -82,13 +82,11 @@ class RepositoryHttpIT {
     @BeforeEach
     void setUp() throws Exception {
         final int port = 8080;
-        final String path = String.format("/%s", UUID.randomUUID().toString());
-        final String base = String.format("http://localhost:%s%s", port, path);
+        final String base = String.format("http://localhost:%s", port);
         this.server = new VertxSliceServer(
             new LoggingSlice(
                 new NuGet(
                     new URL(base),
-                    path,
                     new InMemoryStorage(),
                     this.permissions(),
                     new TestAuthentication()

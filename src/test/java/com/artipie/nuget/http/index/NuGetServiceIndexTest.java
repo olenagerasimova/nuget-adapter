@@ -74,13 +74,13 @@ class NuGetServiceIndexTest {
     @BeforeEach
     void init() throws Exception {
         this.url = new URL("http://localhost:4321/repo");
-        this.nuget = new NuGet(this.url, "/base", new InMemoryStorage());
+        this.nuget = new NuGet(this.url, new InMemoryStorage());
     }
 
     @Test
     void shouldGetIndex() {
         final Response response = this.nuget.response(
-            new RequestLine(RqMethod.GET, "/base/index.json").toString(),
+            new RequestLine(RqMethod.GET, "/index.json").toString(),
             Collections.emptyList(),
             Flowable.empty()
         );
@@ -123,7 +123,7 @@ class NuGetServiceIndexTest {
     @Test
     void shouldFailPutIndex() {
         final Response response = this.nuget.response(
-            new RequestLine(RqMethod.PUT, "/base/index.json").toString(),
+            new RequestLine(RqMethod.PUT, "/index.json").toString(),
             Collections.emptyList(),
             Flowable.empty()
         );

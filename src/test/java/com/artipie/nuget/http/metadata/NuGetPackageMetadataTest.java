@@ -81,7 +81,6 @@ class NuGetPackageMetadataTest {
         this.storage = new InMemoryStorage();
         this.nuget = new NuGet(
             new URL("http://localhost:4321/repo"),
-            "/base",
             this.storage,
             new TestPermissions(TestAuthentication.USERNAME, NuGet.READ),
             new TestAuthentication()
@@ -110,7 +109,7 @@ class NuGetPackageMetadataTest {
         final Response response = this.nuget.response(
             new RequestLine(
                 RqMethod.GET,
-                "/base/registrations/newtonsoft.json/index.json"
+                "/registrations/newtonsoft.json/index.json"
             ).toString(),
             new TestAuthentication.Headers(),
             Flowable.empty()
@@ -131,7 +130,7 @@ class NuGetPackageMetadataTest {
         final Response response = this.nuget.response(
             new RequestLine(
                 RqMethod.GET,
-                "/base/registrations/my.lib/index.json"
+                "/registrations/my.lib/index.json"
             ).toString(),
             new TestAuthentication.Headers(),
             Flowable.empty()
@@ -152,7 +151,7 @@ class NuGetPackageMetadataTest {
         final Response response = this.nuget.response(
             new RequestLine(
                 RqMethod.PUT,
-                "/base/registrations/newtonsoft.json/index.json"
+                "/registrations/newtonsoft.json/index.json"
             ).toString(),
             new TestAuthentication.Headers(),
             Flowable.empty()
@@ -166,7 +165,7 @@ class NuGetPackageMetadataTest {
             this.nuget.response(
                 new RequestLine(
                     RqMethod.GET,
-                    "/base/registrations/my-utils/index.json"
+                    "/registrations/my-utils/index.json"
                 ).toString(),
                 Headers.EMPTY,
                 Flowable.empty()
