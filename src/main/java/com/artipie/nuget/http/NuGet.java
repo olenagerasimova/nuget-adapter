@@ -77,11 +77,6 @@ public final class NuGet implements Slice {
     private final URL url;
 
     /**
-     * Base path.
-     */
-    private final String base;
-
-    /**
      * Storage for packages.
      */
     private final Storage storage;
@@ -100,50 +95,43 @@ public final class NuGet implements Slice {
      * Ctor.
      *
      * @param url Base URL.
-     * @param base Base path.
      * @param storage Storage for packages.
      */
-    public NuGet(final URL url, final String base, final Storage storage) {
-        this(url, base, storage, Permissions.FREE, Identities.ANONYMOUS);
+    public NuGet(final URL url, final Storage storage) {
+        this(url, storage, Permissions.FREE, Identities.ANONYMOUS);
     }
 
     /**
      * Ctor.
      *
      * @param url Base URL.
-     * @param base Base path.
      * @param storage Storage for packages.
      * @param perms Access permissions.
      * @param auth Auth details.
      */
     public NuGet(
         final URL url,
-        final String base,
         final Storage storage,
         final Permissions perms,
         final Authentication auth
     ) {
-        this(url, base, storage, perms, new BasicIdentities(auth));
+        this(url, storage, perms, new BasicIdentities(auth));
     }
 
     /**
      * Ctor.
-     *
-     * @param url Base URL.
-     * @param base Base path.
+     *  @param url Base URL.
      * @param storage Storage for packages.
      * @param perms Access permissions.
      * @param users User identities.
      */
     private NuGet(
         final URL url,
-        final String base,
         final Storage storage,
         final Permissions perms,
         final Identities users
     ) {
         this.url = url;
-        this.base = base;
         this.storage = storage;
         this.perms = perms;
         this.users = users;
@@ -158,18 +146,14 @@ public final class NuGet implements Slice {
         final Response response;
         final RequestLineFrom request = new RequestLineFrom(line);
         final String path = request.uri().getPath();
-        if (path.startsWith(this.base)) {
-            final Resource resource = this.resource(path.substring(this.base.length()));
-            final RqMethod method = request.method();
-            if (method.equals(RqMethod.GET)) {
-                response = resource.get(new Headers.From(headers));
-            } else if (method.equals(RqMethod.PUT)) {
-                response = resource.put(new Headers.From(headers), body);
-            } else {
-                response = new RsWithStatus(RsStatus.METHOD_NOT_ALLOWED);
-            }
+        final Resource resource = this.resource(path);
+        final RqMethod method = request.method();
+        if (method.equals(RqMethod.GET)) {
+            response = resource.get(new Headers.From(headers));
+        } else if (method.equals(RqMethod.PUT)) {
+            response = resource.put(new Headers.From(headers), body);
         } else {
-            response = new RsWithStatus(RsStatus.NOT_FOUND);
+            response = new RsWithStatus(RsStatus.METHOD_NOT_ALLOWED);
         }
         return response;
     }

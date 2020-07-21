@@ -73,7 +73,6 @@ class NuGetPackageContentTest {
         this.storage = new InMemoryStorage();
         this.nuget = new NuGet(
             new URL("http://localhost"),
-            "/base",
             this.storage,
             new TestPermissions(TestAuthentication.USERNAME, NuGet.READ),
             new TestAuthentication()
@@ -92,7 +91,7 @@ class NuGetPackageContentTest {
             this.nuget.response(
                 new RequestLine(
                     RqMethod.GET,
-                    "/base/content/package/1.0.0/content.nupkg"
+                    "/content/package/1.0.0/content.nupkg"
                 ).toString(),
                 new TestAuthentication.Headers(),
                 Flowable.empty()
@@ -107,30 +106,13 @@ class NuGetPackageContentTest {
     }
 
     @Test
-    void shouldFailGetPackageContentFromNotBasePath() {
-        final Response response = this.nuget.response(
-            new RequestLine(
-                RqMethod.GET,
-                "/not-base/content/package/1.0.0/content.nupkg"
-            ).toString(),
-            new TestAuthentication.Headers(),
-            Flowable.empty()
-        );
-        MatcherAssert.assertThat(
-            "Resources from outside of base path should not be found",
-            response,
-            new RsHasStatus(RsStatus.NOT_FOUND)
-        );
-    }
-
-    @Test
     void shouldFailGetPackageContentWhenNotExists() {
         MatcherAssert.assertThat(
             "Not existing content should not be found",
             this.nuget.response(
                 new RequestLine(
                     RqMethod.GET,
-                    "/base/content/package/1.0.0/logo.png"
+                    "/content/package/1.0.0/logo.png"
                 ).toString(),
                 new TestAuthentication.Headers(),
                 Flowable.empty()
@@ -144,7 +126,7 @@ class NuGetPackageContentTest {
         final Response response = this.nuget.response(
             new RequestLine(
                 RqMethod.PUT,
-                "/base/content/package/1.0.0/content.nupkg"
+                "/content/package/1.0.0/content.nupkg"
             ).toString(),
             new TestAuthentication.Headers(),
             Flowable.empty()
@@ -167,7 +149,7 @@ class NuGetPackageContentTest {
             this.nuget.response(
                 new RequestLine(
                     RqMethod.GET,
-                    "/base/content/package2/index.json"
+                    "/content/package2/index.json"
                 ).toString(),
                 new TestAuthentication.Headers(),
                 Flowable.empty()
@@ -185,7 +167,7 @@ class NuGetPackageContentTest {
             this.nuget.response(
                 new RequestLine(
                     RqMethod.GET,
-                    "/base/content/unknown-package/index.json"
+                    "/content/unknown-package/index.json"
                 ).toString(),
                 new TestAuthentication.Headers(),
                 Flowable.empty()
@@ -200,7 +182,7 @@ class NuGetPackageContentTest {
             this.nuget.response(
                 new RequestLine(
                     RqMethod.GET,
-                    "/base/content/package/2.0.0/content.nupkg"
+                    "/content/package/2.0.0/content.nupkg"
                 ).toString(),
                 Headers.EMPTY,
                 Flowable.empty()

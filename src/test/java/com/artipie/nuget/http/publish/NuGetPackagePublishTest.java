@@ -40,7 +40,6 @@ import io.reactivex.Flowable;
 import java.io.ByteArrayOutputStream;
 import java.net.URL;
 import java.nio.ByteBuffer;
-import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
 import org.apache.http.HttpEntity;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
@@ -67,7 +66,6 @@ class NuGetPackagePublishTest {
     void init() throws Exception {
         this.nuget = new NuGet(
             new URL("http://localhost"),
-            "/base",
             new InMemoryStorage(),
             new TestPermissions(TestAuthentication.USERNAME, NuGet.WRITE),
             new TestAuthentication()
@@ -105,19 +103,9 @@ class NuGetPackagePublishTest {
     }
 
     @Test
-    void shouldFailGetPackagePublishFromNotBasePath() {
-        final Response response = this.nuget.response(
-            new RequestLine(RqMethod.GET, "/not-base/package").toString(),
-            Collections.emptyList(),
-            Flowable.empty()
-        );
-        MatcherAssert.assertThat(response, new RsHasStatus(RsStatus.NOT_FOUND));
-    }
-
-    @Test
     void shouldFailGetPackagePublish() {
         final Response response = this.nuget.response(
-            new RequestLine(RqMethod.GET, "/base/package").toString(),
+            new RequestLine(RqMethod.GET, "/package").toString(),
             new TestAuthentication.Headers(),
             Flowable.empty()
         );
@@ -128,7 +116,7 @@ class NuGetPackagePublishTest {
     void shouldFailPutPackageWithoutAuth() {
         MatcherAssert.assertThat(
             this.nuget.response(
-                new RequestLine(RqMethod.PUT, "/base/package").toString(),
+                new RequestLine(RqMethod.PUT, "/package").toString(),
                 Headers.EMPTY,
                 Flowable.fromArray(ByteBuffer.wrap("data".getBytes()))
             ),
@@ -143,7 +131,7 @@ class NuGetPackagePublishTest {
         final ByteArrayOutputStream sink = new ByteArrayOutputStream();
         entity.writeTo(sink);
         return this.nuget.response(
-            new RequestLine(RqMethod.PUT, "/base/package").toString(),
+            new RequestLine(RqMethod.PUT, "/package").toString(),
             new Headers.From(
                 new TestAuthentication.Header(),
                 new Header("Content-Type", entity.getContentType().getValue())
