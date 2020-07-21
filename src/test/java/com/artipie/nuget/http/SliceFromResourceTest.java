@@ -49,11 +49,6 @@ import org.reactivestreams.Publisher;
  */
 public class SliceFromResourceTest {
 
-    /**
-     * HTTP version string.
-     */
-    private static final String HTTP_VERSION = "HTTP/1.1";
-
     @Test
     void shouldDelegateGetResponse() {
         final RsStatus status = RsStatus.OK;
@@ -76,11 +71,7 @@ public class SliceFromResourceTest {
                 }
             }
         ).response(
-            new RequestLine(
-                RqMethod.GET.value(),
-                "/some/path",
-                SliceFromResourceTest.HTTP_VERSION
-            ).toString(),
+            new RequestLine(RqMethod.GET, "/some/path").toString(),
             new Headers.From(Collections.singleton(header)),
             Flowable.empty()
         );
@@ -112,11 +103,7 @@ public class SliceFromResourceTest {
                 }
             }
         ).response(
-            new RequestLine(
-                RqMethod.PUT.value(),
-                "/some/other/path",
-                SliceFromResourceTest.HTTP_VERSION
-            ).toString(),
+            new RequestLine(RqMethod.PUT, "/some/other/path").toString(),
             new Headers.From(Collections.singleton(header)),
             Flowable.just(ByteBuffer.wrap(content))
         );

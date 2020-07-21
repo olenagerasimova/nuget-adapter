@@ -31,6 +31,8 @@ import com.artipie.http.headers.Header;
 import com.artipie.http.hm.ResponseMatcher;
 import com.artipie.http.hm.RsHasBody;
 import com.artipie.http.hm.RsHasStatus;
+import com.artipie.http.rq.RequestLine;
+import com.artipie.http.rq.RqMethod;
 import com.artipie.http.rs.RsStatus;
 import com.artipie.nuget.Nuspec;
 import com.artipie.nuget.PackageId;
@@ -59,8 +61,9 @@ import org.junit.jupiter.api.Test;
  * Package metadata resource.
  *
  * @since 0.1
- * @checkstyle ClassDataAbstractionCouplingCheck (2 lines)
+ * @checkstyle ClassDataAbstractionCouplingCheck (500 lines)
  */
+@SuppressWarnings("PMD.AvoidDuplicateLiterals")
 class NuGetPackageMetadataTest {
 
     /**
@@ -105,7 +108,10 @@ class NuGetPackageMetadataTest {
             )
         ).save(new BlockingStorage(this.storage));
         final Response response = this.nuget.response(
-            "GET /base/registrations/newtonsoft.json/index.json HTTP/1.1",
+            new RequestLine(
+                RqMethod.GET,
+                "/base/registrations/newtonsoft.json/index.json"
+            ).toString(),
             new TestAuthentication.Headers(),
             Flowable.empty()
         );
@@ -123,7 +129,10 @@ class NuGetPackageMetadataTest {
     @Test
     void shouldGetRegistrationsWhenEmpty() {
         final Response response = this.nuget.response(
-            "GET /base/registrations/my.lib/index.json HTTP/1.1",
+            new RequestLine(
+                RqMethod.GET,
+                "/base/registrations/my.lib/index.json"
+            ).toString(),
             new TestAuthentication.Headers(),
             Flowable.empty()
         );
@@ -141,7 +150,10 @@ class NuGetPackageMetadataTest {
     @Test
     void shouldFailPutRegistration() {
         final Response response = this.nuget.response(
-            "PUT /base/registrations/newtonsoft.json/index.json HTTP/1.1",
+            new RequestLine(
+                RqMethod.PUT,
+                "/base/registrations/newtonsoft.json/index.json"
+            ).toString(),
             new TestAuthentication.Headers(),
             Flowable.empty()
         );
@@ -152,7 +164,10 @@ class NuGetPackageMetadataTest {
     void shouldFailGetRegistrationWithoutAuth() {
         MatcherAssert.assertThat(
             this.nuget.response(
-                "GET /base/registrations/my-utils/index.json HTTP/1.1",
+                new RequestLine(
+                    RqMethod.GET,
+                    "/base/registrations/my-utils/index.json"
+                ).toString(),
                 Headers.EMPTY,
                 Flowable.empty()
             ),
