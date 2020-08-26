@@ -59,36 +59,35 @@ class NuspecTest {
         this.nuspec = new Nuspec(ByteSource.wrap(new NewtonJsonResource(this.name).bytes()));
     }
 
-    /**
-     * A test for schema independence.
-     * @throws Exception If fails
-     * @checkstyle RegexpSingleline (500 lines)
-     * @checkstyle RegexpSinglelineCheck (500 lines)
-     */
     @Test
-    void shouldExtractPackageIdFromDifPackage() throws Exception {
+    void shouldExtractSpecFromDifPackage() throws Exception {
+        final Nuspec spec = new Nuspec(
+            ByteSource.wrap(
+                ("\uFEFF<?xml version=\"1.0\" encoding=\"utf-8\"?>"
+                    + "\n<package xmlns=\"http://schemas.microsoft.com/packaging/2013/01/nuspec.xsd\">"
+                    + "\n  <metadata minClientVersion=\"3.3.0\">"
+                    + "\n    <id>SampleForDeployment</id>"
+                    + "\n    <version>1.0.0</version>"
+                    + "\n    <authors>aripie</authors>"
+                    + "\n    <owners>aripie</owners>"
+                    + "\n    <requireLicenseAcceptance>false</requireLicenseAcceptance>"
+                    + "\n    <description>Sample for a deployment to Artipie</description>"
+                    + "\n    <tags>sample artipie</tags>"
+                    + "\n    <contentFiles>"
+                    + "\n      <files include=\"data.txt\" buildAction=\"Content\" />"
+                    + "\n    </contentFiles>"
+                    + "\n  </metadata>"
+                    + "\n</package>"
+                ).getBytes(StandardCharsets.UTF_8)
+            )
+        );
         MatcherAssert.assertThat(
-            new Nuspec(
-                ByteSource.wrap(
-                    ("\uFEFF<?xml version=\"1.0\" encoding=\"utf-8\"?>"
-                        + "\n<package xmlns=\"http://schemas.microsoft.com/packaging/2013/01/nuspec.xsd\">"
-                        + "\n  <metadata minClientVersion=\"3.3.0\">"
-                        + "\n    <id>SampleForDeployment</id>"
-                        + "\n    <version>1.0.0</version>"
-                        + "\n    <authors>aripie</authors>"
-                        + "\n    <owners>aripie</owners>"
-                        + "\n    <requireLicenseAcceptance>false</requireLicenseAcceptance>"
-                        + "\n    <description>Sample for a deployment to Artipie</description>"
-                        + "\n    <tags>sample artipie</tags>"
-                        + "\n    <contentFiles>"
-                        + "\n      <files include=\"data.txt\" buildAction=\"Content\" />"
-                        + "\n    </contentFiles>"
-                        + "\n  </metadata>"
-                        + "\n</package>"
-                    ).getBytes(StandardCharsets.UTF_8)
-                )
-            ).packageId().toString(),
+            spec.packageId().toString(),
             Matchers.equalTo("SampleForDeployment")
+        );
+        MatcherAssert.assertThat(
+            spec.version().toString(),
+            Matchers.equalTo("1.0.0")
         );
     }
 
