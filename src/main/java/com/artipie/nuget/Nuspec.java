@@ -71,7 +71,7 @@ public final class Nuspec {
      */
     public PackageId packageId() throws IOException {
         return new PackageId(
-            single(this.xml(), "/ns:package/ns:metadata/ns:id/text()")
+            single(this.xml(), "/*[name()='package']/*[name()='metadata']/*[name()='id']/text()")
         );
     }
 
@@ -82,7 +82,10 @@ public final class Nuspec {
      * @throws IOException In case exception occurred on reading document.
      */
     public Version version() throws IOException {
-        final String version = single(this.xml(), "/ns:package/ns:metadata/ns:version/text()");
+        final String version = single(
+            this.xml(),
+            "/*[name()='package']/*[name()='metadata']/*[name()='version']/text()"
+        );
         return new Version(version);
     }
 
@@ -104,8 +107,7 @@ public final class Nuspec {
      * @throws IOException In case exception occurred on reading document.
      */
     private XML xml() throws IOException {
-        return new XMLDocument(new ByteArrayInputStream(this.content.read()))
-            .registerNs("ns", "http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd");
+        return new XMLDocument(new ByteArrayInputStream(this.content.read()));
     }
 
     /**
