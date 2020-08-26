@@ -27,6 +27,7 @@ package com.artipie.nuget;
 import com.artipie.asto.blocking.BlockingStorage;
 import com.artipie.asto.memory.InMemoryStorage;
 import com.google.common.io.ByteSource;
+import java.nio.charset.StandardCharsets;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,6 +37,9 @@ import org.junit.jupiter.api.Test;
  * Tests for {@link Nuspec}.
  *
  * @since 0.1
+ * @checkstyle LineLengthCheck (500 lines)
+ * @checkstyle StringLiteralsConcatenationCheck (500 lines)
+ * @checkstyle OperatorWrapCheck (500 lines)
  */
 class NuspecTest {
 
@@ -53,6 +57,39 @@ class NuspecTest {
     void init() throws Exception {
         this.name = "newtonsoft.json.nuspec";
         this.nuspec = new Nuspec(ByteSource.wrap(new NewtonJsonResource(this.name).bytes()));
+    }
+
+    /**
+     * A test for schema independence.
+     * @throws Exception If fails
+     * @checkstyle RegexpSingleline (500 lines)
+     * @checkstyle RegexpSinglelineCheck (500 lines)
+     */
+    @Test
+    void shouldExtractPackageIdFromDifPackage() throws Exception {
+        MatcherAssert.assertThat(
+            new Nuspec(
+                ByteSource.wrap(
+                    ("\uFEFF<?xml version=\"1.0\" encoding=\"utf-8\"?>"
+                        + "\n<package xmlns=\"http://schemas.microsoft.com/packaging/2013/01/nuspec.xsd\">"
+                        + "\n  <metadata minClientVersion=\"3.3.0\">"
+                        + "\n    <id>SampleForDeployment</id>"
+                        + "\n    <version>1.0.0</version>"
+                        + "\n    <authors>aripie</authors>"
+                        + "\n    <owners>aripie</owners>"
+                        + "\n    <requireLicenseAcceptance>false</requireLicenseAcceptance>"
+                        + "\n    <description>Sample for a deployment to Artipie</description>"
+                        + "\n    <tags>sample artipie</tags>"
+                        + "\n    <contentFiles>"
+                        + "\n      <files include=\"data.txt\" buildAction=\"Content\" />"
+                        + "\n    </contentFiles>"
+                        + "\n  </metadata>"
+                        + "\n</package>"
+                    ).getBytes(StandardCharsets.UTF_8)
+                )
+            ).packageId().toString(),
+            Matchers.equalTo("SampleForDeployment")
+        );
     }
 
     @Test
