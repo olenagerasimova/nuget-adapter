@@ -38,8 +38,6 @@ import org.junit.jupiter.api.Test;
  *
  * @since 0.1
  * @checkstyle LineLengthCheck (500 lines)
- * @checkstyle StringLiteralsConcatenationCheck (500 lines)
- * @checkstyle OperatorWrapCheck (500 lines)
  */
 class NuspecTest {
 
@@ -63,21 +61,23 @@ class NuspecTest {
     void shouldExtractSpecFromDifPackage() throws Exception {
         final Nuspec spec = new Nuspec(
             ByteSource.wrap(
-                ("\uFEFF<?xml version=\"1.0\" encoding=\"utf-8\"?>"
-                    + "\n<package xmlns=\"http://schemas.microsoft.com/packaging/2013/01/nuspec.xsd\">"
-                    + "\n  <metadata minClientVersion=\"3.3.0\">"
-                    + "\n    <id>SampleForDeployment</id>"
-                    + "\n    <version>1.0.0</version>"
-                    + "\n    <authors>aripie</authors>"
-                    + "\n    <owners>aripie</owners>"
-                    + "\n    <requireLicenseAcceptance>false</requireLicenseAcceptance>"
-                    + "\n    <description>Sample for a deployment to Artipie</description>"
-                    + "\n    <tags>sample artipie</tags>"
-                    + "\n    <contentFiles>"
-                    + "\n      <files include=\"data.txt\" buildAction=\"Content\" />"
-                    + "\n    </contentFiles>"
-                    + "\n  </metadata>"
-                    + "\n</package>"
+                String.join(
+                    "\n",
+                    "\uFEFF<?xml version=\"1.0\" encoding=\"utf-8\"?>",
+                    "<package xmlns=\"http://schemas.microsoft.com/packaging/2013/01/nuspec.xsd\">",
+                    "  <metadata minClientVersion=\"3.3.0\">",
+                    "    <id>SampleForDeployment</id>",
+                    "    <version>1.0.0</version>",
+                    "    <authors>aripie</authors>",
+                    "    <owners>aripie</owners>",
+                    "    <requireLicenseAcceptance>false</requireLicenseAcceptance>",
+                    "    <description>Sample for a deployment to Artipie</description>",
+                    "    <tags>sample artipie</tags>",
+                    "    <contentFiles>",
+                    "      <files include=\"data.txt\" buildAction=\"Content\" />",
+                    "    </contentFiles>",
+                    "  </metadata>",
+                    "</package>"
                 ).getBytes(StandardCharsets.UTF_8)
             )
         );
