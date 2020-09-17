@@ -62,8 +62,9 @@ class RepositoryTest {
 
     @BeforeEach
     void init() {
-        this.storage = new BlockingStorage(new InMemoryStorage());
-        this.repository = new Repository(this.storage);
+        final InMemoryStorage asto = new InMemoryStorage();
+        this.storage = new BlockingStorage(asto);
+        this.repository = new Repository(asto);
     }
 
     @Test

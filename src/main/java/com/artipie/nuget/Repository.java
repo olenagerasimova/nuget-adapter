@@ -25,6 +25,7 @@
 package com.artipie.nuget;
 
 import com.artipie.asto.Key;
+import com.artipie.asto.Storage;
 import com.artipie.asto.blocking.BlockingStorage;
 import com.google.common.io.ByteSource;
 import java.io.IOException;
@@ -39,14 +40,14 @@ public final class Repository {
     /**
      * The storage.
      */
-    private final BlockingStorage storage;
+    private final Storage storage;
 
     /**
      * Ctor.
      *
      * @param storage Storage to store all repository data.
      */
-    public Repository(final BlockingStorage storage) {
+    public Repository(final Storage storage) {
         this.storage = storage;
     }
 
@@ -62,7 +63,8 @@ public final class Repository {
     public void add(final Key key)
         throws IOException, InterruptedException,
         InvalidPackageException, PackageVersionAlreadyExistsException {
-        final NuGetPackage nupkg = new Nupkg(ByteSource.wrap(this.storage.value(key)));
+        final BlockingStorage blocking = new BlockingStorage(this.storage);
+        final NuGetPackage nupkg = new Nupkg(ByteSource.wrap(blocking.value(key)));
         final Nuspec nuspec;
         final PackageIdentity id;
         try {
@@ -71,14 +73,14 @@ public final class Repository {
         } catch (final IOException | IllegalArgumentException ex) {
             throw new InvalidPackageException(ex);
         }
-        if (!this.storage.list(id.rootKey()).isEmpty()) {
+        if (!blocking.list(id.rootKey()).isEmpty()) {
             throw new PackageVersionAlreadyExistsException(id.toString());
         }
         this.storage.move(key, id.nupkgKey());
-        nupkg.hash().save(this.storage, id);
-        nuspec.save(this.storage);
+        nupkg.hash().save(blocking, id);
+        nuspec.save(blocking);
         final Versions versions = this.versions(nuspec.packageId());
-        versions.add(nuspec.version()).save(this.storage, nuspec.packageId().versionsKey());
+        versions.add(nuspec.version()).save(blocking, nuspec.packageId().versionsKey());
     }
 
     /**
@@ -89,10 +91,11 @@ public final class Repository {
      * @throws InterruptedException In case executing thread has been interrupted.
      */
     public Versions versions(final PackageId id) throws InterruptedException {
+        final BlockingStorage blocking = new BlockingStorage(this.storage);
         final Key key = id.versionsKey();
         final Versions versions;
-        if (this.storage.exists(key)) {
-            versions = new Versions(ByteSource.wrap(this.storage.value(key)));
+        if (blocking.exists(key)) {
+            versions = new Versions(ByteSource.wrap(blocking.value(key)));
         } else {
             versions = new Versions();
         }
@@ -107,9 +110,10 @@ public final class Repository {
      * @throws InterruptedException In case executing thread has been interrupted.
      */
     public Nuspec nuspec(final PackageIdentity identity) throws InterruptedException {
-        if (!this.storage.exists(identity.nuspecKey())) {
+        final BlockingStorage blocking = new BlockingStorage(this.storage);
+        if (!blocking.exists(identity.nuspecKey())) {
             throw new IllegalArgumentException(String.format("Cannot find package: %s", identity));
         }
-        return new Nuspec(ByteSource.wrap(this.storage.value(identity.nuspecKey())));
+        return new Nuspec(ByteSource.wrap(blocking.value(identity.nuspecKey())));
     }
 }
