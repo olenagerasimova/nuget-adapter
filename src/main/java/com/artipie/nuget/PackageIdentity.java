@@ -93,7 +93,7 @@ public final class PackageIdentity {
      * @return Root key.
      */
     public Key rootKey() {
-        return new Key.From(this.id.lower(), this.version.normalized());
+        return new Key.From(this.id.rootKey(), this.version.normalized());
     }
 
     @Override
