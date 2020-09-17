@@ -29,11 +29,15 @@ import com.artipie.asto.Storage;
 import com.artipie.asto.blocking.BlockingStorage;
 import com.google.common.io.ByteSource;
 import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 
 /**
  * Class representing NuGet repository.
  *
  * @since 0.1
+ * @checkstyle ClassDataAbstractionCouplingCheck (500 lines)
  */
 public final class Repository {
 
@@ -63,8 +67,9 @@ public final class Repository {
     public void add(final Key key)
         throws IOException, InterruptedException,
         InvalidPackageException, PackageVersionAlreadyExistsException {
-        final BlockingStorage blocking = new BlockingStorage(this.storage);
-        final NuGetPackage nupkg = new Nupkg(ByteSource.wrap(blocking.value(key)));
+        final NuGetPackage nupkg = new Nupkg(
+            ByteSource.wrap(new BlockingStorage(this.storage).value(key))
+        );
         final Nuspec nuspec;
         final PackageIdentity id;
         try {
@@ -73,14 +78,27 @@ public final class Repository {
         } catch (final IOException | IllegalArgumentException ex) {
             throw new InvalidPackageException(ex);
         }
-        if (!blocking.list(id.rootKey()).isEmpty()) {
+        if (!new BlockingStorage(this.storage).list(id.rootKey()).isEmpty()) {
             throw new PackageVersionAlreadyExistsException(id.toString());
         }
-        this.storage.move(key, id.nupkgKey());
-        nupkg.hash().save(blocking, id);
-        nuspec.save(blocking);
-        final Versions versions = this.versions(nuspec.packageId());
-        versions.add(nuspec.version()).save(blocking, nuspec.packageId().versionsKey());
+        this.storage.exclusively(
+            nuspec.packageId().rootKey(),
+            target -> {
+                final BlockingStorage blocking = new BlockingStorage(target);
+                try {
+                    blocking.move(key, id.nupkgKey());
+                    nupkg.hash().save(blocking, id);
+                    nuspec.save(blocking);
+                    final Versions versions = this.versions(nuspec.packageId());
+                    versions.add(nuspec.version()).save(blocking, nuspec.packageId().versionsKey());
+                } catch (final IOException ex) {
+                    throw new UncheckedIOException(ex);
+                } catch (final InterruptedException ex) {
+                    throw new CompletionException(ex);
+                }
+                return CompletableFuture.allOf();
+            }
+        ).toCompletableFuture().join();
     }
 
     /**

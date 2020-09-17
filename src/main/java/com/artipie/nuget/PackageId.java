@@ -68,12 +68,21 @@ public final class PackageId {
     }
 
     /**
+     * Get key for package root.
+     *
+     * @return Key for package root.
+     */
+    public Key rootKey() {
+        return new Key.From(this.lower());
+    }
+
+    /**
      * Get key for package versions registry.
      *
      * @return Get key for package versions registry.
      */
     public Key versionsKey() {
-        return new Key.From(this.lower(), "index.json");
+        return new Key.From(this.rootKey(), "index.json");
     }
 
     @Override

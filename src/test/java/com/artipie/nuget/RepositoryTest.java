@@ -29,25 +29,43 @@ import com.artipie.asto.blocking.BlockingStorage;
 import com.artipie.asto.memory.InMemoryStorage;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.json.Json;
 import javax.json.JsonReader;
 import javax.json.JsonString;
+import org.hamcrest.FeatureMatcher;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
 import org.hamcrest.collection.IsEmptyCollection;
+import org.hamcrest.core.AllOf;
+import org.hamcrest.core.AnyOf;
+import org.hamcrest.core.Every;
 import org.hamcrest.core.IsEqual;
+import org.hamcrest.core.IsInstanceOf;
+import org.hamcrest.core.IsNot;
+import org.hamcrest.core.StringContains;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 
 /**
  * Tests for {@link Repository}.
  *
  * @since 0.1
- * @checkstyle ClassDataAbstractionCouplingCheck (2 lines)
+ * @checkstyle ClassDataAbstractionCouplingCheck (500 lines)
+ * @checkstyle MagicNumberCheck (500 lines)
+ * @checkstyle IllegalCatchCheck (500 lines)
+ * @checkstyle ExecutableStatementCountCheck (500 lines)
  */
+@SuppressWarnings({"PMD.TooManyMethods", "PMD.AvoidCatchingGenericException"})
 class RepositoryTest {
 
     /**
@@ -188,6 +206,79 @@ class RepositoryTest {
         Assertions.assertThrows(
             IllegalArgumentException.class,
             () -> this.repository.nuspec(identity)
+        );
+    }
+
+    @RepeatedTest(10)
+    void throwsExceptionWhenPackagesAddedSimultaneously() throws Exception {
+        final int count = 3;
+        final CountDownLatch latch = new CountDownLatch(count);
+        final List<CompletableFuture<Void>> tasks = new ArrayList<>(count);
+        for (int number = 0; number < count; number += 1) {
+            final CompletableFuture<Void> future = new CompletableFuture<>();
+            tasks.add(future);
+            new Thread(
+                () -> {
+                    try {
+                        latch.countDown();
+                        latch.await();
+                        final Key.From source = new Key.From(UUID.randomUUID().toString());
+                        this.storage.save(source, this.nupkg().bytes());
+                        this.repository.add(source);
+                        future.complete(null);
+                    } catch (final Exception exception) {
+                        future.completeExceptionally(exception);
+                    }
+                }
+            ).start();
+        }
+        final List<Throwable> failures = tasks.stream().flatMap(
+            task -> {
+                Stream<Throwable> result;
+                try {
+                    task.join();
+                    result = Stream.empty();
+                } catch (final RuntimeException ex) {
+                    result = Stream.of(ex.getCause());
+                }
+                return result;
+            }
+        ).collect(Collectors.toList());
+        MatcherAssert.assertThat(
+            "Some updates failed",
+            failures,
+            new IsNot<>(new IsEmptyCollection<>())
+        );
+        MatcherAssert.assertThat(
+            "All failure due to concurrent lock access or that version already exists",
+            failures,
+            new Every<>(
+                new AnyOf<>(
+                    Arrays.asList(
+                        new AllOf<>(
+                            Arrays.asList(
+                                new IsInstanceOf(IllegalStateException.class),
+                                new FeatureMatcher<Throwable, String>(
+                                    new StringContains("Failed to acquire lock."),
+                                    "an exception with message",
+                                    "message"
+                                ) {
+                                    @Override
+                                    protected String featureValueOf(final Throwable actual) {
+                                        return actual.getMessage();
+                                    }
+                                }
+                            )
+                        ),
+                        new IsInstanceOf(PackageVersionAlreadyExistsException.class)
+                    )
+                )
+            )
+        );
+        MatcherAssert.assertThat(
+            "Storage has no locks",
+            this.storage.list(Key.ROOT).stream().noneMatch(key -> key.string().contains("lock")),
+            new IsEqual<>(true)
         );
     }
 
