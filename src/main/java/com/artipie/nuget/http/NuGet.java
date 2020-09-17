@@ -24,7 +24,6 @@
 package com.artipie.nuget.http;
 
 import com.artipie.asto.Storage;
-import com.artipie.asto.blocking.BlockingStorage;
 import com.artipie.http.Headers;
 import com.artipie.http.Response;
 import com.artipie.http.Slice;
@@ -168,7 +167,7 @@ public final class NuGet implements Slice {
         final PackagePublish publish = new PackagePublish(this.storage);
         final PackageContent content = new PackageContent(this.url, this.storage);
         final PackageMetadata metadata = new PackageMetadata(
-            new Repository(new BlockingStorage(this.storage)),
+            new Repository(this.storage),
             content
         );
         return new RoutingResource(

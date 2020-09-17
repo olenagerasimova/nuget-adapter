@@ -26,7 +26,6 @@ package com.artipie.nuget.http.publish;
 
 import com.artipie.asto.Key;
 import com.artipie.asto.Storage;
-import com.artipie.asto.blocking.BlockingStorage;
 import com.artipie.http.Headers;
 import com.artipie.http.Response;
 import com.artipie.http.async.AsyncResponse;
@@ -116,9 +115,7 @@ public final class PackagePublish implements Route {
                                 ignored -> {
                                     RsStatus status;
                                     try {
-                                        new Repository(
-                                            new BlockingStorage(this.storage)
-                                        ).add(key);
+                                        new Repository(this.storage).add(key);
                                         status = RsStatus.CREATED;
                                     } catch (final IOException | InterruptedException ex) {
                                         throw new IllegalStateException(ex);
