@@ -27,6 +27,7 @@ import com.artipie.asto.Storage;
 import com.artipie.http.Headers;
 import com.artipie.http.Response;
 import com.artipie.http.Slice;
+import com.artipie.http.auth.Action;
 import com.artipie.http.auth.Authentication;
 import com.artipie.http.auth.BasicIdentities;
 import com.artipie.http.auth.Identities;
@@ -59,16 +60,6 @@ import org.reactivestreams.Publisher;
  * @checkstyle ClassDataAbstractionCouplingCheck (2 lines)
  */
 public final class NuGet implements Slice {
-
-    /**
-     * Read permission name.
-     */
-    public static final String READ = "read";
-
-    /**
-     * Write permission name.
-     */
-    public static final String WRITE = "write";
 
     /**
      * Base URL.
@@ -179,9 +170,9 @@ public final class NuGet implements Slice {
                     new RouteService(this.url, content, "PackageBaseAddress/3.0.0")
                 )
             ),
-            this.auth(publish, NuGet.WRITE),
-            this.auth(content, NuGet.READ),
-            this.auth(metadata, NuGet.READ)
+            this.auth(publish, Action.Standard.WRITE),
+            this.auth(content, Action.Standard.READ),
+            this.auth(metadata, Action.Standard.READ)
         );
     }
 
@@ -189,13 +180,13 @@ public final class NuGet implements Slice {
      * Create route supporting basic authentication.
      *
      * @param route Route requiring authentication.
-     * @param permission Permission name.
+     * @param action Action.
      * @return Authenticated route.
      */
-    private Route auth(final Route route, final String permission) {
+    private Route auth(final Route route, final Action action) {
         return new BasicAuthRoute(
             route,
-            new Permission.ByName(permission, this.perms),
+            new Permission.ByName(this.perms, action),
             this.users
         );
     }

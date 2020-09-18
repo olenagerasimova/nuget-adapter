@@ -74,7 +74,7 @@ class NuGetPackageContentTest {
         this.nuget = new NuGet(
             new URL("http://localhost"),
             this.storage,
-            new TestPermissions(TestAuthentication.USERNAME, NuGet.READ),
+            new TestPermissions.Read(TestAuthentication.USERNAME),
             new TestAuthentication()
         );
     }

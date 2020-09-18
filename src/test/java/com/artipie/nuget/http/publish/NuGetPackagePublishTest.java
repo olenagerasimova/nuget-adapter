@@ -67,7 +67,7 @@ class NuGetPackagePublishTest {
         this.nuget = new NuGet(
             new URL("http://localhost"),
             new InMemoryStorage(),
-            new TestPermissions(TestAuthentication.USERNAME, NuGet.WRITE),
+            new TestPermissions.Write(TestAuthentication.USERNAME),
             new TestAuthentication()
         );
     }
