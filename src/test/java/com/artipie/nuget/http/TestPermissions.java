@@ -57,4 +57,38 @@ public final class TestPermissions implements Permissions {
     public boolean allowed(final String name, final String act) {
         return this.username.equals(name) && this.action.equals(act);
     }
+
+    /**
+     * Single user with read allowed permissions for usage in tests.
+     *
+     * @since 0.3
+     */
+    public static class Read extends Permissions.Wrap {
+
+        /**
+         * Ctor.
+         *
+         * @param username User name.
+         */
+        public Read(final String username) {
+            super(new TestPermissions(username, "read"));
+        }
+    }
+
+    /**
+     * Single user with write allowed permissions for usage in tests.
+     *
+     * @since 0.3
+     */
+    public static class Write extends Permissions.Wrap {
+
+        /**
+         * Ctor.
+         *
+         * @param username User name.
+         */
+        public Write(final String username) {
+            super(new TestPermissions(username, "write"));
+        }
+    }
 }

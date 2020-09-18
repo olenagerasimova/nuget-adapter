@@ -82,7 +82,7 @@ class NuGetPackageMetadataTest {
         this.nuget = new NuGet(
             new URL("http://localhost:4321/repo"),
             this.storage,
-            new TestPermissions(TestAuthentication.USERNAME, NuGet.READ),
+            new TestPermissions.Read(TestAuthentication.USERNAME),
             new TestAuthentication()
         );
     }
