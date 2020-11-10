@@ -24,8 +24,6 @@
 
 package com.artipie.nuget;
 
-import java.io.IOException;
-
 /**
  * NuGet package.
  *
@@ -37,15 +35,13 @@ public interface NuGetPackage {
      * Calculates hash of package binary content using SHA512 algorithm encoded in Base64.
      *
      * @return Package hash.
-     * @throws IOException In case exception occurred on reading content.
      */
-    Hash hash() throws IOException;
+    Hash hash();
 
     /**
      * Extract package description in .nuspec format.
      *
      * @return Package description.
-     * @throws IOException In case exception occurred reading content.
      */
-    Nuspec nuspec() throws IOException;
+    Nuspec nuspec();
 }

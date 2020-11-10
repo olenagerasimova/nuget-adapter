@@ -24,7 +24,8 @@
 
 package com.artipie.nuget;
 
-import com.artipie.asto.blocking.BlockingStorage;
+import com.artipie.asto.Storage;
+import com.artipie.asto.ext.PublisherAs;
 import com.artipie.asto.memory.InMemoryStorage;
 import com.google.common.io.ByteSource;
 import java.nio.charset.StandardCharsets;
@@ -52,17 +53,21 @@ class NupkgTest {
     }
 
     @Test
-    void shouldCalculateHash() throws Exception {
-        final BlockingStorage storage = new BlockingStorage(new InMemoryStorage());
+    void shouldCalculateHash() {
+        final Storage storage = new InMemoryStorage();
         final PackageIdentity identity = new PackageIdentity(
             new PackageId("foo"),
             new Version("1.0.0")
         );
         new Nupkg(ByteSource.wrap("test data".getBytes(StandardCharsets.UTF_8)))
             .hash()
-            .save(storage, identity);
+            .save(storage, identity)
+            .toCompletableFuture().join();
         MatcherAssert.assertThat(
-            new String(storage.value(identity.hashKey())),
+            storage.value(identity.hashKey())
+                .thenApply(PublisherAs::new)
+                .thenCompose(PublisherAs::asciiString)
+                .toCompletableFuture().join(),
             Matchers.equalTo(
                 // @checkstyle LineLength (1 lines)
                 "Dh4h7PEF7IU9JNcohnrXBhPCFmOkaTB0sqNhnBvTnWa1iMM3I7tGbHJCToDjymPCSQeKs0e6uUKFAOfuQwWdDQ=="

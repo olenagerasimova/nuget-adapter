@@ -30,7 +30,6 @@ import com.artipie.asto.blocking.BlockingStorage;
 import com.google.common.io.ByteSource;
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 
 /**
@@ -83,21 +82,25 @@ public final class Repository {
         }
         this.storage.exclusively(
             nuspec.packageId().rootKey(),
-            target -> {
-                final BlockingStorage blocking = new BlockingStorage(target);
-                try {
-                    blocking.move(key, id.nupkgKey());
-                    nupkg.hash().save(blocking, id);
-                    nuspec.save(blocking);
-                    final Versions versions = this.versions(nuspec.packageId());
-                    versions.add(nuspec.version()).save(blocking, nuspec.packageId().versionsKey());
-                } catch (final IOException ex) {
-                    throw new UncheckedIOException(ex);
-                } catch (final InterruptedException ex) {
-                    throw new CompletionException(ex);
-                }
-                return CompletableFuture.allOf();
-            }
+            target -> target.move(key, id.nupkgKey())
+                .thenCompose(nothing -> nupkg.hash().save(target, id))
+                .thenRun(
+                    () -> {
+                        final BlockingStorage blocking = new BlockingStorage(target);
+                        try {
+                            nuspec.save(blocking);
+                            final Versions versions = this.versions(nuspec.packageId());
+                            versions.add(nuspec.version()).save(
+                                blocking,
+                                nuspec.packageId().versionsKey()
+                            );
+                        } catch (final IOException ex) {
+                            throw new UncheckedIOException(ex);
+                        } catch (final InterruptedException ex) {
+                            throw new CompletionException(ex);
+                        }
+                    }
+                )
         ).toCompletableFuture().join();
     }
 

@@ -28,6 +28,7 @@ import com.google.common.hash.Hashing;
 import com.google.common.io.ByteSource;
 import com.google.common.io.ByteStreams;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -54,7 +55,8 @@ public final class Nupkg implements NuGetPackage {
     }
 
     @Override
-    public Nuspec nuspec() throws IOException {
+    @SuppressWarnings("PMD.CyclomaticComplexity")
+    public Nuspec nuspec() {
         Nuspec nuspec = null;
         try (ZipInputStream zipStream = new ZipInputStream(this.content.openStream())) {
             while (true) {
@@ -71,6 +73,8 @@ public final class Nupkg implements NuGetPackage {
                     nuspec = new Nuspec(ByteSource.wrap(ByteStreams.toByteArray(zipStream)));
                 }
             }
+        } catch (final IOException ex) {
+            throw new UncheckedIOException(ex);
         }
         if (nuspec == null) {
             throw new IllegalArgumentException("No .nuspec file found inside the package.");
@@ -79,7 +83,11 @@ public final class Nupkg implements NuGetPackage {
     }
 
     @Override
-    public Hash hash() throws IOException {
-        return new Hash(Hashing.sha512().hashBytes(this.content.read()));
+    public Hash hash() {
+        try {
+            return new Hash(Hashing.sha512().hashBytes(this.content.read()));
+        } catch (final IOException ex) {
+            throw new UncheckedIOException(ex);
+        }
     }
 }

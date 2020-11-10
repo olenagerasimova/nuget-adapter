@@ -24,9 +24,11 @@
 
 package com.artipie.nuget;
 
-import com.artipie.asto.blocking.BlockingStorage;
+import com.artipie.asto.Content;
+import com.artipie.asto.Storage;
 import com.google.common.hash.HashCode;
 import java.util.Base64;
+import java.util.concurrent.CompletionStage;
 
 /**
  * Package hash.
@@ -54,10 +56,12 @@ public final class Hash {
      *
      * @param storage Storage to use for saving.
      * @param identity Package identity.
-     * @throws InterruptedException In case executing thread has been interrupted.
+     * @return Completion of save operation.
      */
-    public void save(final BlockingStorage storage, final PackageIdentity identity)
-        throws InterruptedException {
-        storage.save(identity.hashKey(), Base64.getEncoder().encode(this.value.asBytes()));
+    public CompletionStage<Void> save(final Storage storage, final PackageIdentity identity) {
+        return storage.save(
+            identity.hashKey(),
+            new Content.From(Base64.getEncoder().encode(this.value.asBytes()))
+        );
     }
 }
