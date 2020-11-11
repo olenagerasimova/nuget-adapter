@@ -28,7 +28,6 @@ import com.artipie.nuget.PackageId;
 import com.artipie.nuget.PackageIdentity;
 import com.artipie.nuget.Repository;
 import com.artipie.nuget.Version;
-import java.io.IOException;
 import java.util.List;
 import javax.json.Json;
 import javax.json.JsonArrayBuilder;
@@ -90,10 +89,9 @@ final class RegistrationPage {
      * Generates page in JSON.
      *
      * @return Page JSON.
-     * @throws IOException In case exception occurred on reading data from repository.
      * @throws InterruptedException In case executing thread has been interrupted.
      */
-    public JsonObject json() throws IOException, InterruptedException {
+    public JsonObject json() throws InterruptedException {
         if (this.versions.isEmpty()) {
             throw new IllegalStateException(
                 String.format("Registration page contains no versions: '%s'", this.id)
@@ -119,11 +117,9 @@ final class RegistrationPage {
      *
      * @param identity Package identity.
      * @return JSON representing registration leaf.
-     * @throws IOException In case exception occurred on reading data from repository.
      * @throws InterruptedException In case executing thread has been interrupted.
      */
-    private JsonObject leaf(final PackageIdentity identity)
-        throws IOException, InterruptedException {
+    private JsonObject leaf(final PackageIdentity identity) throws InterruptedException {
         final Nuspec nuspec = this.repository.nuspec(identity);
         return Json.createObjectBuilder()
             .add(

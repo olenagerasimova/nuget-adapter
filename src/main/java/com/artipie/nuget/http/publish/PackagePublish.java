@@ -36,7 +36,6 @@ import com.artipie.nuget.PackageVersionAlreadyExistsException;
 import com.artipie.nuget.Repository;
 import com.artipie.nuget.http.Resource;
 import com.artipie.nuget.http.Route;
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -117,7 +116,7 @@ public final class PackagePublish implements Route {
                                     try {
                                         new Repository(this.storage).add(key);
                                         status = RsStatus.CREATED;
-                                    } catch (final IOException | InterruptedException ex) {
+                                    } catch (final InterruptedException ex) {
                                         throw new IllegalStateException(ex);
                                     } catch (final InvalidPackageException ex) {
                                         status = RsStatus.BAD_REQUEST;

@@ -24,13 +24,16 @@
 
 package com.artipie.nuget;
 
+import com.artipie.asto.Content;
 import com.artipie.asto.Key;
-import com.artipie.asto.blocking.BlockingStorage;
+import com.artipie.asto.Storage;
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.ByteSource;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonArrayBuilder;
@@ -83,9 +86,8 @@ public final class Versions {
      *
      * @param version Version.
      * @return Updated versions.
-     * @throws IOException In case of any I/O problems.
      */
-    public Versions add(final Version version) throws IOException {
+    public Versions add(final Version version) {
         final JsonObject json = this.json();
         final JsonArray versions = json.getJsonArray(Versions.ARRAY);
         final JsonArrayBuilder builder;
@@ -108,9 +110,8 @@ public final class Versions {
      * Read all package versions.
      *
      * @return All versions sorted by natural order.
-     * @throws IOException In case of any I/O problems.
      */
-    public List<Version> all() throws IOException {
+    public List<Version> all() {
         return this.json()
             .getJsonArray(Versions.ARRAY)
             .getValuesAs(JsonString.class)
@@ -126,23 +127,26 @@ public final class Versions {
      *
      * @param storage Storage to use for saving.
      * @param key Key to store data at.
-     * @throws IOException In case exception occurred on saving content.
-     * @throws InterruptedException In case executing thread has been interrupted.
+     * @return Completion of save operation.
      */
-    public void save(final BlockingStorage storage, final Key key)
-        throws IOException, InterruptedException {
-        storage.save(key, this.content.read());
+    public CompletableFuture<Void> save(final Storage storage, final Key key) {
+        try {
+            return storage.save(key, new Content.From(this.content.read()));
+        } catch (final IOException ex) {
+            throw new UncheckedIOException(ex);
+        }
     }
 
     /**
      * Reads content as JSON object.
      *
      * @return JSON object.
-     * @throws IOException In case exception occurred on reading content.
      */
-    private JsonObject json() throws IOException {
+    private JsonObject json() {
         try (JsonReader reader = Json.createReader(this.content.openStream())) {
             return reader.readObject();
+        } catch (final IOException ex) {
+            throw new UncheckedIOException(ex);
         }
     }
 

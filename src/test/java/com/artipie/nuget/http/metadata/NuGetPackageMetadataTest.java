@@ -23,7 +23,6 @@
  */
 package com.artipie.nuget.http.metadata;
 
-import com.artipie.asto.blocking.BlockingStorage;
 import com.artipie.asto.memory.InMemoryStorage;
 import com.artipie.http.Headers;
 import com.artipie.http.Response;
@@ -88,11 +87,11 @@ class NuGetPackageMetadataTest {
     }
 
     @Test
-    void shouldGetRegistration() throws Exception {
+    void shouldGetRegistration() {
         new Versions()
             .add(new Version("12.0.3"))
             .save(
-                new BlockingStorage(this.storage),
+                this.storage,
                 new PackageId("Newtonsoft.Json").versionsKey()
             );
         new Nuspec(
@@ -105,7 +104,7 @@ class NuGetPackageMetadataTest {
                     "</package>"
                 ).getBytes()
             )
-        ).save(new BlockingStorage(this.storage));
+        ).save(this.storage);
         final Response response = this.nuget.response(
             new RequestLine(
                 RqMethod.GET,

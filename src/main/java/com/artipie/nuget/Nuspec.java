@@ -24,13 +24,16 @@
 
 package com.artipie.nuget;
 
-import com.artipie.asto.blocking.BlockingStorage;
+import com.artipie.asto.Content;
+import com.artipie.asto.Storage;
 import com.google.common.io.ByteSource;
 import com.jcabi.xml.XML;
 import com.jcabi.xml.XMLDocument;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.List;
+import java.util.concurrent.CompletionStage;
 
 /**
  * Package description in .nuspec format.
@@ -57,9 +60,8 @@ public final class Nuspec {
      * Extract package identity from document.
      *
      * @return Package identity.
-     * @throws IOException In case exception occurred on reading document.
      */
-    public PackageIdentity identity() throws IOException {
+    public PackageIdentity identity() {
         return new PackageIdentity(this.packageId(), this.version());
     }
 
@@ -67,9 +69,8 @@ public final class Nuspec {
      * Extract package identifier from document.
      *
      * @return Package identifier.
-     * @throws IOException In case exception occurred on reading document.
      */
-    public PackageId packageId() throws IOException {
+    public PackageId packageId() {
         return new PackageId(
             single(this.xml(), "/*[name()='package']/*[name()='metadata']/*[name()='id']/text()")
         );
@@ -79,9 +80,8 @@ public final class Nuspec {
      * Extract version from document.
      *
      * @return Package version.
-     * @throws IOException In case exception occurred on reading document.
      */
-    public Version version() throws IOException {
+    public Version version() {
         final String version = single(
             this.xml(),
             "/*[name()='package']/*[name()='metadata']/*[name()='version']/text()"
@@ -93,21 +93,27 @@ public final class Nuspec {
      * Saves .nuspec document to storage.
      *
      * @param storage Storage to use for saving.
-     * @throws IOException In case exception occurred on reading document or writing it to storage.
-     * @throws InterruptedException In case executing thread has been interrupted.
+     * @return Completion of save operation.
      */
-    public void save(final BlockingStorage storage) throws IOException, InterruptedException {
-        storage.save(this.identity().nuspecKey(), this.content.read());
+    public CompletionStage<Void> save(final Storage storage) {
+        try {
+            return storage.save(this.identity().nuspecKey(), new Content.From(this.content.read()));
+        } catch (final IOException ex) {
+            throw new UncheckedIOException(ex);
+        }
     }
 
     /**
      * Parse binary content as XML document.
      *
      * @return Content as XML document.
-     * @throws IOException In case exception occurred on reading document.
      */
-    private XML xml() throws IOException {
-        return new XMLDocument(new ByteArrayInputStream(this.content.read()));
+    private XML xml() {
+        try {
+            return new XMLDocument(new ByteArrayInputStream(this.content.read()));
+        } catch (final IOException ex) {
+            throw new UncheckedIOException(ex);
+        }
     }
 
     /**
