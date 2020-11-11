@@ -25,6 +25,7 @@
 package com.artipie.nuget;
 
 import com.artipie.asto.Key;
+import com.artipie.asto.Storage;
 import com.artipie.asto.blocking.BlockingStorage;
 import com.artipie.asto.memory.InMemoryStorage;
 import java.io.ByteArrayInputStream;
@@ -71,6 +72,11 @@ class RepositoryTest {
     /**
      * Storage used in tests.
      */
+    private Storage asto;
+
+    /**
+     * Blocking storage used in tests.
+     */
     private BlockingStorage storage;
 
     /**
@@ -80,9 +86,9 @@ class RepositoryTest {
 
     @BeforeEach
     void init() {
-        final InMemoryStorage asto = new InMemoryStorage();
-        this.storage = new BlockingStorage(asto);
-        this.repository = new Repository(asto);
+        this.asto = new InMemoryStorage();
+        this.storage = new BlockingStorage(this.asto);
+        this.repository = new Repository(this.asto);
     }
 
     @Test
@@ -141,7 +147,7 @@ class RepositoryTest {
         this.storage.save(foo.versionsKey(), bytes);
         final Versions versions = this.repository.versions(foo);
         final Key.From bar = new Key.From("bar");
-        versions.save(this.storage, bar);
+        versions.save(this.asto, bar).toCompletableFuture().join();
         MatcherAssert.assertThat(
             "Saved versions are not identical to versions initial content",
             this.storage.value(bar),
@@ -154,7 +160,7 @@ class RepositoryTest {
         final PackageId pack = new PackageId("MyLib");
         final Versions versions = this.repository.versions(pack);
         final Key.From sink = new Key.From("sink");
-        versions.save(this.storage, sink);
+        versions.save(this.asto, sink).toCompletableFuture().join();
         MatcherAssert.assertThat(
             "Versions created from scratch expected to be empty",
             this.versions(sink),

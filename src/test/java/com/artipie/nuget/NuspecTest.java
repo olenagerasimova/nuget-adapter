@@ -24,7 +24,8 @@
 
 package com.artipie.nuget;
 
-import com.artipie.asto.blocking.BlockingStorage;
+import com.artipie.asto.Storage;
+import com.artipie.asto.ext.PublisherAs;
 import com.artipie.asto.memory.InMemoryStorage;
 import com.google.common.io.ByteSource;
 import java.nio.charset.StandardCharsets;
@@ -58,7 +59,7 @@ class NuspecTest {
     }
 
     @Test
-    void shouldExtractSpecFromDifPackage() throws Exception {
+    void shouldExtractSpecFromDifPackage() {
         final Nuspec spec = new Nuspec(
             ByteSource.wrap(
                 String.join(
@@ -92,7 +93,7 @@ class NuspecTest {
     }
 
     @Test
-    void shouldExtractPackageId() throws Exception {
+    void shouldExtractPackageId() {
         MatcherAssert.assertThat(
             this.nuspec.packageId().lower(),
             Matchers.equalTo("newtonsoft.json")
@@ -100,7 +101,7 @@ class NuspecTest {
     }
 
     @Test
-    void shouldExtractVersion() throws Exception {
+    void shouldExtractVersion() {
         final Version version = this.nuspec.version();
         MatcherAssert.assertThat(
             version.normalized(),
@@ -109,7 +110,7 @@ class NuspecTest {
     }
 
     @Test
-    void shouldExtractIdentity() throws Exception {
+    void shouldExtractIdentity() {
         final PackageIdentity identity = this.nuspec.identity();
         MatcherAssert.assertThat(
             identity.nuspecKey().string(),
@@ -119,10 +120,13 @@ class NuspecTest {
 
     @Test
     void shouldSave() throws Exception {
-        final BlockingStorage storage = new BlockingStorage(new InMemoryStorage());
-        this.nuspec.save(storage);
+        final Storage storage = new InMemoryStorage();
+        this.nuspec.save(storage).toCompletableFuture().join();
         MatcherAssert.assertThat(
-            storage.value(this.nuspec.identity().nuspecKey()),
+            storage.value(this.nuspec.identity().nuspecKey())
+                .thenApply(PublisherAs::new)
+                .thenCompose(PublisherAs::bytes)
+                .toCompletableFuture().join(),
             Matchers.equalTo(new NewtonJsonResource(this.name).bytes())
         );
     }

@@ -24,7 +24,9 @@
 package com.artipie.nuget;
 
 import com.artipie.asto.Key;
+import com.artipie.asto.Storage;
 import com.artipie.asto.blocking.BlockingStorage;
+import com.artipie.asto.ext.PublisherAs;
 import com.artipie.asto.memory.InMemoryStorage;
 import com.google.common.io.ByteSource;
 import java.io.ByteArrayInputStream;
@@ -53,11 +55,11 @@ class VersionsTest {
     /**
      * Storage used in tests.
      */
-    private BlockingStorage storage;
+    private Storage storage;
 
     @BeforeEach
     void init() {
-        this.storage = new BlockingStorage(new InMemoryStorage());
+        this.storage = new InMemoryStorage();
     }
 
     @Test
@@ -81,7 +83,7 @@ class VersionsTest {
     }
 
     @Test
-    void shouldGetAllVersionsWhenEmpty() throws Exception {
+    void shouldGetAllVersionsWhenEmpty() {
         final Versions versions = new Versions(
             ByteSource.wrap("{ \"versions\":[] }".getBytes())
         );
@@ -89,7 +91,7 @@ class VersionsTest {
     }
 
     @Test
-    void shouldGetAllVersionsOrdered() throws Exception {
+    void shouldGetAllVersionsOrdered() {
         final Versions versions = new Versions(
             ByteSource.wrap("{ \"versions\":[\"1.0.1\",\"0.1\",\"2.0\",\"1.0\"] }".getBytes())
         );
@@ -100,13 +102,16 @@ class VersionsTest {
     }
 
     @Test
-    void shouldSave() throws Exception {
+    void shouldSave() {
         final Key.From key = new Key.From("foo");
         final byte[] data = "data".getBytes();
-        new Versions(ByteSource.wrap(data)).save(this.storage, key);
+        new Versions(ByteSource.wrap(data)).save(this.storage, key).toCompletableFuture().join();
         MatcherAssert.assertThat(
             "Saved versions are not identical to versions initial content",
-            this.storage.value(key),
+            this.storage.value(key)
+                .thenApply(PublisherAs::new)
+                .thenCompose(PublisherAs::bytes)
+                .join(),
             new IsEqual<>(data)
         );
     }
@@ -114,7 +119,7 @@ class VersionsTest {
     @Test
     void shouldSaveEmpty() throws Exception {
         final Key.From key = new Key.From("bar");
-        new Versions().save(this.storage, key);
+        new Versions().save(this.storage, key).toCompletableFuture().join();
         MatcherAssert.assertThat(
             "Versions created from scratch expected to be empty",
             this.versions(key),
@@ -126,12 +131,12 @@ class VersionsTest {
         throws Exception {
         final Versions versions = new Versions(ByteSource.wrap(original.getBytes()));
         final Key.From sink = new Key.From("sink");
-        versions.add(version).save(this.storage, sink);
+        versions.add(version).save(this.storage, sink).toCompletableFuture().join();
         return this.versions(sink);
     }
 
     private List<String> versions(final Key key) throws Exception {
-        final byte[] bytes = this.storage.value(key);
+        final byte[] bytes = new BlockingStorage(this.storage).value(key);
         try (JsonReader reader = Json.createReader(new ByteArrayInputStream(bytes))) {
             return reader.readObject()
                 .getJsonArray("versions")

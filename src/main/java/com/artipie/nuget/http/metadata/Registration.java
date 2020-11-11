@@ -119,10 +119,9 @@ class Registration implements Resource {
      * Enumerate version pages.
      *
      * @return List of pages.
-     * @throws IOException In case exception occurred reading versions.
      * @throws InterruptedException In case executing thread has been interrupted.
      */
-    private List<RegistrationPage> pages() throws IOException, InterruptedException {
+    private List<RegistrationPage> pages() throws InterruptedException {
         final List<Version> versions = this.repository.versions(this.id).all();
         final List<RegistrationPage> pages;
         if (versions.isEmpty()) {
