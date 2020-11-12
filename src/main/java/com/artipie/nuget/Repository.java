@@ -30,7 +30,7 @@ import com.artipie.asto.blocking.BlockingStorage;
 import com.artipie.asto.ext.PublisherAs;
 import com.google.common.io.ByteSource;
 import java.io.UncheckedIOException;
-import java.util.concurrent.CompletionException;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
 /**
@@ -81,23 +81,17 @@ public final class Repository {
         }
         this.storage.exclusively(
             nuspec.packageId().rootKey(),
-            target -> target.move(key, id.nupkgKey())
-                .thenCompose(nothing -> nupkg.hash().save(target, id))
-                .thenRun(() -> nuspec.save(target))
-                .thenApply(
-                    nothing -> {
-                        try {
-                            return this.versions(nuspec.packageId());
-                        } catch (final InterruptedException ex) {
-                            throw new CompletionException(ex);
-                        }
-                    }
-                ).thenCompose(
-                    versions -> versions.add(nuspec.version()).save(
-                        target,
-                        nuspec.packageId().versionsKey()
-                    )
-                )
+            target -> {
+                final CompletionStage<Versions> versions = this.versions(nuspec.packageId())
+                    .thenApply(vers -> vers.add(nuspec.version()));
+                return CompletableFuture.allOf(
+                    target.move(key, id.nupkgKey()),
+                    nupkg.hash().save(target, id).toCompletableFuture(),
+                    nuspec.save(target).toCompletableFuture()
+                ).thenCompose(nothing -> versions).thenCompose(
+                    vers -> vers.save(target, nuspec.packageId().versionsKey())
+                );
+            }
         ).toCompletableFuture().join();
     }
 
@@ -106,18 +100,24 @@ public final class Repository {
      *
      * @param id Package identifier.
      * @return Versions of package.
-     * @throws InterruptedException In case executing thread has been interrupted.
      */
-    public Versions versions(final PackageId id) throws InterruptedException {
-        final BlockingStorage blocking = new BlockingStorage(this.storage);
+    public CompletionStage<Versions> versions(final PackageId id) {
         final Key key = id.versionsKey();
-        final Versions versions;
-        if (blocking.exists(key)) {
-            versions = new Versions(ByteSource.wrap(blocking.value(key)));
-        } else {
-            versions = new Versions();
-        }
-        return versions;
+        return this.storage.exists(key).thenCompose(
+            exists -> {
+                final CompletionStage<Versions> versions;
+                if (exists) {
+                    versions = this.storage.value(key)
+                        .thenApply(PublisherAs::new)
+                        .thenCompose(PublisherAs::bytes)
+                        .thenApply(ByteSource::wrap)
+                        .thenApply(Versions::new);
+                } else {
+                    versions = CompletableFuture.completedFuture(new Versions());
+                }
+                return versions;
+            }
+        );
     }
 
     /**

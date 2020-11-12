@@ -28,7 +28,6 @@ import com.artipie.nuget.PackageIdentity;
 import com.artipie.nuget.Repository;
 import com.artipie.nuget.Version;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.stream.Collectors;
 import javax.json.Json;
@@ -100,14 +99,15 @@ final class RegistrationPage {
         }
         final Version lower = this.versions.get(0);
         final Version upper = this.versions.get(this.versions.size() - 1);
-        final List<CompletableFuture<JsonObject>> leafs = this.versions.stream().map(
-            version -> this.leaf(new PackageIdentity(this.id, version)).toCompletableFuture()
-        ).collect(Collectors.toList());
-        return CompletableFuture.allOf(leafs.stream().toArray(CompletableFuture[]::new)).thenApply(
-            nothing -> {
+        return new CompletionStages<>(
+            this.versions.stream().map(
+                version -> this.leaf(new PackageIdentity(this.id, version))
+            ).collect(Collectors.toList())
+        ).all().thenApply(
+            leafs -> {
                 final JsonArrayBuilder items = Json.createArrayBuilder();
-                for (final CompletableFuture<JsonObject> leaf : leafs) {
-                    items.add(leaf.join());
+                for (final JsonObject leaf : leafs) {
+                    items.add(leaf);
                 }
                 return Json.createObjectBuilder()
                     .add("lower", lower.normalized())
