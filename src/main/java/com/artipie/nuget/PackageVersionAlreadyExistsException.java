@@ -30,7 +30,7 @@ package com.artipie.nuget;
  * @since 0.1
  */
 @SuppressWarnings("serial")
-public final class PackageVersionAlreadyExistsException extends Exception {
+public final class PackageVersionAlreadyExistsException extends RuntimeException {
 
     /**
      * Ctor.

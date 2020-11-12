@@ -79,7 +79,7 @@ public final class PackagePublish implements Route {
      *
      * @since 0.1
      */
-    public final class NewPackage implements Resource {
+    public static final class NewPackage implements Resource {
 
         /**
          * Storage to read content from.
@@ -110,24 +110,33 @@ public final class PackagePublish implements Route {
                     .supplyAsync(() -> new Key.From(UUID.randomUUID().toString()))
                     .thenCompose(
                         key -> this.storage.save(key, new Multipart(headers, body).first())
-                            .thenApply(
-                                ignored -> {
-                                    RsStatus status;
-                                    try {
-                                        new Repository(this.storage).add(key);
-                                        status = RsStatus.CREATED;
-                                    } catch (final InterruptedException ex) {
-                                        throw new IllegalStateException(ex);
-                                    } catch (final InvalidPackageException ex) {
-                                        status = RsStatus.BAD_REQUEST;
-                                    } catch (final PackageVersionAlreadyExistsException ex) {
-                                        status = RsStatus.CONFLICT;
-                                    }
-                                    return new RsWithStatus(status);
-                                }
-                            )
+                            .thenCompose(
+                                ignored -> new Repository(this.storage).add(key).thenApply(
+                                    nothing -> RsStatus.CREATED
+                                ).exceptionally(
+                                    throwable -> toStatus(throwable.getCause())
+                                )
+                            ).thenApply(RsWithStatus::new)
                     )
             );
+        }
+
+        /**
+         * Converts throwable to HTTP response status.
+         *
+         * @param throwable Throwable.
+         * @return HTTP response status.
+         */
+        private static RsStatus toStatus(final Throwable throwable) {
+            final RsStatus status;
+            if (throwable instanceof InvalidPackageException) {
+                status = RsStatus.BAD_REQUEST;
+            } else if (throwable instanceof PackageVersionAlreadyExistsException) {
+                status = RsStatus.CONFLICT;
+            } else {
+                status = RsStatus.INTERNAL_ERROR;
+            }
+            return status;
         }
     }
 }

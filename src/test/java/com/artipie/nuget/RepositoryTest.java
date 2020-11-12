@@ -96,7 +96,7 @@ class RepositoryTest {
     void shouldAddPackage() throws Exception {
         final Key.From source = new Key.From("package.zip");
         this.storage.save(source, this.nupkg().bytes());
-        this.repository.add(source);
+        this.repository.add(source).toCompletableFuture().join();
         final PackageId id = new PackageId("newtonsoft.json");
         final String version = "12.0.3";
         final PackageIdentity identity = new PackageIdentity(id, new Version(version));
@@ -132,11 +132,15 @@ class RepositoryTest {
     void shouldFailToAddInvalidPackage() throws Exception {
         final Key.From source = new Key.From("invalid");
         this.storage.save(source, "not a zip".getBytes());
-        Assertions.assertThrows(
-            InvalidPackageException.class,
-            () -> this.repository.add(source),
+        final Throwable cause = Assertions.assertThrows(
+            CompletionException.class,
+            () -> this.repository.add(source).toCompletableFuture().join(),
             // @checkstyle LineLengthCheck (1 line)
             "Repository expected to throw InvalidPackageException if package is invalid and cannot be added"
+        ).getCause();
+        MatcherAssert.assertThat(
+            cause,
+            new IsInstanceOf(InvalidPackageException.class)
         );
     }
 
@@ -173,12 +177,16 @@ class RepositoryTest {
     void shouldFailToAddPackageWhenItAlreadyExists() throws Exception {
         final Key.From first = new Key.From("first");
         this.storage.save(first, this.nupkg().bytes());
-        this.repository.add(first);
+        this.repository.add(first).toCompletableFuture().join();
         final Key.From second = new Key.From("second");
         this.storage.save(second, this.nupkg().bytes());
-        Assertions.assertThrows(
-            PackageVersionAlreadyExistsException.class,
-            () -> this.repository.add(second)
+        final Throwable cause = Assertions.assertThrows(
+            CompletionException.class,
+            () -> this.repository.add(second).toCompletableFuture().join()
+        ).getCause();
+        MatcherAssert.assertThat(
+            cause,
+            new IsInstanceOf(PackageVersionAlreadyExistsException.class)
         );
     }
 
@@ -235,7 +243,7 @@ class RepositoryTest {
                         latch.await();
                         final Key.From source = new Key.From(UUID.randomUUID().toString());
                         this.storage.save(source, this.nupkg().bytes());
-                        this.repository.add(source);
+                        this.repository.add(source).toCompletableFuture().join();
                         future.complete(null);
                     } catch (final Exception exception) {
                         future.completeExceptionally(exception);
