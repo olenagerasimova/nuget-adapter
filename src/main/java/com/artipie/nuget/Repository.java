@@ -27,9 +27,11 @@ package com.artipie.nuget;
 import com.artipie.asto.Key;
 import com.artipie.asto.Storage;
 import com.artipie.asto.blocking.BlockingStorage;
+import com.artipie.asto.ext.PublisherAs;
 import com.google.common.io.ByteSource;
 import java.io.UncheckedIOException;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.CompletionStage;
 
 /**
  * Class representing NuGet repository.
@@ -123,13 +125,20 @@ public final class Repository {
      *
      * @param identity Package identity consisting of package id and version.
      * @return Package description in .nuspec format.
-     * @throws InterruptedException In case executing thread has been interrupted.
      */
-    public Nuspec nuspec(final PackageIdentity identity) throws InterruptedException {
-        final BlockingStorage blocking = new BlockingStorage(this.storage);
-        if (!blocking.exists(identity.nuspecKey())) {
-            throw new IllegalArgumentException(String.format("Cannot find package: %s", identity));
-        }
-        return new Nuspec(ByteSource.wrap(blocking.value(identity.nuspecKey())));
+    public CompletionStage<Nuspec> nuspec(final PackageIdentity identity) {
+        return this.storage.exists(identity.nuspecKey()).thenCompose(
+            exists -> {
+                if (!exists) {
+                    throw new IllegalArgumentException(
+                        String.format("Cannot find package: %s", identity)
+                    );
+                }
+                return this.storage.value(identity.nuspecKey())
+                    .thenApply(PublisherAs::new)
+                    .thenCompose(PublisherAs::bytes)
+                    .thenApply(bytes -> new Nuspec(ByteSource.wrap(bytes)));
+            }
+        );
     }
 }

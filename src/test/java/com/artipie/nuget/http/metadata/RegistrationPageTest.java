@@ -82,7 +82,8 @@ class RegistrationPageTest {
             );
         }
         MatcherAssert.assertThat(
-            new RegistrationPage(repository, RegistrationPageTest::contentUrl, id, versions).json(),
+            new RegistrationPage(repository, RegistrationPageTest::contentUrl, id, versions).json()
+                .toCompletableFuture().join(),
             new AllOf<>(
                 Arrays.asList(
                     new JsonHas("lower", new JsonValueIs(lower)),

@@ -35,6 +35,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -198,7 +199,7 @@ class RepositoryTest {
             ).getBytes()
         );
         MatcherAssert.assertThat(
-            this.repository.nuspec(identity).packageId().lower(),
+            this.repository.nuspec(identity).toCompletableFuture().join().packageId().lower(),
             new IsEqual<>("usefullib")
         );
     }
@@ -209,9 +210,13 @@ class RepositoryTest {
             new PackageId("MyPack"),
             new Version("1.0")
         );
-        Assertions.assertThrows(
-            IllegalArgumentException.class,
-            () -> this.repository.nuspec(identity)
+        final Throwable cause = Assertions.assertThrows(
+            CompletionException.class,
+            () -> this.repository.nuspec(identity).toCompletableFuture().join()
+        ).getCause();
+        MatcherAssert.assertThat(
+            cause,
+            new IsInstanceOf(IllegalArgumentException.class)
         );
     }
 
