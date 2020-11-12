@@ -23,12 +23,14 @@
  */
 package com.artipie.nuget.http.metadata;
 
-import com.artipie.nuget.Nuspec;
 import com.artipie.nuget.PackageId;
 import com.artipie.nuget.PackageIdentity;
 import com.artipie.nuget.Repository;
 import com.artipie.nuget.Version;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
+import java.util.stream.Collectors;
 import javax.json.Json;
 import javax.json.JsonArrayBuilder;
 import javax.json.JsonObject;
@@ -89,9 +91,8 @@ final class RegistrationPage {
      * Generates page in JSON.
      *
      * @return Page JSON.
-     * @throws InterruptedException In case executing thread has been interrupted.
      */
-    public JsonObject json() throws InterruptedException {
+    public CompletionStage<JsonObject> json() {
         if (this.versions.isEmpty()) {
             throw new IllegalStateException(
                 String.format("Registration page contains no versions: '%s'", this.id)
@@ -99,16 +100,23 @@ final class RegistrationPage {
         }
         final Version lower = this.versions.get(0);
         final Version upper = this.versions.get(this.versions.size() - 1);
-        final JsonArrayBuilder items = Json.createArrayBuilder();
-        for (final Version version : this.versions) {
-            items.add(this.leaf(new PackageIdentity(this.id, version)));
-        }
-        return Json.createObjectBuilder()
-            .add("lower", lower.normalized())
-            .add("upper", upper.normalized())
-            .add("count", this.versions.size())
-            .add("items", items)
-            .build();
+        final List<CompletableFuture<JsonObject>> leafs = this.versions.stream().map(
+            version -> this.leaf(new PackageIdentity(this.id, version)).toCompletableFuture()
+        ).collect(Collectors.toList());
+        return CompletableFuture.allOf(leafs.stream().toArray(CompletableFuture[]::new)).thenApply(
+            nothing -> {
+                final JsonArrayBuilder items = Json.createArrayBuilder();
+                for (final CompletableFuture<JsonObject> leaf : leafs) {
+                    items.add(leaf.join());
+                }
+                return Json.createObjectBuilder()
+                    .add("lower", lower.normalized())
+                    .add("upper", upper.normalized())
+                    .add("count", this.versions.size())
+                    .add("items", items)
+                    .build();
+            }
+        );
     }
 
     /**
@@ -117,18 +125,18 @@ final class RegistrationPage {
      *
      * @param identity Package identity.
      * @return JSON representing registration leaf.
-     * @throws InterruptedException In case executing thread has been interrupted.
      */
-    private JsonObject leaf(final PackageIdentity identity) throws InterruptedException {
-        final Nuspec nuspec = this.repository.nuspec(identity);
-        return Json.createObjectBuilder()
-            .add(
-                "catalogEntry",
-                Json.createObjectBuilder()
-                    .add("id", nuspec.packageId().original())
-                    .add("version", nuspec.version().normalized())
-            )
-            .add("packageContent", this.content.url(identity).toString())
-            .build();
+    private CompletionStage<JsonObject> leaf(final PackageIdentity identity) {
+        return this.repository.nuspec(identity).thenApply(
+            nuspec -> Json.createObjectBuilder()
+                .add(
+                    "catalogEntry",
+                    Json.createObjectBuilder()
+                        .add("id", nuspec.packageId().original())
+                        .add("version", nuspec.version().normalized())
+                )
+                .add("packageContent", this.content.url(identity).toString())
+                .build()
+        );
     }
 }

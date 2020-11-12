@@ -25,6 +25,7 @@ package com.artipie.nuget.http.metadata;
 
 import com.artipie.http.Headers;
 import com.artipie.http.Response;
+import com.artipie.http.async.AsyncResponse;
 import com.artipie.http.rs.RsStatus;
 import com.artipie.http.rs.RsWithStatus;
 import com.artipie.nuget.PackageId;
@@ -34,9 +35,12 @@ import com.artipie.nuget.http.Resource;
 import com.artipie.nuget.http.RsWithBodyNoHeaders;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.ByteBuffer;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 import javax.json.Json;
 import javax.json.JsonArrayBuilder;
 import javax.json.JsonObject;
@@ -84,28 +88,39 @@ class Registration implements Resource {
 
     @Override
     public Response get(final Headers headers) {
+        final List<CompletableFuture<JsonObject>> pages;
         try {
-            final List<RegistrationPage> pages = this.pages();
-            final JsonArrayBuilder items = Json.createArrayBuilder();
-            for (final RegistrationPage page : pages) {
-                items.add(page.json());
-            }
-            final JsonObject json = Json.createObjectBuilder()
-                .add("count", pages.size())
-                .add("items", items)
-                .build();
-            try (ByteArrayOutputStream out = new ByteArrayOutputStream();
-                JsonWriter writer = Json.createWriter(out)) {
-                writer.writeObject(json);
-                out.flush();
-                return new RsWithStatus(
-                    new RsWithBodyNoHeaders(out.toByteArray()),
-                    RsStatus.OK
-                );
-            }
-        } catch (final IOException | InterruptedException ex) {
+            pages = this.pages().stream()
+                .map(page -> page.json().toCompletableFuture())
+                .collect(Collectors.toList());
+        } catch (final InterruptedException ex) {
             throw new IllegalStateException(ex);
         }
+        return new AsyncResponse(
+            CompletableFuture.allOf(pages.stream().toArray(CompletableFuture[]::new)).thenApply(
+                nothing -> {
+                    final JsonArrayBuilder items = Json.createArrayBuilder();
+                    for (final CompletableFuture<JsonObject> page : pages) {
+                        items.add(page.join());
+                    }
+                    final JsonObject json = Json.createObjectBuilder()
+                        .add("count", pages.size())
+                        .add("items", items)
+                        .build();
+                    try (ByteArrayOutputStream out = new ByteArrayOutputStream();
+                        JsonWriter writer = Json.createWriter(out)) {
+                        writer.writeObject(json);
+                        out.flush();
+                        return new RsWithStatus(
+                            new RsWithBodyNoHeaders(out.toByteArray()),
+                            RsStatus.OK
+                        );
+                    } catch (final IOException ex) {
+                        throw new UncheckedIOException(ex);
+                    }
+                }
+            )
+        );
     }
 
     @Override
