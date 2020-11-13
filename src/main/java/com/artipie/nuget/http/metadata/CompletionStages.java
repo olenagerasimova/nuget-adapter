@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Collection of completion stages that all can be combined into single one.
@@ -41,6 +42,15 @@ final class CompletionStages<T> {
      * Completion stages.
      */
     private final Collection<CompletionStage<T>> stages;
+
+    /**
+     * Ctor.
+     *
+     * @param stages Completion stages.
+     */
+    CompletionStages(final Stream<CompletionStage<T>> stages) {
+        this(stages.collect(Collectors.toList()));
+    }
 
     /**
      * Ctor.

@@ -40,7 +40,6 @@ import java.nio.ByteBuffer;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletionStage;
-import java.util.stream.Collectors;
 import javax.json.Json;
 import javax.json.JsonArrayBuilder;
 import javax.json.JsonObject;
@@ -90,9 +89,7 @@ class Registration implements Resource {
     public Response get(final Headers headers) {
         return new AsyncResponse(
             this.pages().thenCompose(
-                pages -> new CompletionStages<>(
-                    pages.stream().map(RegistrationPage::json).collect(Collectors.toList())
-                ).all()
+                pages -> new CompletionStages<>(pages.stream().map(RegistrationPage::json)).all()
             ).thenApply(
                 pages -> {
                     final JsonArrayBuilder items = Json.createArrayBuilder();

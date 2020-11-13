@@ -29,7 +29,6 @@ import com.artipie.nuget.Repository;
 import com.artipie.nuget.Version;
 import java.util.List;
 import java.util.concurrent.CompletionStage;
-import java.util.stream.Collectors;
 import javax.json.Json;
 import javax.json.JsonArrayBuilder;
 import javax.json.JsonObject;
@@ -102,7 +101,7 @@ final class RegistrationPage {
         return new CompletionStages<>(
             this.versions.stream().map(
                 version -> this.leaf(new PackageIdentity(this.id, version))
-            ).collect(Collectors.toList())
+            )
         ).all().thenApply(
             leafs -> {
                 final JsonArrayBuilder items = Json.createArrayBuilder();
