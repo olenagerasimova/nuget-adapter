@@ -146,7 +146,7 @@ class RepositoryTest {
             .getBytes(StandardCharsets.US_ASCII);
         final PackageId foo = new PackageId("Foo");
         this.storage.save(foo.versionsKey(), bytes);
-        final Versions versions = this.repository.versions(foo);
+        final Versions versions = this.repository.versions(foo).toCompletableFuture().join();
         final Key.From bar = new Key.From("bar");
         versions.save(this.asto, bar).toCompletableFuture().join();
         MatcherAssert.assertThat(
@@ -159,7 +159,7 @@ class RepositoryTest {
     @Test
     void shouldGetEmptyPackageVersionsWhenNonePresent() throws Exception {
         final PackageId pack = new PackageId("MyLib");
-        final Versions versions = this.repository.versions(pack);
+        final Versions versions = this.repository.versions(pack).toCompletableFuture().join();
         final Key.From sink = new Key.From("sink");
         versions.save(this.asto, sink).toCompletableFuture().join();
         MatcherAssert.assertThat(

@@ -30,7 +30,7 @@ import com.artipie.http.rs.RsStatus;
 import com.artipie.http.rs.RsWithStatus;
 import com.artipie.nuget.PackageId;
 import com.artipie.nuget.Repository;
-import com.artipie.nuget.Version;
+import com.artipie.nuget.Versions;
 import com.artipie.nuget.http.Resource;
 import com.artipie.nuget.http.RsWithBodyNoHeaders;
 import java.io.ByteArrayOutputStream;
@@ -39,8 +39,7 @@ import java.io.UncheckedIOException;
 import java.nio.ByteBuffer;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
+import java.util.concurrent.CompletionStage;
 import javax.json.Json;
 import javax.json.JsonArrayBuilder;
 import javax.json.JsonObject;
@@ -88,20 +87,14 @@ class Registration implements Resource {
 
     @Override
     public Response get(final Headers headers) {
-        final List<CompletableFuture<JsonObject>> pages;
-        try {
-            pages = this.pages().stream()
-                .map(page -> page.json().toCompletableFuture())
-                .collect(Collectors.toList());
-        } catch (final InterruptedException ex) {
-            throw new IllegalStateException(ex);
-        }
         return new AsyncResponse(
-            CompletableFuture.allOf(pages.stream().toArray(CompletableFuture[]::new)).thenApply(
-                nothing -> {
+            this.pages().thenCompose(
+                pages -> new CompletionStages<>(pages.stream().map(RegistrationPage::json)).all()
+            ).thenApply(
+                pages -> {
                     final JsonArrayBuilder items = Json.createArrayBuilder();
-                    for (final CompletableFuture<JsonObject> page : pages) {
-                        items.add(page.join());
+                    for (final JsonObject page : pages) {
+                        items.add(page);
                     }
                     final JsonObject json = Json.createObjectBuilder()
                         .add("count", pages.size())
@@ -134,18 +127,20 @@ class Registration implements Resource {
      * Enumerate version pages.
      *
      * @return List of pages.
-     * @throws InterruptedException In case executing thread has been interrupted.
      */
-    private List<RegistrationPage> pages() throws InterruptedException {
-        final List<Version> versions = this.repository.versions(this.id).all();
-        final List<RegistrationPage> pages;
-        if (versions.isEmpty()) {
-            pages = Collections.emptyList();
-        } else {
-            pages = Collections.singletonList(
-                new RegistrationPage(this.repository, this.content, this.id, versions)
-            );
-        }
-        return pages;
+    private CompletionStage<List<RegistrationPage>> pages() {
+        return this.repository.versions(this.id).thenApply(Versions::all).thenApply(
+            versions -> {
+                final List<RegistrationPage> pages;
+                if (versions.isEmpty()) {
+                    pages = Collections.emptyList();
+                } else {
+                    pages = Collections.singletonList(
+                        new RegistrationPage(this.repository, this.content, this.id, versions)
+                    );
+                }
+                return pages;
+            }
+        );
     }
 }
