@@ -97,7 +97,7 @@ class RepositoryIT {
             new NewtonJsonResource("newtonsoft.json.12.0.3.nupkg").bytes()
         );
         final Repository repository = new Repository(storage);
-        repository.add(source);
+        repository.add(source).toCompletableFuture().join();
     }
 
     private String run(final String... args) throws IOException, InterruptedException {

@@ -26,7 +26,6 @@ package com.artipie.nuget;
 
 import com.artipie.asto.Key;
 import com.artipie.asto.Storage;
-import com.artipie.asto.blocking.BlockingStorage;
 import com.artipie.asto.ext.PublisherAs;
 import com.google.common.io.ByteSource;
 import java.io.UncheckedIOException;
@@ -59,40 +58,48 @@ public final class Repository {
      * Adds NuGet package in .nupkg file format from storage.
      *
      * @param key Key to find content of .nupkg package.
-     * @throws InterruptedException In case executing thread has been interrupted.
-     * @throws InvalidPackageException If package content is invalid and so cannot be added.
-     * @throws PackageVersionAlreadyExistsException If package version already in storage.
+     * @return Completion of adding package.
      */
-    public void add(final Key key)
-        throws InterruptedException, InvalidPackageException, PackageVersionAlreadyExistsException {
-        final NuGetPackage nupkg = new Nupkg(
-            ByteSource.wrap(new BlockingStorage(this.storage).value(key))
-        );
-        final Nuspec nuspec;
-        final PackageIdentity id;
-        try {
-            nuspec = nupkg.nuspec();
-            id = nuspec.identity();
-        } catch (final UncheckedIOException | IllegalArgumentException ex) {
-            throw new InvalidPackageException(ex);
-        }
-        if (!new BlockingStorage(this.storage).list(id.rootKey()).isEmpty()) {
-            throw new PackageVersionAlreadyExistsException(id.toString());
-        }
-        this.storage.exclusively(
-            nuspec.packageId().rootKey(),
-            target -> {
-                final CompletionStage<Versions> versions = this.versions(nuspec.packageId())
-                    .thenApply(vers -> vers.add(nuspec.version()));
-                return CompletableFuture.allOf(
-                    target.move(key, id.nupkgKey()),
-                    nupkg.hash().save(target, id).toCompletableFuture(),
-                    nuspec.save(target).toCompletableFuture()
-                ).thenCompose(nothing -> versions).thenCompose(
-                    vers -> vers.save(target, nuspec.packageId().versionsKey())
-                );
-            }
-        ).toCompletableFuture().join();
+    public CompletionStage<Void> add(final Key key) {
+        return this.storage.value(key)
+            .thenApply(PublisherAs::new)
+            .thenCompose(PublisherAs::bytes)
+            .thenApply(bytes -> new Nupkg(ByteSource.wrap(bytes)))
+            .thenCompose(
+                nupkg -> {
+                    final Nuspec nuspec;
+                    final PackageIdentity id;
+                    try {
+                        nuspec = nupkg.nuspec();
+                        id = nuspec.identity();
+                    } catch (final UncheckedIOException | IllegalArgumentException ex) {
+                        throw new InvalidPackageException(ex);
+                    }
+                    return this.storage.list(id.rootKey()).thenCompose(
+                        existing -> {
+                            if (!existing.isEmpty()) {
+                                throw new PackageVersionAlreadyExistsException(id.toString());
+                            }
+                            return this.storage.exclusively(
+                                nuspec.packageId().rootKey(),
+                                target -> {
+                                    final CompletionStage<Versions> versions;
+                                    versions = this.versions(nuspec.packageId());
+                                    return CompletableFuture.allOf(
+                                        target.move(key, id.nupkgKey()),
+                                        nupkg.hash().save(target, id).toCompletableFuture(),
+                                        nuspec.save(target).toCompletableFuture()
+                                    ).thenCompose(nothing -> versions).thenApply(
+                                        vers -> vers.add(nuspec.version())
+                                    ).thenCompose(
+                                        vers -> vers.save(target, nuspec.packageId().versionsKey())
+                                    );
+                                }
+                            );
+                        }
+                    );
+                }
+            );
     }
 
     /**
