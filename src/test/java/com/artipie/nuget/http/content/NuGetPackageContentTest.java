@@ -36,6 +36,7 @@ import com.artipie.http.hm.RsHasStatus;
 import com.artipie.http.rq.RequestLine;
 import com.artipie.http.rq.RqMethod;
 import com.artipie.http.rs.RsStatus;
+import com.artipie.nuget.Repository;
 import com.artipie.nuget.http.NuGet;
 import com.artipie.nuget.http.TestAuthentication;
 import com.artipie.nuget.http.TestPermissions;
@@ -73,7 +74,7 @@ class NuGetPackageContentTest {
         this.storage = new InMemoryStorage();
         this.nuget = new NuGet(
             new URL("http://localhost"),
-            this.storage,
+            new Repository(this.storage),
             new TestPermissions.Read(TestAuthentication.USERNAME),
             new TestAuthentication()
         );

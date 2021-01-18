@@ -30,6 +30,7 @@ import com.artipie.asto.Storage;
 import com.artipie.asto.ext.PublisherAs;
 import com.google.common.io.ByteSource;
 import java.io.UncheckedIOException;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
@@ -54,6 +55,26 @@ public final class Repository {
      */
     public Repository(final Storage storage) {
         this.storage = storage;
+    }
+
+    /**
+     * Read package content.
+     *
+     * @param key Package content key.
+     * @return Content if exists, empty otherwise.
+     */
+    public CompletionStage<Optional<Content>> content(final Key key) {
+        return this.storage.exists(key).thenCompose(
+            exists -> {
+                final CompletionStage<Optional<Content>> result;
+                if (exists) {
+                    result = this.storage.value(key).thenApply(Optional::of);
+                } else {
+                    result = CompletableFuture.completedFuture(Optional.empty());
+                }
+                return result;
+            }
+        );
     }
 
     /**

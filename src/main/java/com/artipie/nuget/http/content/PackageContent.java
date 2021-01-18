@@ -24,13 +24,13 @@
 package com.artipie.nuget.http.content;
 
 import com.artipie.asto.Key;
-import com.artipie.asto.Storage;
 import com.artipie.http.Headers;
 import com.artipie.http.Response;
 import com.artipie.http.async.AsyncResponse;
 import com.artipie.http.rs.RsStatus;
 import com.artipie.http.rs.RsWithStatus;
 import com.artipie.nuget.PackageIdentity;
+import com.artipie.nuget.Repository;
 import com.artipie.nuget.http.Resource;
 import com.artipie.nuget.http.Route;
 import com.artipie.nuget.http.RsWithBodyNoHeaders;
@@ -39,8 +39,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.ByteBuffer;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionStage;
 import org.reactivestreams.Publisher;
 
 /**
@@ -57,19 +55,19 @@ public final class PackageContent implements Route, ContentLocation {
     private final URL base;
 
     /**
-     * Storage to read content from.
+     * Repository to read content from.
      */
-    private final Storage storage;
+    private final Repository repository;
 
     /**
      * Ctor.
      *
      * @param base Base URL of repository.
-     * @param storage Storage to read content from.
+     * @param repository Repository to read content from.
      */
-    public PackageContent(final URL base, final Storage storage) {
+    public PackageContent(final URL base, final Repository repository) {
         this.base = base;
-        this.storage = storage;
+        this.repository = repository;
     }
 
     @Override
@@ -79,7 +77,7 @@ public final class PackageContent implements Route, ContentLocation {
 
     @Override
     public Resource resource(final String path) {
-        return new PackageResource(path, this.storage);
+        return new PackageResource(path, this.repository);
     }
 
     @Override
@@ -113,36 +111,32 @@ public final class PackageContent implements Route, ContentLocation {
         private final String path;
 
         /**
-         * Storage to read content from.
+         * Repository to read content from.
          */
-        private final Storage storage;
+        private final Repository repository;
 
         /**
          * Ctor.
          *
          * @param path Resource path.
-         * @param storage Storage to read content from.
+         * @param repository Storage to read content from.
          */
-        PackageResource(final String path, final Storage storage) {
+        PackageResource(final String path, final Repository repository) {
             this.path = path;
-            this.storage = storage;
+            this.repository = repository;
         }
 
         @Override
         public Response get(final Headers headers) {
-            return new AsyncResponse(
-                this.existing().thenCompose(
-                    existing -> existing.<CompletionStage<Response>>map(
-                        key -> this.storage.value(key).thenApply(
+            return this.key().<Response>map(
+                key -> new AsyncResponse(
+                    this.repository.content(key).thenApply(
+                        existing -> existing.<Response>map(
                             data -> new RsWithBodyNoHeaders(new RsWithStatus(RsStatus.OK), data)
-                        )
-                    ).orElseGet(
-                        () -> CompletableFuture.completedFuture(
-                            new RsWithStatus(RsStatus.NOT_FOUND)
-                        )
+                        ).orElse(new RsWithStatus(RsStatus.NOT_FOUND))
                     )
                 )
-            );
+            ).orElse(new RsWithStatus(RsStatus.NOT_FOUND));
         }
 
         @Override
@@ -150,37 +144,6 @@ public final class PackageContent implements Route, ContentLocation {
             final Headers headers,
             final Publisher<ByteBuffer> body) {
             return new RsWithStatus(RsStatus.METHOD_NOT_ALLOWED);
-        }
-
-        /**
-         * Try build key from path and check if it exists.
-         *
-         * @return Key to storage value, if value exists.
-         */
-        private CompletableFuture<Optional<Key>> existing() {
-            return CompletableFuture.supplyAsync(this::key)
-                .thenCompose(
-                    parsed -> {
-                        final CompletableFuture<Optional<Key>> found;
-                        if (parsed.isPresent()) {
-                            final Key key = parsed.get();
-                            found = this.storage.exists(key).thenApply(
-                                exists -> {
-                                    final Optional<Key> existing;
-                                    if (exists) {
-                                        existing = Optional.of(key);
-                                    } else {
-                                        existing = Optional.empty();
-                                    }
-                                    return existing;
-                                }
-                            );
-                        } else {
-                            found = CompletableFuture.completedFuture(Optional.empty());
-                        }
-                        return found;
-                    }
-                );
         }
 
         /**
