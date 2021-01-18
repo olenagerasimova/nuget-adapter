@@ -24,8 +24,6 @@
 
 package com.artipie.nuget.http.publish;
 
-import com.artipie.asto.Key;
-import com.artipie.asto.Storage;
 import com.artipie.http.Headers;
 import com.artipie.http.Response;
 import com.artipie.http.async.AsyncResponse;
@@ -37,7 +35,6 @@ import com.artipie.nuget.Repository;
 import com.artipie.nuget.http.Resource;
 import com.artipie.nuget.http.Route;
 import java.nio.ByteBuffer;
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import org.reactivestreams.Publisher;
 
@@ -50,17 +47,17 @@ import org.reactivestreams.Publisher;
 public final class PackagePublish implements Route {
 
     /**
-     * Storage to read content from.
+     * Repository for adding package.
      */
-    private final Storage storage;
+    private final Repository repository;
 
     /**
      * Ctor.
      *
-     * @param storage Storage to read content from.
+     * @param repository Repository for adding package.
      */
-    public PackagePublish(final Storage storage) {
-        this.storage = storage;
+    public PackagePublish(final Repository repository) {
+        this.repository = repository;
     }
 
     @Override
@@ -70,7 +67,7 @@ public final class PackagePublish implements Route {
 
     @Override
     public Resource resource(final String path) {
-        return new NewPackage(this.storage);
+        return new NewPackage(this.repository);
     }
 
     /**
@@ -82,17 +79,17 @@ public final class PackagePublish implements Route {
     public static final class NewPackage implements Resource {
 
         /**
-         * Storage to read content from.
+         * Repository for adding package.
          */
-        private final Storage storage;
+        private final Repository repository;
 
         /**
          * Ctor.
          *
-         * @param storage Storage to read content from.
+         * @param repository Repository for adding package.
          */
-        public NewPackage(final Storage storage) {
-            this.storage = storage;
+        public NewPackage(final Repository repository) {
+            this.repository = repository;
         }
 
         @Override
@@ -106,18 +103,15 @@ public final class PackagePublish implements Route {
             final Publisher<ByteBuffer> body
         ) {
             return new AsyncResponse(
-                CompletableFuture
-                    .supplyAsync(() -> new Key.From(UUID.randomUUID().toString()))
-                    .thenCompose(
-                        key -> this.storage.save(key, new Multipart(headers, body).first())
-                            .thenCompose(
-                                ignored -> new Repository(this.storage).add(key).thenApply(
-                                    nothing -> RsStatus.CREATED
-                                ).exceptionally(
-                                    throwable -> toStatus(throwable.getCause())
-                                )
-                            ).thenApply(RsWithStatus::new)
-                    )
+                CompletableFuture.supplyAsync(
+                    () -> new Multipart(headers, body).first()
+                ).thenCompose(
+                    content -> this.repository.add(content).thenApply(
+                        nothing -> RsStatus.CREATED
+                    ).exceptionally(
+                        throwable -> toStatus(throwable.getCause())
+                    ).thenApply(RsWithStatus::new)
+                )
             );
         }
 

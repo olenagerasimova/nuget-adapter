@@ -155,12 +155,10 @@ public final class NuGet implements Slice {
      * @return Resource found by path.
      */
     private Resource resource(final String path) {
-        final PackagePublish publish = new PackagePublish(this.storage);
+        final Repository repository = new Repository(this.storage);
+        final PackagePublish publish = new PackagePublish(repository);
         final PackageContent content = new PackageContent(this.url, this.storage);
-        final PackageMetadata metadata = new PackageMetadata(
-            new Repository(this.storage),
-            content
-        );
+        final PackageMetadata metadata = new PackageMetadata(repository, content);
         return new RoutingResource(
             path,
             new ServiceIndex(

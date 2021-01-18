@@ -24,6 +24,7 @@
 
 package com.artipie.nuget;
 
+import com.artipie.asto.Content;
 import com.artipie.asto.Key;
 import com.artipie.asto.Storage;
 import com.artipie.asto.blocking.BlockingStorage;
@@ -33,7 +34,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.CountDownLatch;
@@ -95,8 +95,7 @@ class RepositoryTest {
     @Test
     void shouldAddPackage() throws Exception {
         final Key.From source = new Key.From("package.zip");
-        this.storage.save(source, this.nupkg().bytes());
-        this.repository.add(source).toCompletableFuture().join();
+        this.repository.add(new Content.From(this.nupkg().bytes())).toCompletableFuture().join();
         final PackageId id = new PackageId("newtonsoft.json");
         final String version = "12.0.3";
         final PackageIdentity identity = new PackageIdentity(id, new Version(version));
@@ -129,12 +128,11 @@ class RepositoryTest {
     }
 
     @Test
-    void shouldFailToAddInvalidPackage() throws Exception {
-        final Key.From source = new Key.From("invalid");
-        this.storage.save(source, "not a zip".getBytes());
+    void shouldFailToAddInvalidPackage() {
         final Throwable cause = Assertions.assertThrows(
             CompletionException.class,
-            () -> this.repository.add(source).toCompletableFuture().join(),
+            () -> this.repository.add(new Content.From("not a zip".getBytes()))
+                .toCompletableFuture().join(),
             // @checkstyle LineLengthCheck (1 line)
             "Repository expected to throw InvalidPackageException if package is invalid and cannot be added"
         ).getCause();
@@ -175,14 +173,11 @@ class RepositoryTest {
 
     @Test
     void shouldFailToAddPackageWhenItAlreadyExists() throws Exception {
-        final Key.From first = new Key.From("first");
-        this.storage.save(first, this.nupkg().bytes());
-        this.repository.add(first).toCompletableFuture().join();
-        final Key.From second = new Key.From("second");
-        this.storage.save(second, this.nupkg().bytes());
+        this.repository.add(new Content.From(this.nupkg().bytes())).toCompletableFuture().join();
         final Throwable cause = Assertions.assertThrows(
             CompletionException.class,
-            () -> this.repository.add(second).toCompletableFuture().join()
+            () -> this.repository.add(new Content.From(this.nupkg().bytes()))
+                .toCompletableFuture().join()
         ).getCause();
         MatcherAssert.assertThat(
             cause,
@@ -241,9 +236,8 @@ class RepositoryTest {
                     try {
                         latch.countDown();
                         latch.await();
-                        final Key.From source = new Key.From(UUID.randomUUID().toString());
-                        this.storage.save(source, this.nupkg().bytes());
-                        this.repository.add(source).toCompletableFuture().join();
+                        this.repository.add(new Content.From(this.nupkg().bytes()))
+                            .toCompletableFuture().join();
                         future.complete(null);
                     } catch (final Exception exception) {
                         future.completeExceptionally(exception);
