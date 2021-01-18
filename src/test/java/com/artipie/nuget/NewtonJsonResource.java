@@ -24,6 +24,7 @@
 
 package com.artipie.nuget;
 
+import com.artipie.asto.Content;
 import com.google.common.io.ByteStreams;
 import org.cactoos.io.ResourceOf;
 
@@ -46,6 +47,16 @@ final class NewtonJsonResource {
      */
     NewtonJsonResource(final String name) {
         this.name = name;
+    }
+
+    /**
+     * Reads binary data.
+     *
+     * @return Binary data.
+     * @throws Exception In case exception occurred on reading resource content.
+     */
+    public Content content() throws Exception {
+        return new Content.From(this.bytes());
     }
 
     /**

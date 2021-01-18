@@ -24,9 +24,7 @@
 
 package com.artipie.nuget;
 
-import com.artipie.asto.Key;
 import com.artipie.asto.Storage;
-import com.artipie.asto.blocking.BlockingStorage;
 import com.artipie.asto.fs.FileStorage;
 import com.google.common.collect.ImmutableList;
 import com.jcabi.log.Logger;
@@ -91,13 +89,10 @@ class RepositoryIT {
 
     private void addPackage() throws Exception {
         final Storage storage = new FileStorage(this.repo);
-        final Key.From source = new Key.From("package.zip");
-        new BlockingStorage(storage).save(
-            source,
-            new NewtonJsonResource("newtonsoft.json.12.0.3.nupkg").bytes()
-        );
         final Repository repository = new Repository(storage);
-        repository.add(source).toCompletableFuture().join();
+        repository.add(
+            new NewtonJsonResource("newtonsoft.json.12.0.3.nupkg").content()
+        ).toCompletableFuture().join();
     }
 
     private String run(final String... args) throws IOException, InterruptedException {
