@@ -23,7 +23,6 @@
  */
 package com.artipie.nuget.http;
 
-import com.artipie.asto.Storage;
 import com.artipie.http.Headers;
 import com.artipie.http.Response;
 import com.artipie.http.Slice;
@@ -67,9 +66,9 @@ public final class NuGet implements Slice {
     private final URL url;
 
     /**
-     * Storage for packages.
+     * Repository.
      */
-    private final Storage storage;
+    private final Repository repository;
 
     /**
      * Access permissions.
@@ -85,44 +84,45 @@ public final class NuGet implements Slice {
      * Ctor.
      *
      * @param url Base URL.
-     * @param storage Storage for packages.
+     * @param repository Repository.
      */
-    public NuGet(final URL url, final Storage storage) {
-        this(url, storage, Permissions.FREE, Identities.ANONYMOUS);
+    public NuGet(final URL url, final Repository repository) {
+        this(url, repository, Permissions.FREE, Identities.ANONYMOUS);
     }
 
     /**
      * Ctor.
      *
      * @param url Base URL.
-     * @param storage Storage for packages.
+     * @param repository Repository.
      * @param perms Access permissions.
      * @param auth Auth details.
      */
     public NuGet(
         final URL url,
-        final Storage storage,
+        final Repository repository,
         final Permissions perms,
         final Authentication auth
     ) {
-        this(url, storage, perms, new BasicIdentities(auth));
+        this(url, repository, perms, new BasicIdentities(auth));
     }
 
     /**
      * Ctor.
-     *  @param url Base URL.
-     * @param storage Storage for packages.
+     *
+     * @param url Base URL.
+     * @param repository Storage for packages.
      * @param perms Access permissions.
      * @param users User identities.
      */
     private NuGet(
         final URL url,
-        final Storage storage,
+        final Repository repository,
         final Permissions perms,
         final Identities users
     ) {
         this.url = url;
-        this.storage = storage;
+        this.repository = repository;
         this.perms = perms;
         this.users = users;
     }
@@ -155,10 +155,9 @@ public final class NuGet implements Slice {
      * @return Resource found by path.
      */
     private Resource resource(final String path) {
-        final Repository repository = new Repository(this.storage);
-        final PackagePublish publish = new PackagePublish(repository);
-        final PackageContent content = new PackageContent(this.url, this.storage);
-        final PackageMetadata metadata = new PackageMetadata(repository, content);
+        final PackagePublish publish = new PackagePublish(this.repository);
+        final PackageContent content = new PackageContent(this.url, this.repository);
+        final PackageMetadata metadata = new PackageMetadata(this.repository, content);
         return new RoutingResource(
             path,
             new ServiceIndex(
