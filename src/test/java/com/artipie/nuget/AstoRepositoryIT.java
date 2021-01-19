@@ -40,9 +40,9 @@ import org.junit.jupiter.api.io.TempDir;
 /**
  * Integration test for NuGet repository.
  *
- * @since 0.1
+ * @since 0.5
  */
-class RepositoryIT {
+class AstoRepositoryIT {
 
     // @checkstyle VisibilityModifierCheck (5 lines)
     /**
@@ -89,7 +89,7 @@ class RepositoryIT {
 
     private void addPackage() throws Exception {
         final Storage storage = new FileStorage(this.repo);
-        final Repository repository = new Repository(storage);
+        final Repository repository = new AstoRepository(storage);
         repository.add(
             new NewtonJsonResource("newtonsoft.json.12.0.3.nupkg").content()
         ).toCompletableFuture().join();

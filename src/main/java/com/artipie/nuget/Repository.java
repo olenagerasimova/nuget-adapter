@@ -26,36 +26,15 @@ package com.artipie.nuget;
 
 import com.artipie.asto.Content;
 import com.artipie.asto.Key;
-import com.artipie.asto.Storage;
-import com.artipie.asto.ext.PublisherAs;
-import com.google.common.io.ByteSource;
-import java.io.UncheckedIOException;
 import java.util.Optional;
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
 /**
- * Class representing NuGet repository.
+ * NuGet repository.
  *
- * @since 0.1
- * @checkstyle ClassDataAbstractionCouplingCheck (500 lines)
+ * @since 0.5
  */
-public final class Repository {
-
-    /**
-     * The storage.
-     */
-    private final Storage storage;
-
-    /**
-     * Ctor.
-     *
-     * @param storage Storage to store all repository data.
-     */
-    public Repository(final Storage storage) {
-        this.storage = storage;
-    }
+public interface Repository {
 
     /**
      * Read package content.
@@ -63,19 +42,7 @@ public final class Repository {
      * @param key Package content key.
      * @return Content if exists, empty otherwise.
      */
-    public CompletionStage<Optional<Content>> content(final Key key) {
-        return this.storage.exists(key).thenCompose(
-            exists -> {
-                final CompletionStage<Optional<Content>> result;
-                if (exists) {
-                    result = this.storage.value(key).thenApply(Optional::of);
-                } else {
-                    result = CompletableFuture.completedFuture(Optional.empty());
-                }
-                return result;
-            }
-        );
-    }
+    CompletionStage<Optional<Content>> content(Key key);
 
     /**
      * Adds NuGet package in .nupkg file format from storage.
@@ -83,53 +50,7 @@ public final class Repository {
      * @param content Content of .nupkg package.
      * @return Completion of adding package.
      */
-    public CompletionStage<Void> add(final Content content) {
-        final Key key = new Key.From(UUID.randomUUID().toString());
-        return this.storage.save(key, content).thenCompose(
-            saved -> this.storage.value(key)
-                .thenApply(PublisherAs::new)
-                .thenCompose(PublisherAs::bytes)
-                .thenApply(bytes -> new Nupkg(ByteSource.wrap(bytes)))
-                .thenCompose(
-                    nupkg -> {
-                        final Nuspec nuspec;
-                        final PackageIdentity id;
-                        try {
-                            nuspec = nupkg.nuspec();
-                            id = nuspec.identity();
-                        } catch (final UncheckedIOException | IllegalArgumentException ex) {
-                            throw new InvalidPackageException(ex);
-                        }
-                        return this.storage.list(id.rootKey()).thenCompose(
-                            existing -> {
-                                if (!existing.isEmpty()) {
-                                    throw new PackageVersionAlreadyExistsException(id.toString());
-                                }
-                                return this.storage.exclusively(
-                                    nuspec.packageId().rootKey(),
-                                    target -> {
-                                        final CompletionStage<Versions> versions;
-                                        versions = this.versions(nuspec.packageId());
-                                        return CompletableFuture.allOf(
-                                            target.move(key, id.nupkgKey()),
-                                            nupkg.hash().save(target, id).toCompletableFuture(),
-                                            nuspec.save(target).toCompletableFuture()
-                                        ).thenCompose(nothing -> versions).thenApply(
-                                            vers -> vers.add(nuspec.version())
-                                        ).thenCompose(
-                                            vers -> vers.save(
-                                                target,
-                                                nuspec.packageId().versionsKey()
-                                            )
-                                        );
-                                    }
-                                );
-                            }
-                        );
-                    }
-                )
-        );
-    }
+    CompletionStage<Void> add(Content content);
 
     /**
      * Enumerates package versions.
@@ -137,24 +58,7 @@ public final class Repository {
      * @param id Package identifier.
      * @return Versions of package.
      */
-    public CompletionStage<Versions> versions(final PackageId id) {
-        final Key key = id.versionsKey();
-        return this.storage.exists(key).thenCompose(
-            exists -> {
-                final CompletionStage<Versions> versions;
-                if (exists) {
-                    versions = this.storage.value(key)
-                        .thenApply(PublisherAs::new)
-                        .thenCompose(PublisherAs::bytes)
-                        .thenApply(ByteSource::wrap)
-                        .thenApply(Versions::new);
-                } else {
-                    versions = CompletableFuture.completedFuture(new Versions());
-                }
-                return versions;
-            }
-        );
-    }
+    CompletionStage<Versions> versions(PackageId id);
 
     /**
      * Read package description in .nuspec format.
@@ -162,19 +66,5 @@ public final class Repository {
      * @param identity Package identity consisting of package id and version.
      * @return Package description in .nuspec format.
      */
-    public CompletionStage<Nuspec> nuspec(final PackageIdentity identity) {
-        return this.storage.exists(identity.nuspecKey()).thenCompose(
-            exists -> {
-                if (!exists) {
-                    throw new IllegalArgumentException(
-                        String.format("Cannot find package: %s", identity)
-                    );
-                }
-                return this.storage.value(identity.nuspecKey())
-                    .thenApply(PublisherAs::new)
-                    .thenCompose(PublisherAs::bytes)
-                    .thenApply(bytes -> new Nuspec(ByteSource.wrap(bytes)));
-            }
-        );
-    }
+    CompletionStage<Nuspec> nuspec(PackageIdentity identity);
 }

@@ -33,9 +33,9 @@ import com.artipie.http.hm.RsHasStatus;
 import com.artipie.http.rq.RequestLine;
 import com.artipie.http.rq.RqMethod;
 import com.artipie.http.rs.RsStatus;
+import com.artipie.nuget.AstoRepository;
 import com.artipie.nuget.Nuspec;
 import com.artipie.nuget.PackageId;
-import com.artipie.nuget.Repository;
 import com.artipie.nuget.Version;
 import com.artipie.nuget.Versions;
 import com.artipie.nuget.http.NuGet;
@@ -81,7 +81,7 @@ class NuGetPackageMetadataTest {
         this.storage = new InMemoryStorage();
         this.nuget = new NuGet(
             new URL("http://localhost:4321/repo"),
-            new Repository(this.storage),
+            new AstoRepository(this.storage),
             new TestPermissions.Read(TestAuthentication.USERNAME),
             new TestAuthentication()
         );
