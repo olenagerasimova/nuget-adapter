@@ -30,7 +30,7 @@ import com.artipie.http.hm.RsHasStatus;
 import com.artipie.http.rq.RequestLine;
 import com.artipie.http.rq.RqMethod;
 import com.artipie.http.rs.RsStatus;
-import com.artipie.nuget.Repository;
+import com.artipie.nuget.AstoRepository;
 import com.artipie.nuget.http.NuGet;
 import io.reactivex.Flowable;
 import java.io.ByteArrayInputStream;
@@ -75,7 +75,7 @@ class NuGetServiceIndexTest {
     @BeforeEach
     void init() throws Exception {
         this.url = new URL("http://localhost:4321/repo");
-        this.nuget = new NuGet(this.url, new Repository(new InMemoryStorage()));
+        this.nuget = new NuGet(this.url, new AstoRepository(new InMemoryStorage()));
     }
 
     @Test

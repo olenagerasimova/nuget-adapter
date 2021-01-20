@@ -26,6 +26,7 @@ package com.artipie.nuget.http.metadata;
 import com.artipie.asto.Storage;
 import com.artipie.asto.blocking.BlockingStorage;
 import com.artipie.asto.memory.InMemoryStorage;
+import com.artipie.nuget.AstoRepository;
 import com.artipie.nuget.PackageId;
 import com.artipie.nuget.PackageIdentity;
 import com.artipie.nuget.Repository;
@@ -59,7 +60,7 @@ class RegistrationPageTest {
     @Test
     void shouldGenerateJson() throws Exception {
         final Storage storage = new InMemoryStorage();
-        final Repository repository = new Repository(storage);
+        final Repository repository = new AstoRepository(storage);
         final PackageId id = new PackageId("My.Lib");
         final String lower = "0.1";
         final String upper = "0.2";
@@ -108,7 +109,7 @@ class RegistrationPageTest {
         final Throwable throwable = Assertions.assertThrows(
             IllegalStateException.class,
             () -> new RegistrationPage(
-                new Repository(new InMemoryStorage()),
+                new AstoRepository(new InMemoryStorage()),
                 RegistrationPageTest::contentUrl,
                 new PackageId(id),
                 Collections.emptyList()

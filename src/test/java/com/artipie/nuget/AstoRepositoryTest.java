@@ -59,16 +59,16 @@ import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests for {@link Repository}.
+ * Tests for {@link AstoRepository}.
  *
- * @since 0.1
+ * @since 0.5
  * @checkstyle ClassDataAbstractionCouplingCheck (500 lines)
  * @checkstyle MagicNumberCheck (500 lines)
  * @checkstyle IllegalCatchCheck (500 lines)
  * @checkstyle ExecutableStatementCountCheck (500 lines)
  */
 @SuppressWarnings({"PMD.TooManyMethods", "PMD.AvoidCatchingGenericException"})
-class RepositoryTest {
+class AstoRepositoryTest {
 
     /**
      * Storage used in tests.
@@ -83,13 +83,13 @@ class RepositoryTest {
     /**
      * Repository to test.
      */
-    private Repository repository;
+    private AstoRepository repository;
 
     @BeforeEach
     void init() {
         this.asto = new InMemoryStorage();
         this.storage = new BlockingStorage(this.asto);
-        this.repository = new Repository(this.asto);
+        this.repository = new AstoRepository(this.asto);
     }
 
     @Test

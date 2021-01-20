@@ -87,7 +87,7 @@ class RepositoryHttpIT {
             new LoggingSlice(
                 new NuGet(
                     new URL(base),
-                    new Repository(new InMemoryStorage()),
+                    new AstoRepository(new InMemoryStorage()),
                     this.permissions(),
                     new TestAuthentication()
                 )

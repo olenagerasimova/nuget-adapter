@@ -32,7 +32,7 @@ import com.artipie.http.hm.RsHasStatus;
 import com.artipie.http.rq.RequestLine;
 import com.artipie.http.rq.RqMethod;
 import com.artipie.http.rs.RsStatus;
-import com.artipie.nuget.Repository;
+import com.artipie.nuget.AstoRepository;
 import com.artipie.nuget.http.NuGet;
 import com.artipie.nuget.http.TestAuthentication;
 import com.artipie.nuget.http.TestPermissions;
@@ -67,7 +67,7 @@ class NuGetPackagePublishTest {
     void init() throws Exception {
         this.nuget = new NuGet(
             new URL("http://localhost"),
-            new Repository(new InMemoryStorage()),
+            new AstoRepository(new InMemoryStorage()),
             new TestPermissions.Write(TestAuthentication.USERNAME),
             new TestAuthentication()
         );
