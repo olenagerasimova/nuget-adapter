@@ -27,7 +27,7 @@ SOFTWARE.
   <parent>
     <groupId>com.artipie</groupId>
     <artifactId>ppom</artifactId>
-    <version>0.4</version>
+    <version>0.5.1</version>
   </parent>
   <artifactId>nuget-adapter</artifactId>
   <version>1.0-SNAPSHOT</version>
@@ -55,6 +55,9 @@ SOFTWARE.
     <system>rultor</system>
     <url>https://www.rultor.com/s/nuget-adapter</url>
   </ciManagement>
+  <properties>
+    <qulice.license>${project.basedir}/LICENSE.header</qulice.license>
+  </properties>
   <distributionManagement>
     <site>
       <id>github-pages</id>
@@ -70,6 +73,7 @@ SOFTWARE.
     <dependency>
       <groupId>com.artipie</groupId>
       <artifactId>asto</artifactId>
+      <version>0.35</version>
     </dependency>
     <dependency>
       <groupId>javax.json</groupId>
