@@ -5,6 +5,7 @@
 
 package com.artipie.nuget;
 
+import com.artipie.asto.ArtipieIOException;
 import com.artipie.asto.Content;
 import com.artipie.asto.Key;
 import com.artipie.asto.Storage;
@@ -251,7 +252,7 @@ class AstoRepositoryTest {
                     Arrays.asList(
                         new AllOf<>(
                             Arrays.asList(
-                                new IsInstanceOf(IllegalStateException.class),
+                                new IsInstanceOf(ArtipieIOException.class),
                                 new FeatureMatcher<Throwable, String>(
                                     new StringContains("Failed to acquire lock."),
                                     "an exception with message",
