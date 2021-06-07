@@ -4,13 +4,15 @@
  */
 package com.artipie.nuget;
 
+import com.artipie.ArtipieException;
+
 /**
  * Exception indicates that package is invalid and so cannot be handled by repository.
  *
  * @since 0.1
  */
 @SuppressWarnings("serial")
-public final class InvalidPackageException extends RuntimeException {
+public final class InvalidPackageException extends ArtipieException {
     /**
      * Ctor.
      *

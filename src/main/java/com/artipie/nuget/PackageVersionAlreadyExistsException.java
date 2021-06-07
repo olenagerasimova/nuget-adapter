@@ -4,6 +4,8 @@
  */
 package com.artipie.nuget;
 
+import com.artipie.ArtipieException;
+
 /**
  * Exception indicates that package version cannot be added,
  * because it is already exists in the storage.
@@ -11,7 +13,7 @@ package com.artipie.nuget;
  * @since 0.1
  */
 @SuppressWarnings("serial")
-public final class PackageVersionAlreadyExistsException extends RuntimeException {
+public final class PackageVersionAlreadyExistsException extends ArtipieException {
 
     /**
      * Ctor.
