@@ -183,7 +183,7 @@ class RepositoryHttpIT {
     private Permissions permissions() {
         final Permissions permissions;
         if (isWindows()) {
-            permissions = (name, action) -> TestAuthentication.USERNAME.equals(name);
+            permissions = (name, action) -> TestAuthentication.USERNAME.equals(name.name());
         } else {
             permissions = Permissions.FREE;
         }

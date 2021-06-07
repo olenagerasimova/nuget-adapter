@@ -4,6 +4,7 @@
  */
 package com.artipie.nuget.http;
 
+import com.artipie.http.auth.Authentication;
 import com.artipie.http.auth.Permissions;
 
 /**
@@ -35,8 +36,8 @@ public final class TestPermissions implements Permissions {
     }
 
     @Override
-    public boolean allowed(final String name, final String act) {
-        return this.username.equals(name) && this.action.equals(act);
+    public boolean allowed(final Authentication.User user, final String act) {
+        return this.username.equals(user.name()) && this.action.equals(act);
     }
 
     /**

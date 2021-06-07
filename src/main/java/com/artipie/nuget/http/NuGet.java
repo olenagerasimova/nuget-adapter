@@ -9,8 +9,6 @@ import com.artipie.http.Response;
 import com.artipie.http.Slice;
 import com.artipie.http.auth.Action;
 import com.artipie.http.auth.Authentication;
-import com.artipie.http.auth.BasicIdentities;
-import com.artipie.http.auth.Identities;
 import com.artipie.http.auth.Permission;
 import com.artipie.http.auth.Permissions;
 import com.artipie.http.rq.RequestLineFrom;
@@ -59,7 +57,7 @@ public final class NuGet implements Slice {
     /**
      * User identities.
      */
-    private final Identities users;
+    private final Authentication users;
 
     /**
      * Ctor.
@@ -68,24 +66,7 @@ public final class NuGet implements Slice {
      * @param repository Repository.
      */
     public NuGet(final URL url, final Repository repository) {
-        this(url, repository, Permissions.FREE, Identities.ANONYMOUS);
-    }
-
-    /**
-     * Ctor.
-     *
-     * @param url Base URL.
-     * @param repository Repository.
-     * @param perms Access permissions.
-     * @param auth Auth details.
-     */
-    public NuGet(
-        final URL url,
-        final Repository repository,
-        final Permissions perms,
-        final Authentication auth
-    ) {
-        this(url, repository, perms, new BasicIdentities(auth));
+        this(url, repository, Permissions.FREE, Authentication.ANONYMOUS);
     }
 
     /**
@@ -96,11 +77,11 @@ public final class NuGet implements Slice {
      * @param perms Access permissions.
      * @param users User identities.
      */
-    private NuGet(
+    public NuGet(
         final URL url,
         final Repository repository,
         final Permissions perms,
-        final Identities users
+        final Authentication users
     ) {
         this.url = url;
         this.repository = repository;

@@ -4,9 +4,9 @@
  */
 package com.artipie.nuget.http;
 
-import com.artipie.http.auth.Identities;
+import com.artipie.http.auth.Authentication;
+import com.artipie.http.auth.BasicAuthSlice;
 import com.artipie.http.auth.Permission;
-import com.artipie.http.auth.SliceAuth;
 
 /**
  * Route supporting basic authentication.
@@ -28,18 +28,18 @@ final class BasicAuthRoute implements Route {
     /**
      * Authentication.
      */
-    private final Identities ids;
+    private final Authentication auth;
 
     /**
      * Ctor.
      *
      * @param origin Origin route.
      * @param perm Authorization mechanism.
-     * @param ids Authentication mechanism.
+     * @param auth Authentication mechanism.
      */
-    BasicAuthRoute(final Route origin, final Permission perm, final Identities ids) {
+    BasicAuthRoute(final Route origin, final Permission perm, final Authentication auth) {
         this.origin = origin;
-        this.ids = ids;
+        this.auth = auth;
         this.perm = perm;
     }
 
@@ -52,10 +52,10 @@ final class BasicAuthRoute implements Route {
     public Resource resource(final String path) {
         return new ResourceFromSlice(
             path,
-            new SliceAuth(
+            new BasicAuthSlice(
                 new SliceFromResource(this.origin.resource(path)),
-                this.perm,
-                this.ids
+                this.auth,
+                this.perm
             )
         );
     }
