@@ -18,7 +18,7 @@ import java.util.zip.ZipInputStream;
  * @since 0.1
  */
 @SuppressWarnings("PMD.AvoidDuplicateLiterals")
-public final class Nupkg implements NuGetPackage {
+public final class Nupkg implements Package {
 
     /**
      * Binary content of package.

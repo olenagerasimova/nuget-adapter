@@ -8,7 +8,7 @@ package com.artipie.nuget;
  * Nuget package.
  * @since 0.6
  */
-public interface Nuget {
+public interface NugetPackage {
 
     /**
      * Extracts nuget metadata .nuspec file from the package.
@@ -73,6 +73,6 @@ public interface Nuget {
          * Normalized value of the field.
          * @return Normalized value
          */
-        String normalised();
+        String normalized();
     }
 }

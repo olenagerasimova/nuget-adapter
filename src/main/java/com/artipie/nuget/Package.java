@@ -10,7 +10,7 @@ package com.artipie.nuget;
  *
  * @since 0.1
  */
-public interface NuGetPackage {
+public interface Package {
 
     /**
      * Calculates hash of package binary content using SHA512 algorithm encoded in Base64.
