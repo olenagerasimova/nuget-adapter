@@ -5,7 +5,6 @@
 package com.artipie.nuget.metadata;
 
 import com.artipie.asto.ArtipieIOException;
-import com.artipie.nuget.PackageId;
 import com.google.common.io.ByteSource;
 import com.jcabi.xml.XML;
 import com.jcabi.xml.XMLDocument;
@@ -27,7 +26,7 @@ public interface Nuspec {
      * @checkstyle MethodNameCheck (3 lines)
      */
     @SuppressWarnings("PMD.ShortMethodName")
-    PackageId id();
+    NuspecField id();
 
     /**
      * Package versions: original version field value or normalised.
@@ -76,7 +75,7 @@ public interface Nuspec {
 
         @Override
         @SuppressWarnings("PMD.ShortMethodName")
-        public PackageId id() {
+        public NuspecField id() {
             return new PackageId(
                 single(
                     this.xml(), "/*[name()='package']/*[name()='metadata']/*[name()='id']/text()"

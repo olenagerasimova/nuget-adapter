@@ -9,11 +9,12 @@ import com.artipie.http.Response;
 import com.artipie.http.async.AsyncResponse;
 import com.artipie.http.rs.RsStatus;
 import com.artipie.http.rs.RsWithStatus;
-import com.artipie.nuget.PackageId;
+import com.artipie.nuget.PackageKey;
 import com.artipie.nuget.Repository;
 import com.artipie.nuget.Versions;
 import com.artipie.nuget.http.Resource;
 import com.artipie.nuget.http.RsWithBodyNoHeaders;
+import com.artipie.nuget.metadata.NuspecField;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -32,6 +33,7 @@ import org.reactivestreams.Publisher;
  * See <a href="https://docs.microsoft.com/en-us/nuget/api/registration-base-url-resource#registration-pages-and-leaves">Registration pages and leaves</a>
  *
  * @since 0.1
+ * @checkstyle ClassDataAbstractionCouplingCheck (500 lines)
  */
 class Registration implements Resource {
 
@@ -48,7 +50,7 @@ class Registration implements Resource {
     /**
      * Package identifier.
      */
-    private final PackageId id;
+    private final NuspecField id;
 
     /**
      * Ctor.
@@ -60,7 +62,7 @@ class Registration implements Resource {
     Registration(
         final Repository repository,
         final ContentLocation content,
-        final PackageId id) {
+        final NuspecField id) {
         this.repository = repository;
         this.content = content;
         this.id = id;
@@ -110,7 +112,7 @@ class Registration implements Resource {
      * @return List of pages.
      */
     private CompletionStage<List<RegistrationPage>> pages() {
-        return this.repository.versions(this.id).thenApply(Versions::all).thenApply(
+        return this.repository.versions(new PackageKey(this.id)).thenApply(Versions::all).thenApply(
             versions -> {
                 final List<RegistrationPage> pages;
                 if (versions.isEmpty()) {

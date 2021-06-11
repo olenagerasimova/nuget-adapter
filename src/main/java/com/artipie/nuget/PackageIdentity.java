@@ -18,7 +18,7 @@ public final class PackageIdentity {
     /**
      * Package identity.
      */
-    private final PackageId id;
+    private final NuspecField id;
 
     /**
      * Package version.
@@ -31,7 +31,7 @@ public final class PackageIdentity {
      * @param id Package identity.
      * @param version Package version.
      */
-    public PackageIdentity(final PackageId id, final NuspecField version) {
+    public PackageIdentity(final NuspecField id, final NuspecField version) {
         this.id = id;
         this.version = version;
     }
@@ -44,7 +44,7 @@ public final class PackageIdentity {
     public Key nupkgKey() {
         return new Key.From(
             this.rootKey(),
-            String.format("%s.%s.nupkg", this.id.lower(), this.version.normalized())
+            String.format("%s.%s.nupkg", this.id.normalized(), this.version.normalized())
         );
     }
 
@@ -56,7 +56,7 @@ public final class PackageIdentity {
     public Key hashKey() {
         return new Key.From(
             this.rootKey(),
-            String.format("%s.%s.nupkg.sha512", this.id.lower(), this.version.normalized())
+            String.format("%s.%s.nupkg.sha512", this.id.normalized(), this.version.normalized())
         );
     }
 
@@ -66,7 +66,7 @@ public final class PackageIdentity {
      * @return Key to .nuspec file.
      */
     public Key nuspecKey() {
-        return new Key.From(this.rootKey(), String.format("%s.nuspec", this.id.lower()));
+        return new Key.From(this.rootKey(), String.format("%s.nuspec", this.id.normalized()));
     }
 
     /**
@@ -75,7 +75,7 @@ public final class PackageIdentity {
      * @return Root key.
      */
     public Key rootKey() {
-        return new Key.From(this.id.rootKey(), this.version.normalized());
+        return new Key.From(new PackageKey(this.id).rootKey(), this.version.normalized());
     }
 
     @Override

@@ -77,11 +77,12 @@ public final class AstoRepository implements Repository {
                                 if (!existing.isEmpty()) {
                                     throw new PackageVersionAlreadyExistsException(id.toString());
                                 }
+                                final PackageKey pkey = new PackageKey(nuspec.id());
                                 return this.storage.exclusively(
-                                    nuspec.id().rootKey(),
+                                    pkey.rootKey(),
                                     target -> {
                                         final CompletionStage<Versions> versions;
-                                        versions = this.versions(nuspec.id());
+                                        versions = this.versions(pkey);
                                         return CompletableFuture.allOf(
                                             target.move(key, id.nupkgKey()),
                                             nupkg.hash().save(target, id).toCompletableFuture(),
@@ -95,7 +96,7 @@ public final class AstoRepository implements Repository {
                                         ).thenCompose(
                                             vers -> vers.save(
                                                 target,
-                                                nuspec.id().versionsKey()
+                                                pkey.versionsKey()
                                             )
                                         );
                                     }
@@ -108,7 +109,7 @@ public final class AstoRepository implements Repository {
     }
 
     @Override
-    public CompletionStage<Versions> versions(final PackageId id) {
+    public CompletionStage<Versions> versions(final PackageKey id) {
         final Key key = id.versionsKey();
         return this.storage.exists(key).thenCompose(
             exists -> {
