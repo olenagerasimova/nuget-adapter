@@ -8,6 +8,8 @@ package com.artipie.nuget;
 import com.artipie.asto.Content;
 import com.artipie.asto.Key;
 import com.artipie.asto.Storage;
+import com.artipie.nuget.metadata.NuspecField;
+import com.artipie.nuget.metadata.Version;
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.ByteSource;
 import java.io.ByteArrayOutputStream;
@@ -68,7 +70,7 @@ public final class Versions {
      * @param version Version.
      * @return Updated versions.
      */
-    public Versions add(final Version version) {
+    public Versions add(final NuspecField version) {
         final JsonObject json = this.json();
         final JsonArray versions = json.getJsonArray(Versions.ARRAY);
         final JsonArrayBuilder builder;

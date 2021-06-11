@@ -5,6 +5,8 @@
 
 package com.artipie.nuget;
 
+import com.artipie.nuget.metadata.Nuspec;
+
 /**
  * NuGet package.
  *

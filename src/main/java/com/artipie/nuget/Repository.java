@@ -7,6 +7,7 @@ package com.artipie.nuget;
 
 import com.artipie.asto.Content;
 import com.artipie.asto.Key;
+import com.artipie.nuget.metadata.Nuspec;
 import java.util.Optional;
 import java.util.concurrent.CompletionStage;
 
