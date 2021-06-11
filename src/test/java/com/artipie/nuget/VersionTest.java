@@ -5,6 +5,7 @@
 
 package com.artipie.nuget;
 
+import com.artipie.nuget.metadata.Version;
 import java.util.function.Function;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;

@@ -4,6 +4,7 @@
  */
 package com.artipie.nuget.http.metadata;
 
+import com.artipie.asto.Content;
 import com.artipie.asto.memory.InMemoryStorage;
 import com.artipie.http.Headers;
 import com.artipie.http.Response;
@@ -15,13 +16,14 @@ import com.artipie.http.rq.RequestLine;
 import com.artipie.http.rq.RqMethod;
 import com.artipie.http.rs.RsStatus;
 import com.artipie.nuget.AstoRepository;
-import com.artipie.nuget.Nuspec;
 import com.artipie.nuget.PackageId;
-import com.artipie.nuget.Version;
+import com.artipie.nuget.PackageIdentity;
 import com.artipie.nuget.Versions;
 import com.artipie.nuget.http.NuGet;
 import com.artipie.nuget.http.TestAuthentication;
 import com.artipie.nuget.http.TestPermissions;
+import com.artipie.nuget.metadata.Nuspec;
+import com.artipie.nuget.metadata.Version;
 import com.google.common.io.ByteSource;
 import io.reactivex.Flowable;
 import java.io.ByteArrayInputStream;
@@ -76,7 +78,7 @@ class NuGetPackageMetadataTest {
                 this.storage,
                 new PackageId("Newtonsoft.Json").versionsKey()
             );
-        new Nuspec(
+        final Nuspec.FromBytes nuspec = new Nuspec.FromBytes(
             ByteSource.wrap(
                 String.join(
                     "",
@@ -86,7 +88,11 @@ class NuGetPackageMetadataTest {
                     "</package>"
                 ).getBytes()
             )
-        ).save(this.storage);
+        );
+        this.storage.save(
+            new PackageIdentity(nuspec.id(), nuspec.version()).nuspecKey(),
+            new Content.From(nuspec.bytes())
+        ).join();
         final Response response = this.nuget.response(
             new RequestLine(
                 RqMethod.GET,

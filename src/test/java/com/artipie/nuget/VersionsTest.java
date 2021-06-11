@@ -9,6 +9,7 @@ import com.artipie.asto.Storage;
 import com.artipie.asto.blocking.BlockingStorage;
 import com.artipie.asto.ext.PublisherAs;
 import com.artipie.asto.memory.InMemoryStorage;
+import com.artipie.nuget.metadata.Version;
 import com.google.common.io.ByteSource;
 import java.io.ByteArrayInputStream;
 import java.util.Arrays;

@@ -3,7 +3,7 @@
  * https://github.com/nuget-adapter/artipie/LICENSE.txt
  */
 
-package com.artipie.nuget;
+package com.artipie.nuget.metadata;
 
 import java.util.Comparator;
 import java.util.Optional;
@@ -13,12 +13,13 @@ import java.util.regex.Pattern;
 /**
  * Version of package.
  * See <a href="https://docs.microsoft.com/en-us/nuget/concepts/package-versioning">Package versioning</a>.
+ * See <a href="https://docs.microsoft.com/en-us/nuget/concepts/package-versioning#normalized-version-numbers">Normalized version numbers</a>.
  * Comparison of version strings is implemented using SemVer 2.0.0's <a href="https://semver.org/spec/v2.0.0.html#spec-item-11">version precedence rules</a>.
  *
  * @since 0.1
  */
 @SuppressWarnings("PMD.TooManyMethods")
-public final class Version implements Comparable<Version> {
+public final class Version implements Comparable<Version>, NuspecField {
 
     /**
      * RegEx pattern for matching version string.
@@ -37,25 +38,25 @@ public final class Version implements Comparable<Version> {
     );
 
     /**
-     * Raw version string.
+     * Raw value of version tag.
      */
-    private final String raw;
+    private final String val;
 
     /**
      * Ctor.
      *
-     * @param raw Raw version string.
+     * @param raw Raw value of version tag.
      */
     public Version(final String raw) {
-        this.raw = raw;
+        this.val = raw;
     }
 
-    /**
-     * Get normalized version.
-     * See <a href="https://docs.microsoft.com/en-us/nuget/concepts/package-versioning#normalized-version-numbers">Normalized version numbers</a>.
-     *
-     * @return Normalized version string.
-     */
+    @Override
+    public String raw() {
+        return this.val;
+    }
+
+    @Override
     public String normalized() {
         final StringBuilder builder = new StringBuilder()
             .append(removeLeadingZeroes(this.major()))
@@ -91,7 +92,7 @@ public final class Version implements Comparable<Version> {
 
     @Override
     public String toString() {
-        return this.raw;
+        return this.val;
     }
 
     /**
@@ -159,10 +160,10 @@ public final class Version implements Comparable<Version> {
      * @return Matcher by pattern.
      */
     private Matcher matcher() {
-        final Matcher matcher = PATTERN.matcher(this.raw);
+        final Matcher matcher = PATTERN.matcher(this.val);
         if (!matcher.find()) {
             throw new IllegalStateException(
-                String.format("Unexpected version format: %s", this.raw)
+                String.format("Unexpected version format: %s", this.val)
             );
         }
         return matcher;

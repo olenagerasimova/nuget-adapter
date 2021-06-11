@@ -11,6 +11,7 @@ import com.artipie.asto.Key;
 import com.artipie.asto.Storage;
 import com.artipie.asto.blocking.BlockingStorage;
 import com.artipie.asto.memory.InMemoryStorage;
+import com.artipie.nuget.metadata.Version;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -184,7 +185,7 @@ class AstoRepositoryTest {
             ).getBytes()
         );
         MatcherAssert.assertThat(
-            this.repository.nuspec(identity).toCompletableFuture().join().packageId().lower(),
+            this.repository.nuspec(identity).toCompletableFuture().join().id().lower(),
             new IsEqual<>("usefullib")
         );
     }
