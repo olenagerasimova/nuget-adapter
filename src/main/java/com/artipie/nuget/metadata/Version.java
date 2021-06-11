@@ -52,7 +52,7 @@ public final class Version implements Comparable<Version>, NuspecField {
     }
 
     @Override
-    public String row() {
+    public String raw() {
         return this.raw;
     }
 

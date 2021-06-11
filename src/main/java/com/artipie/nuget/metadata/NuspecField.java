@@ -11,10 +11,10 @@ package com.artipie.nuget.metadata;
 public interface NuspecField {
 
     /**
-     * Original row value (as it was in xml).
+     * Original raw value (as it was in xml).
      * @return String value
      */
-    String row();
+    String raw();
 
     /**
      * Normalized value of the field.
