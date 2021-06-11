@@ -111,7 +111,7 @@ final class RegistrationPage {
                 .add(
                     "catalogEntry",
                     Json.createObjectBuilder()
-                        .add("id", nuspec.id().normalized())
+                        .add("id", nuspec.id().raw())
                         .add("version", nuspec.version().normalized())
                 )
                 .add("packageContent", this.content.url(identity).toString())
