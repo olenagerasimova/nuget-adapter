@@ -38,22 +38,22 @@ public final class Version implements Comparable<Version>, NuspecField {
     );
 
     /**
-     * Raw version string.
+     * Raw value of version tag.
      */
-    private final String raw;
+    private final String val;
 
     /**
      * Ctor.
      *
-     * @param raw Raw version string.
+     * @param raw Raw value of version tag.
      */
     public Version(final String raw) {
-        this.raw = raw;
+        this.val = raw;
     }
 
     @Override
     public String raw() {
-        return this.raw;
+        return this.val;
     }
 
     @Override
@@ -92,7 +92,7 @@ public final class Version implements Comparable<Version>, NuspecField {
 
     @Override
     public String toString() {
-        return this.raw;
+        return this.val;
     }
 
     /**
@@ -160,10 +160,10 @@ public final class Version implements Comparable<Version>, NuspecField {
      * @return Matcher by pattern.
      */
     private Matcher matcher() {
-        final Matcher matcher = PATTERN.matcher(this.raw);
+        final Matcher matcher = PATTERN.matcher(this.val);
         if (!matcher.find()) {
             throw new IllegalStateException(
-                String.format("Unexpected version format: %s", this.raw)
+                String.format("Unexpected version format: %s", this.val)
             );
         }
         return matcher;
