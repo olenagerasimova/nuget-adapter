@@ -4,6 +4,7 @@
  */
 package com.artipie.nuget;
 
+import com.artipie.nuget.metadata.Nuspec;
 import com.google.common.hash.Hashing;
 import com.google.common.io.ByteSource;
 import com.google.common.io.ByteStreams;
@@ -50,7 +51,9 @@ public final class Nupkg implements NuGetPackage {
                             "More then one .nuspec file found inside the package."
                         );
                     }
-                    nuspec = new Nuspec(ByteSource.wrap(ByteStreams.toByteArray(zipStream)));
+                    nuspec = new Nuspec.FromBytes(
+                        ByteSource.wrap(ByteStreams.toByteArray(zipStream))
+                    );
                 }
             }
         } catch (final IOException ex) {

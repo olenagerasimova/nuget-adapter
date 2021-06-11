@@ -6,6 +6,7 @@
 package com.artipie.nuget;
 
 import com.artipie.asto.Key;
+import com.artipie.nuget.metadata.NuspecField;
 
 /**
  * Package version identity.
@@ -22,7 +23,7 @@ public final class PackageIdentity {
     /**
      * Package version.
      */
-    private final Version version;
+    private final NuspecField version;
 
     /**
      * Ctor.
@@ -30,7 +31,7 @@ public final class PackageIdentity {
      * @param id Package identity.
      * @param version Package version.
      */
-    public PackageIdentity(final PackageId id, final Version version) {
+    public PackageIdentity(final PackageId id, final NuspecField version) {
         this.id = id;
         this.version = version;
     }

@@ -3,7 +3,7 @@
  * https://github.com/nuget-adapter/artipie/LICENSE.txt
  */
 
-package com.artipie.nuget;
+package com.artipie.nuget.metadata;
 
 import java.util.Comparator;
 import java.util.Optional;
@@ -13,12 +13,13 @@ import java.util.regex.Pattern;
 /**
  * Version of package.
  * See <a href="https://docs.microsoft.com/en-us/nuget/concepts/package-versioning">Package versioning</a>.
+ * See <a href="https://docs.microsoft.com/en-us/nuget/concepts/package-versioning#normalized-version-numbers">Normalized version numbers</a>.
  * Comparison of version strings is implemented using SemVer 2.0.0's <a href="https://semver.org/spec/v2.0.0.html#spec-item-11">version precedence rules</a>.
  *
  * @since 0.1
  */
 @SuppressWarnings("PMD.TooManyMethods")
-public final class Version implements Comparable<Version> {
+public final class Version implements Comparable<Version>, NuspecField {
 
     /**
      * RegEx pattern for matching version string.
@@ -50,12 +51,12 @@ public final class Version implements Comparable<Version> {
         this.raw = raw;
     }
 
-    /**
-     * Get normalized version.
-     * See <a href="https://docs.microsoft.com/en-us/nuget/concepts/package-versioning#normalized-version-numbers">Normalized version numbers</a>.
-     *
-     * @return Normalized version string.
-     */
+    @Override
+    public String row() {
+        return this.raw;
+    }
+
+    @Override
     public String normalized() {
         final StringBuilder builder = new StringBuilder()
             .append(removeLeadingZeroes(this.major()))

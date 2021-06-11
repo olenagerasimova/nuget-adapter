@@ -11,7 +11,7 @@ import com.artipie.nuget.AstoRepository;
 import com.artipie.nuget.PackageId;
 import com.artipie.nuget.PackageIdentity;
 import com.artipie.nuget.Repository;
-import com.artipie.nuget.Version;
+import com.artipie.nuget.metadata.Version;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Arrays;

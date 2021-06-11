@@ -5,6 +5,7 @@
 
 package com.artipie.nuget;
 
+import com.artipie.nuget.metadata.Version;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;

@@ -7,7 +7,7 @@ package com.artipie.nuget.http.metadata;
 import com.artipie.nuget.PackageId;
 import com.artipie.nuget.PackageIdentity;
 import com.artipie.nuget.Repository;
-import com.artipie.nuget.Version;
+import com.artipie.nuget.metadata.Version;
 import java.util.List;
 import java.util.concurrent.CompletionStage;
 import javax.json.Json;
@@ -112,7 +112,7 @@ final class RegistrationPage {
                 .add(
                     "catalogEntry",
                     Json.createObjectBuilder()
-                        .add("id", nuspec.packageId().original())
+                        .add("id", nuspec.id().original())
                         .add("version", nuspec.version().normalized())
                 )
                 .add("packageContent", this.content.url(identity).toString())
