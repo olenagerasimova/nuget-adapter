@@ -50,6 +50,7 @@ import org.junit.jupiter.api.Test;
  * @checkstyle MagicNumberCheck (500 lines)
  * @checkstyle IllegalCatchCheck (500 lines)
  * @checkstyle ExecutableStatementCountCheck (500 lines)
+ * @checkstyle ClassFanOutComplexityCheck (500 lines)
  */
 @SuppressWarnings({"PMD.TooManyMethods", "PMD.AvoidCatchingGenericException"})
 class AstoRepositoryTest {
