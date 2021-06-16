@@ -40,7 +40,7 @@ public interface Repository {
      * @param id Package identifier.
      * @return Versions of package.
      */
-    CompletionStage<Versions> versions(PackageKey id);
+    CompletionStage<Versions> versions(PackageKeys id);
 
     /**
      * Read package description in .nuspec format.

@@ -103,7 +103,7 @@ class AstoRepositoryTest {
             Matchers.equalTo(new NewtonJsonResource(nuspec).bytes())
         );
         MatcherAssert.assertThat(
-            this.versions(new PackageKey(id).versionsKey()),
+            this.versions(new PackageKeys(id).versionsKey()),
             Matchers.contains(version)
         );
         MatcherAssert.assertThat(
@@ -131,7 +131,7 @@ class AstoRepositoryTest {
     void shouldGetPackageVersions() throws Exception {
         final byte[] bytes = "{\"versions\":[\"1.0.0\",\"1.0.1\"]}"
             .getBytes(StandardCharsets.US_ASCII);
-        final PackageKey foo = new PackageKey("Foo");
+        final PackageKeys foo = new PackageKeys("Foo");
         this.storage.save(foo.versionsKey(), bytes);
         final Versions versions = this.repository.versions(foo).toCompletableFuture().join();
         final Key.From bar = new Key.From("bar");
@@ -145,7 +145,7 @@ class AstoRepositoryTest {
 
     @Test
     void shouldGetEmptyPackageVersionsWhenNonePresent() throws Exception {
-        final PackageKey pack = new PackageKey("MyLib");
+        final PackageKeys pack = new PackageKeys("MyLib");
         final Versions versions = this.repository.versions(pack).toCompletableFuture().join();
         final Key.From sink = new Key.From("sink");
         versions.save(this.asto, sink).toCompletableFuture().join();

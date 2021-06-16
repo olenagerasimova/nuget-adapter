@@ -10,16 +10,16 @@ import org.hamcrest.core.IsEqual;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests for {@link PackageKey}.
+ * Tests for {@link PackageKeys}.
  *
  * @since 0.1
  */
-public class PackageKeyTest {
+public class PackageKeysTest {
 
     @Test
     void shouldGenerateRootKey() {
         MatcherAssert.assertThat(
-            new PackageKey("Artipie.Module").rootKey().string(),
+            new PackageKeys("Artipie.Module").rootKey().string(),
             new IsEqual<>("artipie.module")
         );
     }
@@ -27,7 +27,7 @@ public class PackageKeyTest {
     @Test
     void shouldGenerateVersionsKey() {
         MatcherAssert.assertThat(
-            new PackageKey("Newtonsoft.Json").versionsKey().string(),
+            new PackageKeys("Newtonsoft.Json").versionsKey().string(),
             Matchers.is("newtonsoft.json/index.json")
         );
     }

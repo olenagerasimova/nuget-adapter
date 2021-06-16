@@ -14,7 +14,7 @@ import com.artipie.nuget.metadata.PackageId;
  *
  * @since 0.1
  */
-public final class PackageKey {
+public final class PackageKeys {
 
     /**
      * Package identifier string.
@@ -25,7 +25,7 @@ public final class PackageKey {
      * Ctor.
      * @param id Package id
      */
-    public PackageKey(final NuspecField id) {
+    public PackageKeys(final NuspecField id) {
         this.raw = id;
     }
 
@@ -34,7 +34,7 @@ public final class PackageKey {
      *
      * @param raw Raw package identifier string.
      */
-    public PackageKey(final String raw) {
+    public PackageKeys(final String raw) {
         this(new PackageId(raw));
     }
 

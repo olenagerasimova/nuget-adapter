@@ -9,7 +9,7 @@ import com.artipie.http.Response;
 import com.artipie.http.async.AsyncResponse;
 import com.artipie.http.rs.RsStatus;
 import com.artipie.http.rs.RsWithStatus;
-import com.artipie.nuget.PackageKey;
+import com.artipie.nuget.PackageKeys;
 import com.artipie.nuget.Repository;
 import com.artipie.nuget.Versions;
 import com.artipie.nuget.http.Resource;
@@ -112,18 +112,19 @@ class Registration implements Resource {
      * @return List of pages.
      */
     private CompletionStage<List<RegistrationPage>> pages() {
-        return this.repository.versions(new PackageKey(this.id)).thenApply(Versions::all).thenApply(
-            versions -> {
-                final List<RegistrationPage> pages;
-                if (versions.isEmpty()) {
-                    pages = Collections.emptyList();
-                } else {
-                    pages = Collections.singletonList(
-                        new RegistrationPage(this.repository, this.content, this.id, versions)
-                    );
+        return this.repository.versions(new PackageKeys(this.id)).thenApply(Versions::all)
+            .thenApply(
+                versions -> {
+                    final List<RegistrationPage> pages;
+                    if (versions.isEmpty()) {
+                        pages = Collections.emptyList();
+                    } else {
+                        pages = Collections.singletonList(
+                            new RegistrationPage(this.repository, this.content, this.id, versions)
+                        );
+                    }
+                    return pages;
                 }
-                return pages;
-            }
-        );
+            );
     }
 }
