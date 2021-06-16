@@ -8,6 +8,8 @@ package com.artipie.nuget;
 import com.artipie.asto.Storage;
 import com.artipie.asto.ext.PublisherAs;
 import com.artipie.asto.memory.InMemoryStorage;
+import com.artipie.nuget.metadata.Nuspec;
+import com.artipie.nuget.metadata.Version;
 import com.google.common.io.ByteSource;
 import java.nio.charset.StandardCharsets;
 import org.hamcrest.MatcherAssert;
@@ -62,8 +64,8 @@ class NupkgTest {
             ByteSource.wrap(new NewtonJsonResource(this.name).bytes())
         ).nuspec();
         MatcherAssert.assertThat(
-            nuspec.identity().nupkgKey().string(),
-            Matchers.is("newtonsoft.json/12.0.3/newtonsoft.json.12.0.3.nupkg")
+            nuspec.id().lower(),
+            Matchers.is("newtonsoft.json")
         );
     }
 }

@@ -9,6 +9,7 @@ import com.artipie.asto.Key;
 import com.artipie.asto.Storage;
 import com.artipie.asto.ext.PublisherAs;
 import com.artipie.asto.memory.InMemoryStorage;
+import com.artipie.nuget.metadata.Version;
 import com.google.common.hash.HashCode;
 import java.nio.charset.StandardCharsets;
 import org.hamcrest.MatcherAssert;

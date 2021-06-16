@@ -9,6 +9,7 @@ import com.artipie.asto.Content;
 import com.artipie.asto.Key;
 import com.artipie.asto.Storage;
 import com.artipie.asto.ext.PublisherAs;
+import com.artipie.nuget.metadata.Nuspec;
 import com.google.common.io.ByteSource;
 import java.io.UncheckedIOException;
 import java.util.Optional;
@@ -67,7 +68,7 @@ public final class AstoRepository implements Repository {
                         final PackageIdentity id;
                         try {
                             nuspec = nupkg.nuspec();
-                            id = nuspec.identity();
+                            id = new PackageIdentity(nuspec.id(), nuspec.version());
                         } catch (final UncheckedIOException | IllegalArgumentException ex) {
                             throw new InvalidPackageException(ex);
                         }
@@ -77,20 +78,24 @@ public final class AstoRepository implements Repository {
                                     throw new PackageVersionAlreadyExistsException(id.toString());
                                 }
                                 return this.storage.exclusively(
-                                    nuspec.packageId().rootKey(),
+                                    nuspec.id().rootKey(),
                                     target -> {
                                         final CompletionStage<Versions> versions;
-                                        versions = this.versions(nuspec.packageId());
+                                        versions = this.versions(nuspec.id());
                                         return CompletableFuture.allOf(
                                             target.move(key, id.nupkgKey()),
                                             nupkg.hash().save(target, id).toCompletableFuture(),
-                                            nuspec.save(target).toCompletableFuture()
+                                            this.storage.save(
+                                                new PackageIdentity(nuspec.id(), nuspec.version())
+                                                    .nuspecKey(),
+                                                new Content.From(nuspec.bytes())
+                                            )
                                         ).thenCompose(nothing -> versions).thenApply(
                                             vers -> vers.add(nuspec.version())
                                         ).thenCompose(
                                             vers -> vers.save(
                                                 target,
-                                                nuspec.packageId().versionsKey()
+                                                nuspec.id().versionsKey()
                                             )
                                         );
                                     }
@@ -134,7 +139,7 @@ public final class AstoRepository implements Repository {
                 return this.storage.value(identity.nuspecKey())
                     .thenApply(PublisherAs::new)
                     .thenCompose(PublisherAs::bytes)
-                    .thenApply(bytes -> new Nuspec(ByteSource.wrap(bytes)));
+                    .thenApply(bytes -> new Nuspec.FromBytes(ByteSource.wrap(bytes)));
             }
         );
     }

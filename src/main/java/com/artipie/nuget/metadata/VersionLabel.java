@@ -3,7 +3,7 @@
  * https://github.com/nuget-adapter/artipie/LICENSE.txt
  */
 
-package com.artipie.nuget;
+package com.artipie.nuget.metadata;
 
 import java.util.List;
 import java.util.OptionalInt;
