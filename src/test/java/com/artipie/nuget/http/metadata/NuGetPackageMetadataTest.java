@@ -24,7 +24,6 @@ import com.artipie.nuget.http.TestAuthentication;
 import com.artipie.nuget.http.TestPermissions;
 import com.artipie.nuget.metadata.Nuspec;
 import com.artipie.nuget.metadata.Version;
-import com.google.common.io.ByteSource;
 import io.reactivex.Flowable;
 import java.io.ByteArrayInputStream;
 import java.net.URL;
@@ -78,16 +77,14 @@ class NuGetPackageMetadataTest {
                 this.storage,
                 new PackageKeys("Newtonsoft.Json").versionsKey()
             );
-        final Nuspec.FromBytes nuspec = new Nuspec.FromBytes(
-            ByteSource.wrap(
-                String.join(
-                    "",
-                    "<?xml version=\"1.0\"?>",
-                    "<package xmlns=\"http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd\">",
-                    "<metadata><id>Newtonsoft.Json</id><version>12.0.3</version></metadata>",
-                    "</package>"
-                ).getBytes()
-            )
+        final Nuspec.Xml nuspec = new Nuspec.Xml(
+            String.join(
+                "",
+                "<?xml version=\"1.0\"?>",
+                "<package xmlns=\"http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd\">",
+                "<metadata><id>Newtonsoft.Json</id><version>12.0.3</version></metadata>",
+                "</package>"
+            ).getBytes()
         );
         this.storage.save(
             new PackageIdentity(nuspec.id(), nuspec.version()).nuspecKey(),
