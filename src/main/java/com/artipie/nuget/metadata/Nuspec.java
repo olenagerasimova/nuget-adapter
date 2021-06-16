@@ -4,15 +4,15 @@
  */
 package com.artipie.nuget.metadata;
 
+import com.artipie.ArtipieException;
 import com.artipie.asto.ArtipieIOException;
-import com.google.common.io.ByteSource;
 import com.jcabi.xml.XML;
 import com.jcabi.xml.XMLDocument;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.UncheckedIOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import org.apache.commons.io.IOUtils;
 
 /**
  * Package description in .nuspec format.
@@ -23,6 +23,7 @@ public interface Nuspec {
     /**
      * Package identifier: original case sensitive and lowercase.
      * @return Package id
+     * @throws ArtipieException If id field is not found
      * @checkstyle MethodNameCheck (3 lines)
      */
     @SuppressWarnings("PMD.ShortMethodName")
@@ -31,46 +32,65 @@ public interface Nuspec {
     /**
      * Package versions: original version field value or normalised.
      * @return Version of the package
+     * @throws ArtipieException If version field is not found
      */
     NuspecField version();
 
     /**
      * Package description.
      * @return Description
+     * @throws ArtipieException If description field is not found
      */
     String description();
 
     /**
      * Package authors.
      * @return Authors
+     * @throws ArtipieException If authors field is not found
      */
     String authors();
 
     /**
      * Nuspec file bytes.
      * @return Bytes
+     * @throws ArtipieIOException On OI error
      */
     byte[] bytes();
 
     /**
-     * Implementation of {@link Nuspec}, reads metadata from byte source.
+     * Implementation of {@link Nuspec}, reads fields values from byte xml source.
      *
      * @since 0.6
      */
-    final class FromBytes implements Nuspec {
+    final class Xml implements Nuspec {
+
+        /**
+         * Xml document.
+         */
+        private final XMLDocument content;
 
         /**
          * Binary content in .nuspec format.
          */
-        private final ByteSource content;
+        private final byte[] bytes;
 
         /**
          * Ctor.
          *
-         * @param content Binary content of in .nuspec format.
+         * @param bytes Binary content of in .nuspec format.
          */
-        public FromBytes(final ByteSource content) {
-            this.content = content;
+        public Xml(final byte[] bytes) {
+            this.bytes = bytes;
+            this.content = new XMLDocument(bytes);
+        }
+
+        /**
+         * Ctor.
+         * @param input Input stream with nuspec content
+         * @throws ArtipieIOException On IO error
+         */
+        public Xml(final InputStream input) {
+            this(Xml.read(input));
         }
 
         @Override
@@ -78,7 +98,7 @@ public interface Nuspec {
         public NuspecField id() {
             return new PackageId(
                 single(
-                    this.xml(), "/*[name()='package']/*[name()='metadata']/*[name()='id']/text()"
+                    this.content, "/*[name()='package']/*[name()='metadata']/*[name()='id']/text()"
                 )
             );
         }
@@ -86,7 +106,7 @@ public interface Nuspec {
         @Override
         public NuspecField version() {
             final String version = single(
-                this.xml(),
+                this.content,
                 "/*[name()='package']/*[name()='metadata']/*[name()='version']/text()"
             );
             return new Version(version);
@@ -95,7 +115,7 @@ public interface Nuspec {
         @Override
         public String description() {
             return single(
-                this.xml(),
+                this.content,
                 "/*[name()='package']/*[name()='metadata']/*[name()='description']/text()"
             );
         }
@@ -103,36 +123,19 @@ public interface Nuspec {
         @Override
         public String authors() {
             return single(
-                this.xml(),
+                this.content,
                 "/*[name()='package']/*[name()='metadata']/*[name()='authors']/text()"
             );
         }
 
         @Override
         public byte[] bytes() {
-            try {
-                return this.content.read();
-            } catch (final IOException ex) {
-                throw new ArtipieIOException(ex);
-            }
+            return this.bytes;
         }
 
         @Override
         public String toString() {
             return new String(this.bytes(), StandardCharsets.UTF_8);
-        }
-
-        /**
-         * Parse binary content as XML document.
-         *
-         * @return Content as XML document.
-         */
-        private XML xml() {
-            try {
-                return new XMLDocument(new ByteArrayInputStream(this.bytes()));
-            } catch (final IOException ex) {
-                throw new UncheckedIOException(ex);
-            }
         }
 
         /**
@@ -146,16 +149,33 @@ public interface Nuspec {
         private static String single(final XML xml, final String xpath) {
             final List<String> values = xml.xpath(xpath);
             if (values.isEmpty()) {
-                throw new IllegalArgumentException(
-                    String.format("No values found in path: '%s'", xpath)
+                throw new ArtipieException(
+                    new IllegalArgumentException(
+                        String.format("No values found in path: '%s'", xpath)
+                    )
                 );
             }
             if (values.size() > 1) {
-                throw new IllegalArgumentException(
-                    String.format("Multiple values found in path: '%s'", xpath)
+                throw new ArtipieException(
+                    new IllegalArgumentException(
+                        String.format("Multiple values found in path: '%s'", xpath)
+                    )
                 );
             }
             return values.get(0);
+        }
+
+        /**
+         * Read bytes from input stream.
+         * @param input Input to read from
+         * @return Bytes
+         */
+        private static byte[] read(final InputStream input) {
+            try {
+                return IOUtils.toByteArray(input);
+            } catch (final IOException err) {
+                throw new ArtipieIOException(err);
+            }
         }
     }
 }
