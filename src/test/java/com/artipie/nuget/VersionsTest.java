@@ -9,6 +9,7 @@ import com.artipie.asto.Storage;
 import com.artipie.asto.blocking.BlockingStorage;
 import com.artipie.asto.ext.PublisherAs;
 import com.artipie.asto.memory.InMemoryStorage;
+import com.artipie.nuget.metadata.NuspecField;
 import com.artipie.nuget.metadata.Version;
 import com.google.common.io.ByteSource;
 import java.io.ByteArrayInputStream;
@@ -78,7 +79,7 @@ class VersionsTest {
             ByteSource.wrap("{ \"versions\":[\"1.0.1\",\"0.1\",\"2.0\",\"1.0\"] }".getBytes())
         );
         MatcherAssert.assertThat(
-            versions.all().stream().map(Version::normalized).collect(Collectors.toList()),
+            versions.all().stream().map(NuspecField::normalized).collect(Collectors.toList()),
             new IsEqual<>(Arrays.asList("0.1", "1.0", "1.0.1", "2.0"))
         );
     }

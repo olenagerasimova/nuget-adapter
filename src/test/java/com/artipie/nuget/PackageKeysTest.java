@@ -10,25 +10,16 @@ import org.hamcrest.core.IsEqual;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests for {@link PackageId}.
+ * Tests for {@link PackageKeys}.
  *
  * @since 0.1
  */
-public class PackageIdTest {
-
-    @Test
-    void shouldPreserveOriginal() {
-        final String id = "Microsoft.Extensions.Logging";
-        MatcherAssert.assertThat(
-            new PackageId(id).original(),
-            Matchers.is(id)
-        );
-    }
+public class PackageKeysTest {
 
     @Test
     void shouldGenerateRootKey() {
         MatcherAssert.assertThat(
-            new PackageId("Artipie.Module").rootKey().string(),
+            new PackageKeys("Artipie.Module").rootKey().string(),
             new IsEqual<>("artipie.module")
         );
     }
@@ -36,16 +27,8 @@ public class PackageIdTest {
     @Test
     void shouldGenerateVersionsKey() {
         MatcherAssert.assertThat(
-            new PackageId("Newtonsoft.Json").versionsKey().string(),
+            new PackageKeys("Newtonsoft.Json").versionsKey().string(),
             Matchers.is("newtonsoft.json/index.json")
-        );
-    }
-
-    @Test
-    void shouldGenerateLower() {
-        MatcherAssert.assertThat(
-            new PackageId("My.Lib").lower(),
-            Matchers.is("my.lib")
         );
     }
 }

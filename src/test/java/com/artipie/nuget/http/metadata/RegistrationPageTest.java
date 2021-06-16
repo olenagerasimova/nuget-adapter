@@ -8,9 +8,10 @@ import com.artipie.asto.Storage;
 import com.artipie.asto.blocking.BlockingStorage;
 import com.artipie.asto.memory.InMemoryStorage;
 import com.artipie.nuget.AstoRepository;
-import com.artipie.nuget.PackageId;
 import com.artipie.nuget.PackageIdentity;
 import com.artipie.nuget.Repository;
+import com.artipie.nuget.metadata.NuspecField;
+import com.artipie.nuget.metadata.PackageId;
 import com.artipie.nuget.metadata.Version;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -45,10 +46,10 @@ class RegistrationPageTest {
         final PackageId id = new PackageId("My.Lib");
         final String lower = "0.1";
         final String upper = "0.2";
-        final List<Version> versions = Stream.of(lower, "0.1.2", upper)
+        final List<NuspecField> versions = Stream.of(lower, "0.1.2", upper)
             .map(Version::new)
             .collect(Collectors.toList());
-        for (final Version version : versions) {
+        for (final NuspecField version : versions) {
             new BlockingStorage(storage).save(
                 new PackageIdentity(id, version).nuspecKey(),
                 String.join(
@@ -56,7 +57,7 @@ class RegistrationPageTest {
                     "<?xml version=\"1.0\"?>",
                     "<package xmlns=\"http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd\">",
                     "<metadata>",
-                    String.format("<id>%s</id>", id.original()),
+                    String.format("<id>%s</id>", id.normalized()),
                     String.format("<version>%s</version>", version.normalized()),
                     "</metadata>",
                     "</package>"
@@ -107,14 +108,16 @@ class RegistrationPageTest {
         );
     }
 
-    private static Matcher<JsonObject> entryMatcher(final PackageId id, final Version version) {
+    private static Matcher<JsonObject> entryMatcher(
+        final NuspecField id, final NuspecField version
+    ) {
         return new AllOf<>(
             Arrays.asList(
                 new JsonHas(
                     "catalogEntry",
                     new AllOf<>(
                         Arrays.asList(
-                            new JsonHas("id", new JsonValueIs(id.original())),
+                            new JsonHas("id", new JsonValueIs(id.normalized())),
                             new JsonHas("version", new JsonValueIs(version.normalized()))
                         )
                     )

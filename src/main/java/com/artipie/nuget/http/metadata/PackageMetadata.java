@@ -4,11 +4,11 @@
  */
 package com.artipie.nuget.http.metadata;
 
-import com.artipie.nuget.PackageId;
 import com.artipie.nuget.Repository;
 import com.artipie.nuget.http.Absent;
 import com.artipie.nuget.http.Resource;
 import com.artipie.nuget.http.Route;
+import com.artipie.nuget.metadata.PackageId;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
