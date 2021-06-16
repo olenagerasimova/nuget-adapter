@@ -14,7 +14,7 @@ import org.cactoos.io.ResourceOf;
  *
  * @since 0.1
  */
-final class NewtonJsonResource {
+public final class NewtonJsonResource {
 
     /**
      * Resource name.
@@ -26,7 +26,7 @@ final class NewtonJsonResource {
      *
      * @param name Resource name.
      */
-    NewtonJsonResource(final String name) {
+    public NewtonJsonResource(final String name) {
         this.name = name;
     }
 
