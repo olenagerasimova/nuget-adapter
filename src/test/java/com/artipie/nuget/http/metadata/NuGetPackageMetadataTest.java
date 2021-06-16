@@ -16,8 +16,8 @@ import com.artipie.http.rq.RequestLine;
 import com.artipie.http.rq.RqMethod;
 import com.artipie.http.rs.RsStatus;
 import com.artipie.nuget.AstoRepository;
-import com.artipie.nuget.PackageId;
 import com.artipie.nuget.PackageIdentity;
+import com.artipie.nuget.PackageKeys;
 import com.artipie.nuget.Versions;
 import com.artipie.nuget.http.NuGet;
 import com.artipie.nuget.http.TestAuthentication;
@@ -76,7 +76,7 @@ class NuGetPackageMetadataTest {
             .add(new Version("12.0.3"))
             .save(
                 this.storage,
-                new PackageId("Newtonsoft.Json").versionsKey()
+                new PackageKeys("Newtonsoft.Json").versionsKey()
             );
         final Nuspec.FromBytes nuspec = new Nuspec.FromBytes(
             ByteSource.wrap(

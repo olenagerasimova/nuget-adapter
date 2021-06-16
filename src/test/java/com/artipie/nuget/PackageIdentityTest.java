@@ -5,6 +5,7 @@
 
 package com.artipie.nuget;
 
+import com.artipie.nuget.metadata.PackageId;
 import com.artipie.nuget.metadata.Version;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;

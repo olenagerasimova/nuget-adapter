@@ -1,6 +1,15 @@
 <img src="https://www.artipie.com/logo.svg" width="64px" height="64px"/>
 
+[![EO principles respected here](https://www.elegantobjects.org/badge.svg)](https://www.elegantobjects.org)
+[![DevOps By Rultor.com](http://www.rultor.com/b/artipie/nuget-adapter)](http://www.rultor.com/p/artipie/nuget-adapter)
+[![We recommend IntelliJ IDEA](https://www.elegantobjects.org/intellij-idea.svg)](https://www.jetbrains.com/idea/)
+
+[![Javadoc](http://www.javadoc.io/badge/com.artipie/nuget-adapter.svg)](http://www.javadoc.io/doc/com.artipie/nuget-adapter)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/com.artipie/nuget-adapter/blob/master/LICENSE.txt)
+[![codecov](https://codecov.io/gh/artipie/nuget-adapter/branch/master/graph/badge.svg)](https://codecov.io/gh/artipie/nuget-adapter)
+[![Hits-of-Code](https://hitsofcode.com/github/artipie/nuget-adapter)](https://hitsofcode.com/view/github/artipie/nuget-adapter)
+[![Maven Central](https://img.shields.io/maven-central/v/com.artipie/nuget-adapter.svg)](https://maven-badges.herokuapp.com/maven-central/com.artipie/nuget-adapter)
+[![PDD status](http://www.0pdd.com/svg?name=artipie/nuget-adapter)](http://www.0pdd.com/p?name=artipie/nuget-adapter)
 
 This Java library turns your binary [ASTO](https://github.com/artipie/asto) 
 storage into a NuGet repository.

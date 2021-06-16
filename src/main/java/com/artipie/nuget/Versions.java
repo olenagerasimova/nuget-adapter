@@ -94,7 +94,7 @@ public final class Versions {
      *
      * @return All versions sorted by natural order.
      */
-    public List<Version> all() {
+    public List<NuspecField> all() {
         return this.json()
             .getJsonArray(Versions.ARRAY)
             .getValuesAs(JsonString.class)

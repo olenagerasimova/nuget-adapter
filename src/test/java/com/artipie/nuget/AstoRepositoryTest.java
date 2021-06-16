@@ -11,6 +11,7 @@ import com.artipie.asto.Key;
 import com.artipie.asto.Storage;
 import com.artipie.asto.blocking.BlockingStorage;
 import com.artipie.asto.memory.InMemoryStorage;
+import com.artipie.nuget.metadata.PackageId;
 import com.artipie.nuget.metadata.Version;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
@@ -49,6 +50,7 @@ import org.junit.jupiter.api.Test;
  * @checkstyle MagicNumberCheck (500 lines)
  * @checkstyle IllegalCatchCheck (500 lines)
  * @checkstyle ExecutableStatementCountCheck (500 lines)
+ * @checkstyle ClassFanOutComplexityCheck (500 lines)
  */
 @SuppressWarnings({"PMD.TooManyMethods", "PMD.AvoidCatchingGenericException"})
 class AstoRepositoryTest {
@@ -101,7 +103,7 @@ class AstoRepositoryTest {
             Matchers.equalTo(new NewtonJsonResource(nuspec).bytes())
         );
         MatcherAssert.assertThat(
-            this.versions(id.versionsKey()),
+            this.versions(new PackageKeys(id).versionsKey()),
             Matchers.contains(version)
         );
         MatcherAssert.assertThat(
@@ -129,7 +131,7 @@ class AstoRepositoryTest {
     void shouldGetPackageVersions() throws Exception {
         final byte[] bytes = "{\"versions\":[\"1.0.0\",\"1.0.1\"]}"
             .getBytes(StandardCharsets.US_ASCII);
-        final PackageId foo = new PackageId("Foo");
+        final PackageKeys foo = new PackageKeys("Foo");
         this.storage.save(foo.versionsKey(), bytes);
         final Versions versions = this.repository.versions(foo).toCompletableFuture().join();
         final Key.From bar = new Key.From("bar");
@@ -143,7 +145,7 @@ class AstoRepositoryTest {
 
     @Test
     void shouldGetEmptyPackageVersionsWhenNonePresent() throws Exception {
-        final PackageId pack = new PackageId("MyLib");
+        final PackageKeys pack = new PackageKeys("MyLib");
         final Versions versions = this.repository.versions(pack).toCompletableFuture().join();
         final Key.From sink = new Key.From("sink");
         versions.save(this.asto, sink).toCompletableFuture().join();
@@ -185,7 +187,7 @@ class AstoRepositoryTest {
             ).getBytes()
         );
         MatcherAssert.assertThat(
-            this.repository.nuspec(identity).toCompletableFuture().join().id().lower(),
+            this.repository.nuspec(identity).toCompletableFuture().join().id().normalized(),
             new IsEqual<>("usefullib")
         );
     }

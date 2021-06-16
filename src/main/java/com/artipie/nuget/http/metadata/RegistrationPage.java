@@ -4,10 +4,9 @@
  */
 package com.artipie.nuget.http.metadata;
 
-import com.artipie.nuget.PackageId;
 import com.artipie.nuget.PackageIdentity;
 import com.artipie.nuget.Repository;
-import com.artipie.nuget.metadata.Version;
+import com.artipie.nuget.metadata.NuspecField;
 import java.util.List;
 import java.util.concurrent.CompletionStage;
 import javax.json.Json;
@@ -35,12 +34,12 @@ final class RegistrationPage {
     /**
      * Package identifier.
      */
-    private final PackageId id;
+    private final NuspecField id;
 
     /**
      * Ordered list of versions on this page from lowest to highest.
      */
-    private final List<Version> versions;
+    private final List<NuspecField> versions;
 
     /**
      * Ctor.
@@ -57,8 +56,8 @@ final class RegistrationPage {
     RegistrationPage(
         final Repository repository,
         final ContentLocation content,
-        final PackageId id,
-        final List<Version> versions
+        final NuspecField id,
+        final List<NuspecField> versions
     ) {
         this.repository = repository;
         this.content = content;
@@ -77,8 +76,8 @@ final class RegistrationPage {
                 String.format("Registration page contains no versions: '%s'", this.id)
             );
         }
-        final Version lower = this.versions.get(0);
-        final Version upper = this.versions.get(this.versions.size() - 1);
+        final NuspecField lower = this.versions.get(0);
+        final NuspecField upper = this.versions.get(this.versions.size() - 1);
         return new CompletionStages<>(
             this.versions.stream().map(
                 version -> this.leaf(new PackageIdentity(this.id, version))
@@ -112,7 +111,7 @@ final class RegistrationPage {
                 .add(
                     "catalogEntry",
                     Json.createObjectBuilder()
-                        .add("id", nuspec.id().original())
+                        .add("id", nuspec.id().raw())
                         .add("version", nuspec.version().normalized())
                 )
                 .add("packageContent", this.content.url(identity).toString())
