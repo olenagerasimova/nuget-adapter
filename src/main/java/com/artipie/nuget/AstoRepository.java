@@ -140,7 +140,7 @@ public final class AstoRepository implements Repository {
                 return this.storage.value(identity.nuspecKey())
                     .thenApply(PublisherAs::new)
                     .thenCompose(PublisherAs::bytes)
-                    .thenApply(Xml::new);
+                    .thenApply(Nuspec.Xml::new);
             }
         );
     }
