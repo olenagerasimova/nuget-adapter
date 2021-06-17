@@ -4,10 +4,11 @@
  */
 package com.artipie.nuget;
 
+import com.artipie.asto.ArtipieIOException;
 import com.artipie.nuget.metadata.Nuspec;
-import com.google.common.hash.Hashing;
 import com.google.common.io.ByteSource;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -23,7 +24,7 @@ public final class Nupkg implements NuGetPackage {
     /**
      * Binary content of package.
      */
-    private final ByteSource content;
+    private final InputStream content;
 
     /**
      * Ctor.
@@ -31,6 +32,15 @@ public final class Nupkg implements NuGetPackage {
      * @param content Binary content of package.
      */
     public Nupkg(final ByteSource content) {
+        this(Nupkg.fromByteSource(content));
+    }
+
+    /**
+     * Ctor.
+     *
+     * @param content Binary content of package.
+     */
+    public Nupkg(final InputStream content) {
         this.content = content;
     }
 
@@ -38,7 +48,7 @@ public final class Nupkg implements NuGetPackage {
     @SuppressWarnings("PMD.CyclomaticComplexity")
     public Nuspec nuspec() {
         Nuspec nuspec = null;
-        try (ZipInputStream zipStream = new ZipInputStream(this.content.openStream())) {
+        try (ZipInputStream zipStream = new ZipInputStream(this.content)) {
             while (true) {
                 final ZipEntry entry = zipStream.getNextEntry();
                 if (entry == null) {
@@ -62,12 +72,17 @@ public final class Nupkg implements NuGetPackage {
         return nuspec;
     }
 
-    @Override
-    public Hash hash() {
+    /**
+     * Open input stream from ByteSource.
+     * @param source Source
+     * @return Input stream
+     * @throws ArtipieIOException On IO error
+     */
+    private static InputStream fromByteSource(final ByteSource source) {
         try {
-            return new Hash(Hashing.sha512().hashBytes(this.content.read()));
-        } catch (final IOException ex) {
-            throw new UncheckedIOException(ex);
+            return source.openStream();
+        } catch (final IOException err) {
+            throw new ArtipieIOException(err);
         }
     }
 }
