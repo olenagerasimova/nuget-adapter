@@ -61,13 +61,13 @@ public final class AstoRepository implements Repository {
             saved -> this.storage.value(key)
                 .thenApply(PublisherAs::new)
                 .thenCompose(PublisherAs::bytes)
-                .thenApply(bytes -> new Nupkg(ByteSource.wrap(bytes)))
+                .thenApply(ByteSource::wrap)
                 .thenCompose(
-                    nupkg -> {
+                    source -> {
                         final Nuspec nuspec;
                         final PackageIdentity id;
                         try {
-                            nuspec = nupkg.nuspec();
+                            nuspec = new Nupkg(source).nuspec();
                             id = new PackageIdentity(nuspec.id(), nuspec.version());
                         } catch (final UncheckedIOException | IllegalArgumentException ex) {
                             throw new InvalidPackageException(ex);
@@ -85,7 +85,7 @@ public final class AstoRepository implements Repository {
                                         versions = this.versions(pkey);
                                         return CompletableFuture.allOf(
                                             target.move(key, id.nupkgKey()),
-                                            nupkg.hash().save(target, id).toCompletableFuture(),
+                                            new Hash(source).save(target, id).toCompletableFuture(),
                                             this.storage.save(
                                                 new PackageIdentity(nuspec.id(), nuspec.version())
                                                     .nuspecKey(),

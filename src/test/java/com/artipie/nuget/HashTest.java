@@ -11,8 +11,7 @@ import com.artipie.asto.ext.PublisherAs;
 import com.artipie.asto.memory.InMemoryStorage;
 import com.artipie.nuget.metadata.PackageId;
 import com.artipie.nuget.metadata.Version;
-import com.google.common.hash.HashCode;
-import java.nio.charset.StandardCharsets;
+import com.google.common.io.ByteSource;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
@@ -29,16 +28,17 @@ class HashTest {
         final String id = "abc";
         final String version = "0.0.1";
         final Storage storage = new InMemoryStorage();
-        new Hash(HashCode.fromString("0123456789abcdef")).save(
+        new Hash(ByteSource.wrap("abc123".getBytes())).save(
             storage,
             new PackageIdentity(new PackageId(id), new Version(version))
         ).toCompletableFuture().join();
         MatcherAssert.assertThat(
             storage.value(new Key.From(id, version, "abc.0.0.1.nupkg.sha512"))
                 .thenApply(PublisherAs::new)
-                .thenCompose(PublisherAs::bytes)
+                .thenCompose(PublisherAs::asciiString)
                 .toCompletableFuture().join(),
-            Matchers.equalTo("ASNFZ4mrze8=".getBytes(StandardCharsets.US_ASCII))
+            // @checkstyle LineLength (1 lines)
+            Matchers.equalTo("xwtd2ev7b1HQnUEytxcMnSB1CnhS8AaA9lZY8DEOgQBW5nY8NMmgCw6UAHb1RJXBafwjAszrMSA5JxxDRpUH3A==")
         );
     }
 }

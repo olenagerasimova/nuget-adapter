@@ -15,13 +15,6 @@ import com.artipie.nuget.metadata.Nuspec;
 public interface NuGetPackage {
 
     /**
-     * Calculates hash of package binary content using SHA512 algorithm encoded in Base64.
-     *
-     * @return Package hash.
-     */
-    Hash hash();
-
-    /**
      * Extract package description in .nuspec format.
      *
      * @return Package description.
