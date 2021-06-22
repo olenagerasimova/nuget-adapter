@@ -7,22 +7,24 @@ package com.artipie.nuget;
 
 import com.artipie.asto.Storage;
 import com.artipie.asto.fs.FileStorage;
-import com.google.common.collect.ImmutableList;
 import com.jcabi.log.Logger;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.testcontainers.containers.Container;
+import org.testcontainers.containers.GenericContainer;
 
 /**
  * Integration test for NuGet repository.
  *
  * @since 0.5
  */
+@SuppressWarnings("PMD.AvoidDuplicateLiterals")
 class AstoRepositoryIT {
 
     // @checkstyle VisibilityModifierCheck (5 lines)
@@ -37,9 +39,19 @@ class AstoRepositoryIT {
      */
     private Path repo;
 
+    /**
+     * Container.
+     */
+    private GenericContainer<?> cntn;
+
     @BeforeEach
     void setUp() {
         this.repo = this.temp.resolve("repo");
+        this.cntn = new GenericContainer<>("centeredge/nuget")
+            .withCommand("tail", "-f", "/dev/null")
+            .withWorkingDirectory("/home/")
+            .withFileSystemBind(this.temp.toString(), "/home");
+        this.cntn.start();
     }
 
     @Test
@@ -47,9 +59,8 @@ class AstoRepositoryIT {
         this.addPackage();
         MatcherAssert.assertThat(
             run(
-                "install",
-                "newtonsoft.json", "-Version", "12.0.3",
-                "-NoCache"
+                "nuget", "install", "newtonsoft.json", "-Version", "12.0.3", "-NoCache",
+                "-Source", "/home/repo"
             ),
             Matchers.containsString("Successfully installed 'newtonsoft.json 12.0.3'")
         );
@@ -59,13 +70,14 @@ class AstoRepositoryIT {
     void shouldListAddedPackage() throws Exception {
         this.addPackage();
         MatcherAssert.assertThat(
-            run(
-                "list",
-                "Newtonsoft.Json",
-                "-AllVersions"
-            ),
+            run("nuget", "list", "Newtonsoft.Json", "-AllVersions", "-Source", "/home/repo"),
             Matchers.containsString("Newtonsoft.Json 12.0.3")
         );
+    }
+
+    @AfterEach
+    void clear() {
+        this.cntn.stop();
     }
 
     private void addPackage() throws Exception {
@@ -77,24 +89,8 @@ class AstoRepositoryIT {
     }
 
     private String run(final String... args) throws IOException, InterruptedException {
-        final Path stdout = this.temp.resolve("stdout.txt");
-        final Path project = this.temp.resolve("project");
-        Files.createDirectory(project);
-        new ProcessBuilder()
-            .directory(project.toFile())
-            .command(
-                ImmutableList.<String>builder()
-                    .add("nuget")
-                    .add(args)
-                    .add("-Source", this.repo.toString())
-                    .build()
-            )
-            .redirectOutput(stdout.toFile())
-            .redirectErrorStream(true)
-            .start()
-            .waitFor();
-        final String log = new String(Files.readAllBytes(stdout));
-        Logger.debug(this, "Full stdout/stderr:\n%s", log);
-        return log;
+        final Container.ExecResult res = this.cntn.execInContainer(args);
+        Logger.debug(this, "Full stdout/stderr:\n%s", res.toString());
+        return res.toString();
     }
 }
