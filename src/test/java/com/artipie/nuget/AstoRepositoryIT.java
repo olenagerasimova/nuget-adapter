@@ -10,6 +10,7 @@ import com.artipie.asto.fs.FileStorage;
 import com.jcabi.log.Logger;
 import java.io.IOException;
 import java.nio.file.Path;
+import org.apache.commons.io.FileUtils;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.AfterEach;
@@ -78,6 +79,7 @@ class AstoRepositoryIT {
     @AfterEach
     void clear() {
         this.cntn.stop();
+        FileUtils.deleteQuietly(this.repo.toFile());
     }
 
     private void addPackage() throws Exception {
