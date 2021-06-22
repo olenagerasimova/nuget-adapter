@@ -77,9 +77,9 @@ class AstoRepositoryIT {
     }
 
     @AfterEach
-    void clear() {
+    void clear() throws IOException, InterruptedException {
+        this.cntn.execInContainer("rm", "/home/*");
         this.cntn.stop();
-        FileUtils.deleteQuietly(this.repo.toFile());
     }
 
     private void addPackage() throws Exception {
