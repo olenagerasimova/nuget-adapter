@@ -9,6 +9,7 @@ import com.artipie.asto.Storage;
 import com.artipie.asto.fs.FileStorage;
 import com.jcabi.log.Logger;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import org.apache.commons.io.FileUtils;
 import org.hamcrest.MatcherAssert;
@@ -16,7 +17,6 @@ import org.hamcrest.Matchers;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 import org.testcontainers.containers.Container;
 import org.testcontainers.containers.GenericContainer;
 
@@ -28,12 +28,10 @@ import org.testcontainers.containers.GenericContainer;
 @SuppressWarnings("PMD.AvoidDuplicateLiterals")
 class AstoRepositoryIT {
 
-    // @checkstyle VisibilityModifierCheck (5 lines)
     /**
      * Temporary directory.
      */
-    @TempDir
-    Path temp;
+    private Path temp;
 
     /**
      * Path to NuGet repository directory.
@@ -46,7 +44,8 @@ class AstoRepositoryIT {
     private GenericContainer<?> cntn;
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws IOException {
+        this.temp = Files.createTempDirectory("asto-repo-test");
         this.repo = this.temp.resolve("repo");
         this.cntn = new GenericContainer<>("centeredge/nuget")
             .withCommand("tail", "-f", "/dev/null")
@@ -77,9 +76,9 @@ class AstoRepositoryIT {
     }
 
     @AfterEach
-    void clear() throws IOException, InterruptedException {
+    void clear() throws IOException {
         this.cntn.stop();
-        FileUtils.deleteQuietly(this.temp.toFile());
+        FileUtils.forceDelete(this.temp.toFile());
     }
 
     private void addPackage() throws Exception {
