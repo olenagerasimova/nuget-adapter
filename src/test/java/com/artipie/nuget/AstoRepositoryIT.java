@@ -78,8 +78,8 @@ class AstoRepositoryIT {
 
     @AfterEach
     void clear() throws IOException, InterruptedException {
-        this.cntn.execInContainer("rm", "/home/*");
         this.cntn.stop();
+        FileUtils.deleteQuietly(this.temp.toFile());
     }
 
     private void addPackage() throws Exception {
