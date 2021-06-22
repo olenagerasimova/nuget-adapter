@@ -5,14 +5,8 @@
 
 package com.artipie.nuget;
 
-import com.artipie.asto.Storage;
-import com.artipie.asto.ext.PublisherAs;
-import com.artipie.asto.memory.InMemoryStorage;
 import com.artipie.nuget.metadata.Nuspec;
-import com.artipie.nuget.metadata.PackageId;
-import com.artipie.nuget.metadata.Version;
 import com.google.common.io.ByteSource;
-import java.nio.charset.StandardCharsets;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,29 +28,6 @@ class NupkgTest {
     @BeforeEach
     void init() {
         this.name = "newtonsoft.json.12.0.3.nupkg";
-    }
-
-    @Test
-    void shouldCalculateHash() {
-        final Storage storage = new InMemoryStorage();
-        final PackageIdentity identity = new PackageIdentity(
-            new PackageId("foo"),
-            new Version("1.0.0")
-        );
-        new Nupkg(ByteSource.wrap("test data".getBytes(StandardCharsets.UTF_8)))
-            .hash()
-            .save(storage, identity)
-            .toCompletableFuture().join();
-        MatcherAssert.assertThat(
-            storage.value(identity.hashKey())
-                .thenApply(PublisherAs::new)
-                .thenCompose(PublisherAs::asciiString)
-                .toCompletableFuture().join(),
-            Matchers.equalTo(
-                // @checkstyle LineLength (1 lines)
-                "Dh4h7PEF7IU9JNcohnrXBhPCFmOkaTB0sqNhnBvTnWa1iMM3I7tGbHJCToDjymPCSQeKs0e6uUKFAOfuQwWdDQ=="
-            )
-        );
     }
 
     @Test
