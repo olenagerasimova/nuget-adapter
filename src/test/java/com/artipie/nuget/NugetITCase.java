@@ -72,7 +72,7 @@ class NugetITCase {
             port
         );
         this.server.start();
-        this.cntn = new GenericContainer<>("centeredge/nuget")
+        this.cntn = new GenericContainer<>("centeredge/nuget:5")
             .withCommand("tail", "-f", "/dev/null")
             .withWorkingDirectory("/home/");
         Testcontainers.exposeHostPorts(port);
