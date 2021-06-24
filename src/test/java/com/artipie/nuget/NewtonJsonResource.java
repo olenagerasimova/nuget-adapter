@@ -6,8 +6,7 @@
 package com.artipie.nuget;
 
 import com.artipie.asto.Content;
-import com.google.common.io.ByteStreams;
-import org.cactoos.io.ResourceOf;
+import com.artipie.asto.test.TestResource;
 
 /**
  * Newton.Json package resource.
@@ -34,9 +33,8 @@ public final class NewtonJsonResource {
      * Reads binary data.
      *
      * @return Binary data.
-     * @throws Exception In case exception occurred on reading resource content.
      */
-    public Content content() throws Exception {
+    public Content content() {
         return new Content.From(this.bytes());
     }
 
@@ -44,11 +42,8 @@ public final class NewtonJsonResource {
      * Reads binary data.
      *
      * @return Binary data.
-     * @throws Exception In case exception occurred on reading resource content.
      */
-    public byte[] bytes() throws Exception {
-        return ByteStreams.toByteArray(
-            new ResourceOf(String.format("newtonsoft.json/12.0.3/%s", this.name)).stream()
-        );
+    public byte[] bytes() {
+        return new TestResource(String.format("newtonsoft.json/12.0.3/%s", this.name)).asBytes();
     }
 }
