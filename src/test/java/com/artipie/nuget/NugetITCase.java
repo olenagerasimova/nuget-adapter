@@ -23,6 +23,8 @@ import org.hamcrest.core.StringContains;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 import org.testcontainers.Testcontainers;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.images.builder.Transferable;
@@ -35,6 +37,7 @@ import org.testcontainers.images.builder.Transferable;
  * @since 0.1
  * @checkstyle ClassDataAbstractionCouplingCheck (2 lines)
  */
+@DisabledOnOs(OS.WINDOWS)
 @SuppressWarnings("PMD.AvoidDuplicateLiterals")
 class NugetITCase {
 
