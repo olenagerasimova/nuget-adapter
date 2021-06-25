@@ -6,6 +6,7 @@ package com.artipie.nuget.metadata;
 
 import com.artipie.nuget.NewtonJsonResource;
 import org.hamcrest.MatcherAssert;
+import org.hamcrest.Matchers;
 import org.hamcrest.core.IsEqual;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -85,6 +86,28 @@ class NuspecTest {
             new Nuspec.Xml(new NewtonJsonResource("newtonsoft.json.nuspec").bytes())
                 .fieldByName(OptFieldName.RELEASE_NOTES).isPresent(),
             new IsEqual<>(false)
+        );
+    }
+
+    @Test
+    void returnsDependencies() {
+        MatcherAssert.assertThat(
+            new Nuspec.Xml(new NewtonJsonResource("newtonsoft.json.nuspec").bytes())
+                .dependencies(),
+            Matchers.containsInAnyOrder(
+                "::.NETFramework2.0", "::.NETFramework3.5", "::.NETFramework4.0",
+                "::.NETFramework4.5", "::.NETPortable0.0-Profile259",
+                "::.NETPortable0.0-Profile328", "Microsoft.CSharp:4.3.0:.NETStandard1.0",
+                "NETStandard.Library:1.6.1:.NETStandard1.0",
+                "System.ComponentModel.TypeConverter:4.3.0:.NETStandard1.0",
+                "System.Runtime.Serialization.Primitives:4.3.0:.NETStandard1.0",
+                "Microsoft.CSharp:4.3.0:.NETStandard1.3",
+                "NETStandard.Library:1.6.1:.NETStandard1.3",
+                "System.ComponentModel.TypeConverter:4.3.0:.NETStandard1.3",
+                "System.Runtime.Serialization.Formatters:4.3.0:.NETStandard1.3",
+                "System.Runtime.Serialization.Primitives:4.3.0:.NETStandard1.3",
+                "System.Xml.XmlDocument:4.3.0:.NETStandard1.3", "::.NETStandard2.0"
+            )
         );
     }
 
