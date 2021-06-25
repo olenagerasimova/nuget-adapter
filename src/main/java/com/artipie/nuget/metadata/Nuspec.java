@@ -11,9 +11,12 @@ import com.jcabi.xml.XMLDocument;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import org.apache.commons.io.IOUtils;
+import org.w3c.dom.Node;
 
 /**
  * Package description in .nuspec format.
@@ -57,6 +60,15 @@ public interface Nuspec {
      * @return Optional with value is found
      */
     Optional<String> fieldByName(OptFieldName name);
+
+    /**
+     * List of the dependencies formatted as
+     * <code>dependency_id:dependency_version:group_targetFramework</code>
+     * For more details about format please check
+     * <a href="https://docs.microsoft.com/en-us/nuget/reference/nuspec#dependency-groups">docs</a>.
+     * @return Dependencies list
+     */
+    Collection<String> dependencies();
 
     /**
      * Nuspec file bytes.
@@ -146,6 +158,37 @@ public interface Nuspec {
             Optional<String> res = Optional.empty();
             if (!values.isEmpty()) {
                 res = Optional.of(values.get(0));
+            }
+            return res;
+        }
+
+        @Override
+        public Collection<String> dependencies() {
+            final List<XML> deps = this.content.nodes(
+                "/*[name()='package']/*[name()='metadata']/*[name()='dependencies']"
+            );
+            final Collection<String> res = new ArrayList<>(10);
+            if (!deps.isEmpty()) {
+                //@checkstyle LineLengthCheck (1 line)
+                final List<XML> groups = this.content.nodes("/*[name()='package']/*[name()='metadata']/*[name()='dependencies']/*[name()='group']");
+                for (final XML group : groups) {
+                    final String trf = Optional.ofNullable(
+                        group.node().getAttributes().getNamedItem("targetFramework")
+                    ).map(Node::getNodeValue).orElse("");
+                    //@checkstyle LineLengthCheck (1 line)
+                    final List<XML> nodes = this.content.nodes(String.format("/*[name()='package']/*[name()='metadata']/*[name()='dependencies']/*[name()='group' and @targetFramework='%s']/*[name()='dependency']", trf));
+                    if (nodes.isEmpty()) {
+                        res.add(String.format("::%s", trf));
+                    } else {
+                        for (final XML dep : nodes) {
+                            final String id = dep.node().getAttributes().getNamedItem("id")
+                                .getNodeValue();
+                            final String version = dep.node().getAttributes()
+                                .getNamedItem("version").getNodeValue();
+                            res.add(String.format("%s:%s:%s", id, version, trf));
+                        }
+                    }
+                }
             }
             return res;
         }
