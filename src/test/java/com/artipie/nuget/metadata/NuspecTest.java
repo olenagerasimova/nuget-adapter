@@ -4,6 +4,7 @@
  */
 package com.artipie.nuget.metadata;
 
+import com.artipie.asto.test.TestResource;
 import com.artipie.nuget.NewtonJsonResource;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
@@ -107,6 +108,17 @@ class NuspecTest {
                 "System.Runtime.Serialization.Formatters:4.3.0:.NETStandard1.3",
                 "System.Runtime.Serialization.Primitives:4.3.0:.NETStandard1.3",
                 "System.Xml.XmlDocument:4.3.0:.NETStandard1.3", "::.NETStandard2.0"
+            )
+        );
+    }
+
+    @Test
+    void readsDependenciesInAllPossibleFormats() {
+        MatcherAssert.assertThat(
+            new Nuspec.Xml(new TestResource("deps-format.nuspec").asBytes()).dependencies(),
+            Matchers.containsInAnyOrder(
+                "RouteMagic:1.1.0:", "jQuery:1.6.2:.NETFramework4.7.2",
+                "WebActivator:1.4.4:.NETFramework4.7.2", "::netcoreapp3.1"
             )
         );
     }
