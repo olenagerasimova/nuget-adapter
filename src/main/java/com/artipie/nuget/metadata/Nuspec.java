@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Optional;
 import org.apache.commons.io.IOUtils;
 import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 /**
  * Package description in .nuspec format.
@@ -172,21 +173,26 @@ public interface Nuspec {
                 //@checkstyle LineLengthCheck (1 line)
                 final List<XML> groups = this.content.nodes("/*[name()='package']/*[name()='metadata']/*[name()='dependencies']/*[name()='group']");
                 for (final XML group : groups) {
-                    final String trf = Optional.ofNullable(
+                    final String tfv = Optional.ofNullable(
                         group.node().getAttributes().getNamedItem("targetFramework")
                     ).map(Node::getNodeValue).orElse("");
-                    //@checkstyle LineLengthCheck (1 line)
-                    final List<XML> nodes = this.content.nodes(String.format("/*[name()='package']/*[name()='metadata']/*[name()='dependencies']/*[name()='group' and @targetFramework='%s']/*[name()='dependency']", trf));
-                    if (nodes.isEmpty()) {
-                        res.add(String.format("::%s", trf));
-                    } else {
-                        for (final XML dep : nodes) {
-                            final String id = dep.node().getAttributes().getNamedItem("id")
-                                .getNodeValue();
-                            final String version = dep.node().getAttributes()
-                                .getNamedItem("version").getNodeValue();
-                            res.add(String.format("%s:%s:%s", id, version, trf));
+                    final NodeList list = group.node().getChildNodes();
+                    boolean empty = true;
+                    for (int cnt = 0; cnt < list.getLength(); cnt = cnt + 1) {
+                        final Node item = list.item(cnt);
+                        if ("dependency".equals(item.getLocalName())) {
+                            empty = false;
+                            final String id = Optional.ofNullable(
+                                item.getAttributes().getNamedItem("id")
+                            ).map(Node::getNodeValue).orElse("");
+                            final String version = Optional.ofNullable(
+                                item.getAttributes().getNamedItem("version")
+                            ).map(Node::getNodeValue).orElse("");
+                            res.add(String.format("%s:%s:%s", id, version, tfv));
                         }
+                    }
+                    if (empty) {
+                        res.add(String.format("::%s", tfv));
                     }
                 }
             }
