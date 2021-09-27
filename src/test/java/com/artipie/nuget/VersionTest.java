@@ -11,6 +11,7 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
+import org.hamcrest.core.IsEqual;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -109,6 +110,39 @@ class VersionTest {
     void shouldNotNormalize(final String original) {
         final Version version = new Version(original);
         Assertions.assertThrows(RuntimeException.class, version::normalized);
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+        "1.0,false",
+        "1.2.3-beta,false",
+        "1.2.3-alfa.1,true",
+        "1.1.2-prerelease+meta,true",
+        "1.1.2-prerelease.2+meta,true",
+        "1.1.2+meta,true",
+        "1.2.3-SNAPSHOT-123,false"
+    })
+    void definesSemVerTwoVersions(final String ver, final boolean res) {
+        MatcherAssert.assertThat(
+            new Version(ver).isSemVerTwo(),
+            new IsEqual<>(res)
+        );
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+        "1.0,false",
+        "1.2.3-beta,true",
+        "1.2.3-alpha.1,true",
+        "1.1.2-alpha+meta,true",
+        "1.1.2+meta,false",
+        "1.2.3-SNAPSHOT-123,true"
+    })
+    void definesPreReleaseVersions(final String ver, final boolean res) {
+        MatcherAssert.assertThat(
+            new Version(ver).isPrerelease(),
+            new IsEqual<>(res)
+        );
     }
 
     @ParameterizedTest
