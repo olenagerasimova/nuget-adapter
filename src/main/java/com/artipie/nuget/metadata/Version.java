@@ -96,6 +96,27 @@ public final class Version implements Comparable<Version>, NuspecField {
     }
 
     /**
+     * Is the version compliant to sem ver 2.0.0? Returns true if either of the following
+     * statements is true:
+     * a) The pre-release label is dot-separated, for example, 1.0.0-alpha.1
+     * b) The version has build-metadata, for example, 1.0.0+githash
+     * Based on the NuGet <a href="https://docs.microsoft.com/en-us/nuget/concepts/package-versioning#semantic-versioning-200">documentation</a>.
+     * @return True if version is sem ver 2.0.0
+     */
+    public boolean isSemVerTwo() {
+        return this.metadata().isPresent()
+            || this.label().map(lbl -> lbl.contains(".")).orElse(false);
+    }
+
+    /**
+     * Is this a pre-pelease version?
+     * @return True if contains pre-release label
+     */
+    public boolean isPrerelease() {
+        return this.label().isPresent();
+    }
+
+    /**
      * Major version.
      *
      * @return String representation of major version.
@@ -142,6 +163,15 @@ public final class Version implements Comparable<Version>, NuspecField {
      */
     private Optional<String> label() {
         return this.group("label");
+    }
+
+    /**
+     * Metadata part of version.
+     *
+     * @return Metadata part of version, none if absent.
+     */
+    private Optional<String> metadata() {
+        return this.group("metadata");
     }
 
     /**
