@@ -13,8 +13,10 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.apache.commons.io.IOUtils;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -79,7 +81,7 @@ public interface Nuspec {
      * <a href="https://docs.microsoft.com/en-us/nuget/reference/nuspec#packagetypes">docs</a>.
      * @return Dependencies list
      */
-    Collection<String> packageTypes();
+    Set<String> packageTypes();
 
     /**
      * Nuspec file bytes.
@@ -215,11 +217,11 @@ public interface Nuspec {
         }
 
         @Override
-        public Collection<String> packageTypes() {
+        public Set<String> packageTypes() {
             final List<XML> root = this.content.nodes(
                 "/*[name()='package']/*[name()='metadata']/*[name()='packageTypes']"
             );
-            final Collection<String> res = new ArrayList<>(10);
+            final Set<String> res = new HashSet<>(1);
             if (!root.isEmpty()) {
                 //@checkstyle LineLengthCheck (1 line)
                 final List<XML> types = this.content.nodes("/*[name()='package']/*[name()='metadata']/*[name()='packageTypes']/*[name()='packageType']");
