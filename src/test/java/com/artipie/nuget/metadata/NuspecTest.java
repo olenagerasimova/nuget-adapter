@@ -17,7 +17,7 @@ import org.junit.jupiter.params.provider.CsvSource;
  * Test for {@link Nuspec.Xml}.
  * @since 0.6
  */
-@SuppressWarnings("PMD.AvoidDuplicateLiterals")
+@SuppressWarnings({"PMD.AvoidDuplicateLiterals", "PMD.TooManyMethods"})
 class NuspecTest {
 
     @Test
@@ -120,6 +120,23 @@ class NuspecTest {
                 "RouteMagic:1.1.0:", "jQuery:1.6.2:.NETFramework4.7.2",
                 "WebActivator:1.4.4:.NETFramework4.7.2", "::netcoreapp3.1"
             )
+        );
+    }
+
+    @Test
+    void returnsEmptyWhenPackageTypesAreAbsent() {
+        MatcherAssert.assertThat(
+            new Nuspec.Xml(new NewtonJsonResource("newtonsoft.json.nuspec").bytes())
+                .packageTypes(),
+            Matchers.emptyIterable()
+        );
+    }
+
+    @Test
+    void readsPackagesTypes() {
+        MatcherAssert.assertThat(
+            new Nuspec.Xml(new TestResource("types-format.nuspec").asBytes()).packageTypes(),
+            Matchers.containsInAnyOrder("PackageType1:1.0.0.0", "PackageType2:")
         );
     }
 
