@@ -13,8 +13,10 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.apache.commons.io.IOUtils;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -23,6 +25,7 @@ import org.w3c.dom.NodeList;
  * Package description in .nuspec format.
  * @since 0.6
  */
+@SuppressWarnings("PMD.TooManyMethods")
 public interface Nuspec {
 
     /**
@@ -72,6 +75,15 @@ public interface Nuspec {
     Collection<String> dependencies();
 
     /**
+     * List of the package types formatted as
+     * <code>type_name:version</code>
+     * For more details about format please check
+     * <a href="https://docs.microsoft.com/en-us/nuget/reference/nuspec#packagetypes">docs</a>.
+     * @return Dependencies list
+     */
+    Set<String> packageTypes();
+
+    /**
      * Nuspec file bytes.
      * @return Bytes
      * @throws ArtipieIOException On OI error
@@ -84,6 +96,11 @@ public interface Nuspec {
      * @since 0.6
      */
     final class Xml implements Nuspec {
+
+        /**
+         * Xml tag name `version`.
+         */
+        private static final String VRSN = "version";
 
         /**
          * Xml document.
@@ -186,7 +203,7 @@ public interface Nuspec {
                                 item.getAttributes().getNamedItem("id")
                             ).map(Node::getNodeValue).orElse("");
                             final String version = Optional.ofNullable(
-                                item.getAttributes().getNamedItem("version")
+                                item.getAttributes().getNamedItem(Xml.VRSN)
                             ).map(Node::getNodeValue).orElse("");
                             res.add(String.format("%s:%s:%s", id, version, tfv));
                         }
@@ -194,6 +211,30 @@ public interface Nuspec {
                     if (empty) {
                         res.add(String.format("::%s", tfv));
                     }
+                }
+            }
+            return res;
+        }
+
+        @Override
+        public Set<String> packageTypes() {
+            final List<XML> root = this.content.nodes(
+                "/*[name()='package']/*[name()='metadata']/*[name()='packageTypes']"
+            );
+            final Set<String> res = new HashSet<>(1);
+            if (!root.isEmpty()) {
+                //@checkstyle LineLengthCheck (1 line)
+                final List<XML> types = this.content.nodes("/*[name()='package']/*[name()='metadata']/*[name()='packageTypes']/*[name()='packageType']");
+                for (final XML type : types) {
+                    res.add(
+                        String.format(
+                            "%s:%s",
+                            type.node().getAttributes().getNamedItem("name").getNodeValue(),
+                            Optional.ofNullable(
+                                type.node().getAttributes().getNamedItem(Xml.VRSN)
+                            ).map(Node::getNodeValue).orElse("")
+                        )
+                    );
                 }
             }
             return res;
