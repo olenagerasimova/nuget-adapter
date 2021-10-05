@@ -9,9 +9,9 @@ import com.artipie.asto.Content;
 import com.artipie.asto.Key;
 import com.artipie.asto.Storage;
 import com.artipie.asto.ext.PublisherAs;
+import com.artipie.asto.streams.ContentAsStream;
 import com.artipie.nuget.metadata.Nuspec;
 import com.google.common.io.ByteSource;
-import java.io.UncheckedIOException;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -59,19 +59,14 @@ public final class AstoRepository implements Repository {
         final Key key = new Key.From(UUID.randomUUID().toString());
         return this.storage.save(key, content).thenCompose(
             saved -> this.storage.value(key)
-                .thenApply(PublisherAs::new)
-                .thenCompose(PublisherAs::bytes)
-                .thenApply(ByteSource::wrap)
                 .thenCompose(
-                    source -> {
-                        final Nuspec nuspec;
-                        final PackageIdentity id;
-                        try {
-                            nuspec = new Nupkg(source).nuspec();
-                            id = new PackageIdentity(nuspec.id(), nuspec.version());
-                        } catch (final UncheckedIOException | IllegalArgumentException ex) {
-                            throw new InvalidPackageException(ex);
-                        }
+                    val -> new ContentAsStream<Nuspec>(val).process(
+                        input -> new Nupkg(input).nuspec()
+                    )
+                ).thenCompose(
+                    nuspec -> {
+                        final PackageIdentity id =
+                            new PackageIdentity(nuspec.id(), nuspec.version());
                         return this.storage.list(id.rootKey()).thenCompose(
                             existing -> {
                                 if (!existing.isEmpty()) {
@@ -80,26 +75,24 @@ public final class AstoRepository implements Repository {
                                 final PackageKeys pkey = new PackageKeys(nuspec.id());
                                 return this.storage.exclusively(
                                     pkey.rootKey(),
-                                    target -> {
-                                        final CompletionStage<Versions> versions;
-                                        versions = this.versions(pkey);
-                                        return CompletableFuture.allOf(
-                                            target.move(key, id.nupkgKey()),
-                                            new Hash(source).save(target, id).toCompletableFuture(),
-                                            this.storage.save(
-                                                new PackageIdentity(nuspec.id(), nuspec.version())
-                                                    .nuspecKey(),
-                                                new Content.From(nuspec.bytes())
-                                            )
-                                        ).thenCompose(nothing -> versions).thenApply(
-                                            vers -> vers.add(nuspec.version())
-                                        ).thenCompose(
+                                    target -> CompletableFuture.allOf(
+                                        this.storage.value(key)
+                                            .thenCompose(val -> new Hash(val).save(target, id)),
+                                        this.storage.save(
+                                            new PackageIdentity(nuspec.id(), nuspec.version())
+                                                .nuspecKey(),
+                                            new Content.From(nuspec.bytes())
+                                        )
+                                    )
+                                        .thenCompose(nothing -> target.move(key, id.nupkgKey()))
+                                        .thenCompose(nothing -> this.versions(pkey))
+                                        .thenApply(vers -> vers.add(nuspec.version()))
+                                        .thenCompose(
                                             vers -> vers.save(
                                                 target,
                                                 pkey.versionsKey()
                                             )
-                                        );
-                                    }
+                                        )
                                 );
                             }
                         );
@@ -138,9 +131,7 @@ public final class AstoRepository implements Repository {
                     );
                 }
                 return this.storage.value(identity.nuspecKey())
-                    .thenApply(PublisherAs::new)
-                    .thenCompose(PublisherAs::bytes)
-                    .thenApply(Nuspec.Xml::new);
+                    .thenCompose(val -> new ContentAsStream<Nuspec>(val).process(Nuspec.Xml::new));
             }
         );
     }
