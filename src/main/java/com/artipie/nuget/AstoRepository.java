@@ -14,6 +14,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
+import javax.json.Json;
 
 /**
  * NuGet repository that stores packages in {@link Storage}.
@@ -107,7 +108,8 @@ public final class AstoRepository implements Repository {
                 final CompletionStage<Versions> versions;
                 if (exists) {
                     versions = this.storage.value(key).thenCompose(
-                        val -> new ContentAsStream<Versions>(val).process(Versions::new)
+                        val -> new ContentAsStream<Versions>(val)
+                            .process(input -> new Versions(Json.createReader(input).readObject()))
                     );
                 } else {
                     versions = CompletableFuture.completedFuture(new Versions());

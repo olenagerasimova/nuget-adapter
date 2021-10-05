@@ -11,7 +11,6 @@ import com.artipie.asto.Storage;
 import com.artipie.nuget.metadata.NuspecField;
 import com.artipie.nuget.metadata.Version;
 import com.google.common.collect.ImmutableList;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -56,14 +55,6 @@ public final class Versions {
      */
     public Versions(final JsonObject content) {
         this.content = content;
-    }
-
-    /**
-     * Ctor.
-     * @param input Input stream to read json from
-     */
-    public Versions(final InputStream input) {
-        this(Json.createReader(input).readObject());
     }
 
     /**
