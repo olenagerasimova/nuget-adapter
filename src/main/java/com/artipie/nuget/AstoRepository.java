@@ -108,11 +108,9 @@ public final class AstoRepository implements Repository {
             exists -> {
                 final CompletionStage<Versions> versions;
                 if (exists) {
-                    versions = this.storage.value(key)
-                        .thenApply(PublisherAs::new)
-                        .thenCompose(PublisherAs::bytes)
-                        .thenApply(ByteSource::wrap)
-                        .thenApply(Versions::new);
+                    versions = this.storage.value(key).thenCompose(
+                        val -> new ContentAsStream<Versions>(val).process(Versions::new)
+                    );
                 } else {
                     versions = CompletableFuture.completedFuture(new Versions());
                 }
