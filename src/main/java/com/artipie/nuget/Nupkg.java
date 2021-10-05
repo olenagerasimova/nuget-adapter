@@ -4,14 +4,15 @@
  */
 package com.artipie.nuget;
 
-import com.artipie.asto.ArtipieIOException;
 import com.artipie.nuget.metadata.Nuspec;
-import com.google.common.io.ByteSource;
+import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UncheckedIOException;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
+import java.util.Optional;
+import org.apache.commons.compress.archivers.ArchiveEntry;
+import org.apache.commons.compress.archivers.ArchiveException;
+import org.apache.commons.compress.archivers.ArchiveInputStream;
+import org.apache.commons.compress.archivers.ArchiveStreamFactory;
 
 /**
  * Package in .nupkg format.
@@ -31,58 +32,35 @@ public final class Nupkg implements NuGetPackage {
      *
      * @param content Binary content of package.
      */
-    public Nupkg(final ByteSource content) {
-        this(Nupkg.fromByteSource(content));
-    }
-
-    /**
-     * Ctor.
-     *
-     * @param content Binary content of package.
-     */
     public Nupkg(final InputStream content) {
         this.content = content;
     }
 
     @Override
-    @SuppressWarnings("PMD.CyclomaticComplexity")
+    @SuppressWarnings("PMD.AssignmentInOperand")
     public Nuspec nuspec() {
-        Nuspec nuspec = null;
-        try (ZipInputStream zipStream = new ZipInputStream(this.content)) {
-            while (true) {
-                final ZipEntry entry = zipStream.getNextEntry();
-                if (entry == null) {
-                    break;
+        Optional<Nuspec> res = Optional.empty();
+        try (
+            ArchiveInputStream archive = new ArchiveStreamFactory().createArchiveInputStream(
+                new BufferedInputStream(this.content)
+            )
+        ) {
+            ArchiveEntry entry;
+            while ((entry = archive.getNextEntry()) != null) {
+                if (!archive.canReadEntryData(entry) || entry.isDirectory()) {
+                    continue;
                 }
                 if (entry.getName().endsWith(".nuspec")) {
-                    if (nuspec != null) {
-                        throw new IllegalArgumentException(
-                            "More then one .nuspec file found inside the package."
-                        );
-                    }
-                    nuspec = new Nuspec.Xml(zipStream);
+                    res = Optional.of(new Nuspec.Xml(archive));
                 }
             }
-        } catch (final IOException ex) {
-            throw new UncheckedIOException(ex);
+        } catch (final IOException | ArchiveException ex) {
+            throw new InvalidPackageException(ex);
         }
-        if (nuspec == null) {
-            throw new IllegalArgumentException("No .nuspec file found inside the package.");
-        }
-        return nuspec;
-    }
-
-    /**
-     * Open input stream from ByteSource.
-     * @param source Source
-     * @return Input stream
-     * @throws ArtipieIOException On IO error
-     */
-    private static InputStream fromByteSource(final ByteSource source) {
-        try {
-            return source.openStream();
-        } catch (final IOException err) {
-            throw new ArtipieIOException(err);
-        }
+        return res.orElseThrow(
+            () -> new InvalidPackageException(
+                new IllegalArgumentException("No .nuspec file found inside the package.")
+            )
+        );
     }
 }
