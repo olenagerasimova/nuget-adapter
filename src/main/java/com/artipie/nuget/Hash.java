@@ -5,14 +5,14 @@
 
 package com.artipie.nuget;
 
-import com.artipie.asto.ArtipieIOException;
 import com.artipie.asto.Content;
 import com.artipie.asto.Storage;
-import com.google.common.hash.Hashing;
-import com.google.common.io.ByteSource;
-import java.io.IOException;
+import com.artipie.asto.ext.ContentDigest;
+import com.artipie.asto.ext.Digests;
+import java.nio.ByteBuffer;
 import java.util.Base64;
 import java.util.concurrent.CompletionStage;
+import org.reactivestreams.Publisher;
 
 /**
  * Package hash.
@@ -24,14 +24,14 @@ public final class Hash {
     /**
      * Bytes to calculate hash code value from.
      */
-    private final ByteSource value;
+    private final Publisher<ByteBuffer> value;
 
     /**
      * Ctor.
      *
      * @param value Bytes to calculate hash code value from.
      */
-    public Hash(final ByteSource value) {
+    public Hash(final Publisher<ByteBuffer> value) {
         this.value = value;
     }
 
@@ -41,20 +41,14 @@ public final class Hash {
      * @param storage Storage to use for saving.
      * @param identity Package identity.
      * @return Completion of save operation.
-     * @throws ArtipieIOException On error
      */
     public CompletionStage<Void> save(final Storage storage, final PackageIdentity identity) {
-        try {
-            return storage.save(
-                identity.hashKey(),
-                new Content.From(
-                    Base64.getEncoder().encode(
-                        Hashing.sha512().hashBytes(this.value.read()).asBytes()
-                    )
+        return
+            new ContentDigest(this.value, Digests.SHA512).bytes().thenCompose(
+                bytes -> storage.save(
+                    identity.hashKey(),
+                    new Content.From(Base64.getEncoder().encode(bytes))
                 )
-            );
-        } catch (final IOException err) {
-            throw new ArtipieIOException(err);
-        }
+        );
     }
 }

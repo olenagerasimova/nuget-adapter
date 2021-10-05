@@ -5,13 +5,13 @@
 
 package com.artipie.nuget;
 
+import com.artipie.asto.Content;
 import com.artipie.asto.Key;
 import com.artipie.asto.Storage;
 import com.artipie.asto.ext.PublisherAs;
 import com.artipie.asto.memory.InMemoryStorage;
 import com.artipie.nuget.metadata.PackageId;
 import com.artipie.nuget.metadata.Version;
-import com.google.common.io.ByteSource;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
@@ -28,7 +28,7 @@ class HashTest {
         final String id = "abc";
         final String version = "0.0.1";
         final Storage storage = new InMemoryStorage();
-        new Hash(ByteSource.wrap("abc123".getBytes())).save(
+        new Hash(new Content.From("abc123".getBytes())).save(
             storage,
             new PackageIdentity(new PackageId(id), new Version(version))
         ).toCompletableFuture().join();

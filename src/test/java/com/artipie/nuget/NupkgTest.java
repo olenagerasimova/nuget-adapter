@@ -6,7 +6,7 @@
 package com.artipie.nuget;
 
 import com.artipie.nuget.metadata.Nuspec;
-import com.google.common.io.ByteSource;
+import java.io.ByteArrayInputStream;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,9 +31,9 @@ class NupkgTest {
     }
 
     @Test
-    void shouldExtractNuspec() throws Exception {
+    void shouldExtractNuspec() {
         final Nuspec nuspec = new Nupkg(
-            ByteSource.wrap(new NewtonJsonResource(this.name).bytes())
+            new ByteArrayInputStream(new NewtonJsonResource(this.name).bytes())
         ).nuspec();
         MatcherAssert.assertThat(
             nuspec.id().normalized(),
