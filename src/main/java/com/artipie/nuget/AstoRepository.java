@@ -8,14 +8,13 @@ package com.artipie.nuget;
 import com.artipie.asto.Content;
 import com.artipie.asto.Key;
 import com.artipie.asto.Storage;
-import com.artipie.asto.ext.PublisherAs;
 import com.artipie.asto.streams.ContentAsStream;
 import com.artipie.nuget.metadata.Nuspec;
-import com.google.common.io.ByteSource;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
+import javax.json.Json;
 
 /**
  * NuGet repository that stores packages in {@link Storage}.
@@ -108,11 +107,10 @@ public final class AstoRepository implements Repository {
             exists -> {
                 final CompletionStage<Versions> versions;
                 if (exists) {
-                    versions = this.storage.value(key)
-                        .thenApply(PublisherAs::new)
-                        .thenCompose(PublisherAs::bytes)
-                        .thenApply(ByteSource::wrap)
-                        .thenApply(Versions::new);
+                    versions = this.storage.value(key).thenCompose(
+                        val -> new ContentAsStream<Versions>(val)
+                            .process(input -> new Versions(Json.createReader(input).readObject()))
+                    );
                 } else {
                     versions = CompletableFuture.completedFuture(new Versions());
                 }
