@@ -11,19 +11,14 @@ import com.artipie.asto.Storage;
 import com.artipie.nuget.metadata.NuspecField;
 import com.artipie.nuget.metadata.Version;
 import com.google.common.collect.ImmutableList;
-import com.google.common.io.ByteSource;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonArrayBuilder;
 import javax.json.JsonObject;
-import javax.json.JsonReader;
 import javax.json.JsonString;
-import javax.json.JsonWriter;
 
 /**
  * NuGet package version enumeration.
@@ -40,18 +35,16 @@ public final class Versions {
     /**
      * Packages registry content.
      */
-    private final ByteSource content;
+    private final JsonObject content;
 
     /**
      * Ctor.
      */
     public Versions() {
         this(
-            bytes(
-                Json.createObjectBuilder()
-                    .add(Versions.ARRAY, Json.createArrayBuilder())
-                    .build()
-            )
+            Json.createObjectBuilder()
+                .add(Versions.ARRAY, Json.createArrayBuilder())
+                .build()
         );
     }
 
@@ -60,7 +53,7 @@ public final class Versions {
      *
      * @param content Packages registry content.
      */
-    public Versions(final ByteSource content) {
+    public Versions(final JsonObject content) {
         this.content = content;
     }
 
@@ -71,8 +64,7 @@ public final class Versions {
      * @return Updated versions.
      */
     public Versions add(final NuspecField version) {
-        final JsonObject json = this.json();
-        final JsonArray versions = json.getJsonArray(Versions.ARRAY);
+        final JsonArray versions = this.content.getJsonArray(Versions.ARRAY);
         final JsonArrayBuilder builder;
         if (versions == null) {
             builder = Json.createArrayBuilder();
@@ -81,11 +73,9 @@ public final class Versions {
         }
         builder.add(version.normalized());
         return new Versions(
-            bytes(
-                Json.createObjectBuilder(json)
-                    .add(Versions.ARRAY, builder)
-                    .build()
-            )
+            Json.createObjectBuilder(this.content)
+                .add(Versions.ARRAY, builder)
+                .build()
         );
     }
 
@@ -95,7 +85,7 @@ public final class Versions {
      * @return All versions sorted by natural order.
      */
     public List<NuspecField> all() {
-        return this.json()
+        return this.content
             .getJsonArray(Versions.ARRAY)
             .getValuesAs(JsonString.class)
             .stream()
@@ -113,40 +103,10 @@ public final class Versions {
      * @return Completion of save operation.
      */
     public CompletableFuture<Void> save(final Storage storage, final Key key) {
-        try {
-            return storage.save(key, new Content.From(this.content.read()));
-        } catch (final IOException ex) {
-            throw new UncheckedIOException(ex);
-        }
+        return storage.save(
+            key,
+            new Content.From(this.content.toString().getBytes(StandardCharsets.UTF_8))
+        );
     }
 
-    /**
-     * Reads content as JSON object.
-     *
-     * @return JSON object.
-     */
-    private JsonObject json() {
-        try (JsonReader reader = Json.createReader(this.content.openStream())) {
-            return reader.readObject();
-        } catch (final IOException ex) {
-            throw new UncheckedIOException(ex);
-        }
-    }
-
-    /**
-     * Serializes JSON object into bytes.
-     *
-     * @param json JSON object.
-     * @return Serialized JSON object.
-     */
-    private static ByteSource bytes(final JsonObject json) {
-        try (ByteArrayOutputStream out = new ByteArrayOutputStream();
-            JsonWriter writer = Json.createWriter(out)) {
-            writer.writeObject(json);
-            out.flush();
-            return ByteSource.wrap(out.toByteArray());
-        } catch (final IOException ex) {
-            throw new IllegalStateException("Failed to serialize JSON to bytes", ex);
-        }
-    }
 }

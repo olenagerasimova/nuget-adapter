@@ -11,15 +11,17 @@ import com.artipie.asto.ext.PublisherAs;
 import com.artipie.asto.memory.InMemoryStorage;
 import com.artipie.nuget.metadata.NuspecField;
 import com.artipie.nuget.metadata.Version;
-import com.google.common.io.ByteSource;
 import java.io.ByteArrayInputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.json.Json;
+import javax.json.JsonObject;
 import javax.json.JsonReader;
 import javax.json.JsonString;
+import org.cactoos.io.ReaderOf;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
 import org.hamcrest.collection.IsEmptyCollection;
@@ -68,7 +70,7 @@ class VersionsTest {
     @Test
     void shouldGetAllVersionsWhenEmpty() {
         final Versions versions = new Versions(
-            ByteSource.wrap("{ \"versions\":[] }".getBytes())
+            Json.createReader(new ReaderOf("{ \"versions\":[] }")).readObject()
         );
         MatcherAssert.assertThat(versions.all(), new IsEmptyCollection<>());
     }
@@ -76,7 +78,9 @@ class VersionsTest {
     @Test
     void shouldGetAllVersionsOrdered() {
         final Versions versions = new Versions(
-            ByteSource.wrap("{ \"versions\":[\"1.0.1\",\"0.1\",\"2.0\",\"1.0\"] }".getBytes())
+            Json.createReader(
+                new ReaderOf("{ \"versions\":[\"1.0.1\",\"0.1\",\"2.0\",\"1.0\"] }")
+            ).readObject()
         );
         MatcherAssert.assertThat(
             versions.all().stream().map(NuspecField::normalized).collect(Collectors.toList()),
@@ -87,15 +91,15 @@ class VersionsTest {
     @Test
     void shouldSave() {
         final Key.From key = new Key.From("foo");
-        final byte[] data = "data".getBytes();
-        new Versions(ByteSource.wrap(data)).save(this.storage, key).toCompletableFuture().join();
+        final JsonObject data = Json.createObjectBuilder().build();
+        new Versions(data).save(this.storage, key).toCompletableFuture().join();
         MatcherAssert.assertThat(
             "Saved versions are not identical to versions initial content",
             this.storage.value(key)
                 .thenApply(PublisherAs::new)
                 .thenCompose(PublisherAs::bytes)
                 .join(),
-            new IsEqual<>(data)
+            new IsEqual<>(data.toString().getBytes(StandardCharsets.US_ASCII))
         );
     }
 
@@ -112,7 +116,9 @@ class VersionsTest {
 
     private List<String> addVersionTo(final String original, final Version version)
         throws Exception {
-        final Versions versions = new Versions(ByteSource.wrap(original.getBytes()));
+        final Versions versions = new Versions(
+            Json.createReader(new ReaderOf(original)).readObject()
+        );
         final Key.From sink = new Key.From("sink");
         versions.add(version).save(this.storage, sink).toCompletableFuture().join();
         return this.versions(sink);
