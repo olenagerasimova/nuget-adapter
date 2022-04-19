@@ -12,7 +12,10 @@
 [![PDD status](http://www.0pdd.com/svg?name=artipie/nuget-adapter)](http://www.0pdd.com/p?name=artipie/nuget-adapter)
 
 This Java library turns your binary [ASTO](https://github.com/artipie/asto) 
-storage into a NuGet repository.
+storage (binary, Amazon S3 objects) into a NuGet repository. It provides NuGet repository 
+support for [Artipie](https://github.com/artipie) distribution and allows you to use `nuget` client
+commands (such as `nuget push` and `nuget install`) to work with NuGet packages. Besides, NuGet-adapter
+can be used as a library to parse `.nuget` packages files and obtain package metadata.
 
 Similar solutions:
 
@@ -24,7 +27,7 @@ Some valuable references:
   * [NuGet Documentation](https://docs.microsoft.com/en-us/nuget/)
   * [NuGet Sources](https://github.com/NuGet)
 
-## Getting started
+## NuGet-adapter SDK API
 
 Add dependency to `pom.xml`:
 
@@ -47,12 +50,22 @@ Repository repo = new Repository(storage);
 repo.add(new Key.From("package.nupkg"));
 ```
 
-## Project status
+You may also use lower level classes to parse `.nupkg` files and read package `.nuspec` file:
+```java
+// create instance of NuGetPackage
+final NuGetPackage pkg = new Nupkg(Files.newInputStream(Paths.get("my_example.nupkg")));
+// read `.nuspec` metadata
+final Nuspec nuspec = pkg.nuspec();
 
-- [x] Adding package to repository [#1](https://github.com/artipie/nuget-adapter/issues/1)
-- [x] HTTP support for installing package [#19](https://github.com/artipie/nuget-adapter/issues/19)
-- [x] HTTP support for adding package [#20](https://github.com/artipie/nuget-adapter/issues/20)
-- [ ] HTTP support for listing package versions [#29](https://github.com/artipie/nuget-adapter/issues/29)
+final NuspecField id = nuspec.id(); // get packages id
+final NuspecField veersion = nuspec.version(); // get package version
+```
+Instance of `NuspecField` classes allows to obtain both raw and normalized 
+(according to Nuget normalization rules) values of the fields. `Nuspec` allows to get description,
+authors, packages types and any other `.nuspec` metadata fields value. 
+
+Class `Version` can be used to normalise the version, it also implements `Comparable<Version>` 
+interface and can be used to sort the package by versions.
 
 ## How to contribute
 
