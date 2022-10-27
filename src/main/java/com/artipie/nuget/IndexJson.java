@@ -75,8 +75,10 @@ public interface IndexJson {
     }
 
     /**
-     * Various urls to build index json metadata.
+     * Various required urls to build index json metadata.
      * @since 1.5
+     * @checkstyle MemberNameCheck (50 lines)
+     * @checkstyle ParameterNameCheck (50 lines)
      */
     final class Urls {
 
