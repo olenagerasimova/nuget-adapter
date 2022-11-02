@@ -1,0 +1,38 @@
+{
+  "@id": "null",
+  "id": "somepackage",
+  "version": "0.1.23",
+  "description": "Some nuget package",
+  "authors": [
+    "First",
+    "Second",
+    "Third"
+  ],
+  "dependencyGroups": [
+    {
+      "dependencies": [
+        {
+          "id": "RouteMagic",
+          "range": "[1.1.0, )"
+        },
+        {
+          "id": "Route66",
+          "range": "[0.0.66, )"
+        }
+      ]
+    },
+    {
+      "targetFramework": ".NETFramework4.7.2",
+      "dependencies": [
+        {
+          "id": "jQuery",
+          "range": "[1.6.2, )"
+        },
+        {
+          "id": "WebActivator",
+          "range": "[1.4.4, )"
+        }
+      ]
+    }
+  ]
+}
