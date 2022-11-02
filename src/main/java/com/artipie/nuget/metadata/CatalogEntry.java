@@ -110,6 +110,7 @@ public interface CatalogEntry {
          * <code>dependency_id:dependency_version:group_targetFramework</code>
          * The last part `group_targetFramework` can be empty.
          * @return Dependencies grouped by target framework
+         * @checkstyle MagicNumberCheck (20 lines)
          */
         private Map<String, List<Pair<String, String>>> dependenciesByTargetFramework() {
             final Map<String, List<Pair<String, String>>> res = new HashMap<>();
@@ -120,11 +121,10 @@ public interface CatalogEntry {
                     if (arr[0].isEmpty()) {
                         dep = Collections.emptyList();
                     } else {
-                        dep = new ArrayList<>(1);
+                        dep = new ArrayList<>(10);
                         dep.add(new ImmutablePair<>(arr[0], arr[1]));
                     }
                     final String framework;
-                    // @checkstyle MagicNumberCheck (1 line)
                     if (arr.length == 3) {
                         framework = arr[2];
                     } else {
