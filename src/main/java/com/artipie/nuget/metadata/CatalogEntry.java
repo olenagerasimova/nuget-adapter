@@ -121,7 +121,7 @@ public interface CatalogEntry {
                     if (arr[0].isEmpty()) {
                         dep = Collections.emptyList();
                     } else {
-                        dep = new ArrayList<>(10);
+                        dep = new ArrayList<>(12);
                         dep.add(new ImmutablePair<>(arr[0], arr[1]));
                     }
                     final String framework;
