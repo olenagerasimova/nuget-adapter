@@ -98,31 +98,25 @@ public interface IndexJson {
          * are set to "null" string.
          * @param pkg New package to add
          * @return Updated index.json metadata as {@link JsonObject}
-         * @checkstyle ExecutableStatementCountCheck (30 lines)
          */
         JsonObject perform(final NuGetPackage pkg) {
             final JsonObjectBuilder res = Json.createObjectBuilder();
             final Nuspec nuspec = pkg.nuspec();
             final JsonObject newest = newPackageJsonItem(nuspec);
             final String version = nuspec.version().normalized();
-            final JsonArrayBuilder items = Json.createArrayBuilder();
-            final String lower;
-            final String upper;
+            final JsonArrayBuilder itemsbuilder = Json.createArrayBuilder();
             if (this.input.isPresent()) {
                 final JsonObject old = Json.createReader(this.input.get()).readObject();
                 final List<JsonObject> list = sortedPackages(newest, version, old);
-                upper = version(list.get(list.size() - 1));
-                lower = version(list.get(0));
-                list.forEach(items::add);
+                list.forEach(itemsbuilder::add);
                 addIdAndCount(res, old.getString(Update.ID, Update.NULL), list.size());
             } else {
-                items.add(newest);
+                itemsbuilder.add(newest);
                 addIdAndCount(res, Update.NULL, 1);
-                upper = version;
-                lower = version;
             }
-            res.add("upper", upper);
-            res.add("lower", lower);
+            final JsonArray items = itemsbuilder.build();
+            res.add("upper", version(items.get(items.size() - 1).asJsonObject()));
+            res.add("lower", version(items.get(0).asJsonObject()));
             res.add(Update.ITEMS, items);
             return Json.createObjectBuilder().add(Update.COUNT, 1).add(Update.ITEMS, res).build();
         }
