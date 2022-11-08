@@ -118,7 +118,8 @@ public interface IndexJson {
             res.add("upper", version(items.get(items.size() - 1).asJsonObject()));
             res.add("lower", version(items.get(0).asJsonObject()));
             res.add(Update.ITEMS, items);
-            return Json.createObjectBuilder().add(Update.COUNT, 1).add(Update.ITEMS, res).build();
+            return Json.createObjectBuilder().add(Update.COUNT, 1)
+                .add(Update.ITEMS, Json.createArrayBuilder().add(res)).build();
         }
 
         /**
@@ -137,8 +138,10 @@ public interface IndexJson {
             final String version, final JsonObject old) {
             final JsonArray arr;
             final List<JsonObject> list;
-            if (old.containsKey(Update.ITEMS)
-                && !(arr = old.getJsonArray(Update.ITEMS)).isEmpty()) {
+            if (old.containsKey(Update.ITEMS) && !old.getJsonArray(Update.ITEMS).isEmpty()
+                && old.getJsonArray(Update.ITEMS).get(0).asJsonObject().containsKey(Update.ITEMS)
+                && !(arr = old.getJsonArray(Update.ITEMS).get(0).asJsonObject()
+                    .getJsonArray(Update.ITEMS)).isEmpty()) {
                 list = new ArrayList<>(arr.size() + 1);
                 arr.stream().map(JsonValue::asJsonObject)
                     .filter(val -> !version.equals(version(val))).forEach(list::add);
