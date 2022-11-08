@@ -102,6 +102,11 @@ SOFTWARE.
       <version>2.13.2</version>
     </dependency>
     <dependency>
+      <groupId>com.vdurmont</groupId>
+      <artifactId>semver4j</artifactId>
+      <version>3.1.0</version>
+    </dependency>
+    <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-params</artifactId>
       <version>${junit-platform.version}</version>
