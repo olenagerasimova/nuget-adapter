@@ -136,19 +136,18 @@ public interface IndexJson {
         @SuppressWarnings("PMD.AssignmentInOperand")
         private static List<JsonObject> sortedPackages(final JsonObject newest,
             final String version, final JsonObject old) {
-            final JsonArray arr;
-            final List<JsonObject> list;
-            if (old.containsKey(Update.ITEMS) && !old.getJsonArray(Update.ITEMS).isEmpty()
-                && old.getJsonArray(Update.ITEMS).get(0).asJsonObject().containsKey(Update.ITEMS)
-                && !(arr = old.getJsonArray(Update.ITEMS).get(0).asJsonObject()
-                    .getJsonArray(Update.ITEMS)).isEmpty()) {
-                list = new ArrayList<>(arr.size() + 1);
-                arr.stream().map(JsonValue::asJsonObject)
-                    .filter(val -> !version.equals(version(val))).forEach(list::add);
-                list.add(newest);
-                list.sort(Comparator.comparing(val -> new Semver(version(val))));
-            } else {
-                list = Collections.singletonList(newest);
+            List<JsonObject> list = Collections.singletonList(newest);
+            if (old.containsKey(Update.ITEMS) && !old.getJsonArray(Update.ITEMS).isEmpty()) {
+                final JsonObject value = old.getJsonArray(Update.ITEMS).get(0).asJsonObject();
+                final JsonArray arr;
+                if (value.containsKey(Update.ITEMS)
+                    && !(arr = value.getJsonArray(Update.ITEMS)).isEmpty()) {
+                    list = new ArrayList<>(arr.size() + 1);
+                    arr.stream().map(JsonValue::asJsonObject)
+                        .filter(val -> !version.equals(version(val))).forEach(list::add);
+                    list.add(newest);
+                    list.sort(Comparator.comparing(val -> new Semver(version(val))));
+                }
             }
             return list;
         }
