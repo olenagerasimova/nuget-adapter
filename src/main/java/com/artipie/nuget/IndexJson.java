@@ -99,7 +99,7 @@ public interface IndexJson {
          * @param pkg New package to add
          * @return Updated index.json metadata as {@link JsonObject}
          */
-        JsonObject perform(final NuGetPackage pkg) {
+        public JsonObject perform(final NuGetPackage pkg) {
             final JsonObjectBuilder res = Json.createObjectBuilder();
             final Nuspec nuspec = pkg.nuspec();
             final JsonObject newest = newPackageJsonItem(nuspec);
