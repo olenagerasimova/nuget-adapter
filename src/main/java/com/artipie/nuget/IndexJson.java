@@ -6,6 +6,7 @@ package com.artipie.nuget;
 
 import com.artipie.nuget.metadata.CatalogEntry;
 import com.artipie.nuget.metadata.Nuspec;
+import com.artipie.nuget.metadata.PackageId;
 import com.vdurmont.semver4j.Semver;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -13,6 +14,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonArrayBuilder;
@@ -27,6 +29,62 @@ import javax.json.JsonValue;
  * @since 1.5
  */
 public interface IndexJson {
+
+    /**
+     * Delete nuget package by name and version from index.json.
+     * @since 1.6
+     */
+    final class Delete {
+
+        /**
+         * Input stream with existing index json metadata.
+         */
+        private final InputStream input;
+
+        /**
+         * Ctor.
+         * @param input Input stream with existing index json metadata
+         */
+        public Delete(final InputStream input) {
+            this.input = input;
+        }
+
+        /**
+         * Perform delete operation.
+         * @param name The name of the package
+         * @param version Package version
+         * @return Json object with the index without removed package
+         */
+        public JsonObject perform(final String name, final String version) {
+            final JsonObjectBuilder res = Json.createObjectBuilder();
+            final JsonObject old = Json.createReader(this.input).readObject();
+            List<JsonObject> items = Collections.emptyList();
+            if (old.containsKey(Update.ITEMS) && !old.getJsonArray(Update.ITEMS).isEmpty()) {
+                final JsonObject obj = old.getJsonArray(Update.ITEMS).get(0).asJsonObject();
+                if (obj.containsKey(Update.ITEMS) && !obj.getJsonArray(Update.ITEMS).isEmpty()) {
+                    final JsonArray arr = obj.getJsonArray(Update.ITEMS);
+                    items = arr.stream().map(JsonValue::asJsonObject).filter(
+                        item -> {
+                            final JsonObject entry = item.getJsonObject(Update.CATALOG_ENTRY);
+                            return !(entry.getString("id").equals(new PackageId(name).normalized())
+                                && new Semver(Update.version(item)).equals(new Semver(version)));
+                        }
+                    ).sorted(Comparator.comparing(val -> new Semver(Update.version(val))))
+                        .collect(Collectors.toList());
+                }
+            }
+            if (!items.isEmpty()) {
+                res.add(Update.LOWER, Update.version(items.get(0)));
+                res.add(Update.UPPER, Update.version(items.get(items.size() - 1)));
+                Update.addIdAndCount(res, Update.NULL, items.size());
+                final JsonArrayBuilder builder = Json.createArrayBuilder();
+                items.forEach(builder::add);
+                res.add(Update.ITEMS, builder);
+            }
+            return Json.createObjectBuilder().add(Update.COUNT, 1)
+                .add(Update.ITEMS, Json.createArrayBuilder().add(res)).build();
+        }
+    }
 
     /**
      * Update (or create) index.json metadata by adding
@@ -59,6 +117,16 @@ public interface IndexJson {
          * The name of the `count` json field.
          */
         private static final String COUNT = "count";
+
+        /**
+         * The name of the `lower` json field.
+         */
+        private static final String LOWER = "lower";
+
+        /**
+         * The name of the `upper` json field.
+         */
+        private static final String UPPER = "upper";
 
         /**
          * Optional input stream with existing index json metadata.
@@ -115,8 +183,8 @@ public interface IndexJson {
                 addIdAndCount(res, Update.NULL, 1);
             }
             final JsonArray items = itemsbuilder.build();
-            res.add("upper", version(items.get(items.size() - 1).asJsonObject()));
-            res.add("lower", version(items.get(0).asJsonObject()));
+            res.add(Update.UPPER, version(items.get(items.size() - 1).asJsonObject()));
+            res.add(Update.LOWER, version(items.get(0).asJsonObject()));
             res.add(Update.ITEMS, items);
             return Json.createObjectBuilder().add(Update.COUNT, 1)
                 .add(Update.ITEMS, Json.createArrayBuilder().add(res)).build();
