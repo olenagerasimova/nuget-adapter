@@ -59,7 +59,7 @@
           "packageContent": "null",
           "catalogEntry": {
             "@id": "null",
-            "id": "newtonsoft.json",
+            "id": "Newtonsoft.Json",
             "version": "12.0.3",
             "description": "Json.NET is a popular high-performance JSON framework for .NET",
             "authors": "James Newton-King",
