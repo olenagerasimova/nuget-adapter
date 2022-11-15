@@ -29,48 +29,99 @@ import javax.json.JsonValue;
  * @since 1.5
  * @checkstyle InterfaceIsTypeCheck (500 lines)
  */
-public interface IndexJson {
+public abstract class IndexJson {
 
     /**
      * Default null value for index.json required fields with urls values.
      */
-    String NULL = "null";
+    private static final String NULL = "null";
 
     /**
      * The name of the `@id` json field.
      */
-    String ID = "@id";
+    private static final String ID = "@id";
 
     /**
      * The name of the `items` json field.
      */
-    String ITEMS = "items";
+    private static final String ITEMS = "items";
 
     /**
      * The name of the `catalogEntry` json field.
      */
-    String CATALOG_ENTRY = "catalogEntry";
+    private static final String CATALOG_ENTRY = "catalogEntry";
 
     /**
      * The name of the `count` json field.
      */
-    String COUNT = "count";
+    private static final String COUNT = "count";
 
     /**
      * The name of the `lower` json field.
      */
-    String LOWER = "lower";
+    private static final String LOWER = "lower";
 
     /**
      * The name of the `upper` json field.
      */
-    String UPPER = "upper";
+    private static final String UPPER = "upper";
+
+    /**
+     * Add `@id` and `count` fields into resulting json object builder.
+     * @param res Resulting json object builder
+     * @param id Field value `@id`
+     * @param cnt Count field value
+     */
+    private static void addIdAndCount(final JsonObjectBuilder res, final String id, final int cnt) {
+        res.add(IndexJson.ID, id);
+        res.add(IndexJson.COUNT, cnt);
+    }
+
+    /**
+     * Obtain package version from json value item.
+     * @param val Json Value item
+     * @return String version
+     */
+    private static String version(final JsonObject val) {
+        return val.getJsonObject(IndexJson.CATALOG_ENTRY).getString("version");
+    }
+
+    /**
+     * Obtain "items" json that contains "catalogEntry" items, the structure is the following:
+     * {
+     *   "count": 1,
+     *   "items": [
+     *     {
+     *       "@id": "https://...",
+     *       "count": 1,
+     *       "lower": "1.3.8",
+     *       "upper": "5.0.7",
+     *       "items": [ ... ]
+     *     }
+     *   ]
+     * }
+     * Internal "items" array is what we obtain here.
+     * @param source Json source
+     * @return Json "items" array
+     */
+    private static Optional<JsonArray> itemsJsonArray(final JsonObject source) {
+        Optional<JsonArray> res = Optional.empty();
+        if (source.containsKey(IndexJson.ITEMS)
+            && !source.getJsonArray(IndexJson.ITEMS).isEmpty()) {
+            final JsonObject obj = source.getJsonArray(IndexJson.ITEMS).get(0).asJsonObject();
+            if (obj.containsKey(IndexJson.ITEMS)
+                && !obj.getJsonArray(IndexJson.ITEMS).isEmpty()) {
+                res = Optional.of(obj.getJsonArray(IndexJson.ITEMS));
+            }
+        }
+        return res;
+    }
 
     /**
      * Delete nuget package by name and version from index.json.
      * @since 1.6
      */
-    final class Delete {
+    public static final class Delete extends IndexJson {
 
         /**
          * Input stream with existing index json metadata.
@@ -93,7 +144,7 @@ public interface IndexJson {
          */
         public JsonObject perform(final String name, final String version) {
             final JsonObjectBuilder res = Json.createObjectBuilder();
-            final Optional<JsonArray> array = Update.itemsJsonArray(
+            final Optional<JsonArray> array = itemsJsonArray(
                 Json.createReader(this.input).readObject()
             );
             if (array.isPresent()) {
@@ -102,14 +153,14 @@ public interface IndexJson {
                         item -> {
                             final JsonObject entry = item.getJsonObject(IndexJson.CATALOG_ENTRY);
                             return !(entry.getString("id").equals(new PackageId(name).normalized())
-                                && new Semver(Update.version(item)).equals(new Semver(version)));
+                                && new Semver(version(item)).equals(new Semver(version)));
                         }
-                    ).sorted(Comparator.comparing(val -> new Semver(Update.version(val))))
+                    ).sorted(Comparator.comparing(val -> new Semver(version(val))))
                         .collect(Collectors.toList());
                 if (!items.isEmpty()) {
-                    res.add(IndexJson.LOWER, Update.version(items.get(0)));
-                    res.add(IndexJson.UPPER, Update.version(items.get(items.size() - 1)));
-                    Update.addIdAndCount(res, IndexJson.NULL, items.size());
+                    res.add(IndexJson.LOWER, version(items.get(0)));
+                    res.add(IndexJson.UPPER, version(items.get(items.size() - 1)));
+                    addIdAndCount(res, IndexJson.NULL, items.size());
                     final JsonArrayBuilder builder = Json.createArrayBuilder();
                     items.forEach(builder::add);
                     res.add(IndexJson.ITEMS, builder);
@@ -125,7 +176,7 @@ public interface IndexJson {
      * package info from NUSPEC package metadata.
      * @since 1.5
      */
-    final class Update {
+    public static final class Update extends IndexJson {
 
         /**
          * Optional input stream with existing index json metadata.
@@ -134,6 +185,7 @@ public interface IndexJson {
 
         /**
          * Primary ctor.
+         *
          * @param input Optional input stream with existing index json metadata
          */
         public Update(final Optional<InputStream> input) {
@@ -149,6 +201,7 @@ public interface IndexJson {
 
         /**
          * Ctor.
+         *
          * @param input Optional input stream with existing index json metadata
          */
         public Update(final InputStream input) {
@@ -163,6 +216,7 @@ public interface IndexJson {
          * In the resulting json object catalogEntries are placed in the ascending order by
          * package version. Required url fields (like @id, packageContent, @id of the catalogEntry)
          * are set to "null" string.
+         *
          * @param pkg New package to add
          * @return Updated index.json metadata as {@link JsonObject}
          */
@@ -226,58 +280,5 @@ public interface IndexJson {
                 .add(IndexJson.ID, IndexJson.NULL).add("packageContent", IndexJson.NULL)
                 .add(IndexJson.CATALOG_ENTRY, new CatalogEntry.FromNuspec(nuspec).asJson()).build();
         }
-
-        /**
-         * Add `@id` and `count` fields into resulting json object builder.
-         * @param res Resulting json object builder
-         * @param id Field value `@id`
-         * @param cnt Count field value
-         */
-        private static void addIdAndCount(final JsonObjectBuilder res, final String id,
-            final int cnt) {
-            res.add(IndexJson.ID, id);
-            res.add(IndexJson.COUNT, cnt);
-        }
-
-        /**
-         * Obtain package version from json value item.
-         * @param val Json Value item
-         * @return String version
-         */
-        private static String version(final JsonObject val) {
-            return val.getJsonObject(IndexJson.CATALOG_ENTRY).getString("version");
-        }
-
-        /**
-         * Obtain "items" json that contains "catalogEntry" items, the structure is the following:
-         * {
-         *   "count": 1,
-         *   "items": [
-         *     {
-         *       "@id": "https://...",
-         *       "count": 1,
-         *       "lower": "1.3.8",
-         *       "upper": "5.0.7",
-         *       "items": [ ... ]
-         *     }
-         *   ]
-         * }
-         * Internal "items" array is what we obtain here.
-         * @param source Json source
-         * @return Json "items" array
-         */
-        private static Optional<JsonArray> itemsJsonArray(final JsonObject source) {
-            Optional<JsonArray> res = Optional.empty();
-            if (source.containsKey(IndexJson.ITEMS)
-                && !source.getJsonArray(IndexJson.ITEMS).isEmpty()) {
-                final JsonObject obj = source.getJsonArray(IndexJson.ITEMS).get(0).asJsonObject();
-                if (obj.containsKey(IndexJson.ITEMS)
-                    && !obj.getJsonArray(IndexJson.ITEMS).isEmpty()) {
-                    res = Optional.of(obj.getJsonArray(IndexJson.ITEMS));
-                }
-            }
-            return res;
-        }
     }
-
 }
