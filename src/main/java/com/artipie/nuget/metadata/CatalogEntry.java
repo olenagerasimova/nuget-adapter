@@ -58,8 +58,8 @@ public interface CatalogEntry {
         public JsonObject asJson() {
             final JsonObjectBuilder builder = Json.createObjectBuilder();
             builder.add("@id", "null");
-            builder.add("id", this.nuspec.id().normalized());
-            builder.add("version", this.nuspec.version().normalized());
+            builder.add("id", this.nuspec.id().raw());
+            builder.add("version", this.nuspec.version().raw());
             builder.add("description", this.nuspec.description());
             final String authors = this.nuspec.authors();
             if (authors.contains(",")) {
