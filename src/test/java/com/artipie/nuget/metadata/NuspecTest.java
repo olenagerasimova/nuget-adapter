@@ -140,4 +140,22 @@ class NuspecTest {
         );
     }
 
+    @Test
+    void readsMinClientVersion() {
+        MatcherAssert.assertThat(
+            new Nuspec.Xml(new TestResource("types-format.nuspec").asBytes()).minClientVersion()
+                .get(),
+            new IsEqual<>("2.12")
+        );
+    }
+
+    @Test
+    void returnsEmptyWhenMinClientVersionIsAbsent() {
+        MatcherAssert.assertThat(
+            new Nuspec.Xml("<package><metadata><id>Any</id></metadata></package>".getBytes())
+                .minClientVersion().isPresent(),
+            new IsEqual<>(false)
+        );
+    }
+
 }

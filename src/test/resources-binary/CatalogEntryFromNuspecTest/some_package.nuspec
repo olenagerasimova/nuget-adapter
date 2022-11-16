@@ -5,6 +5,13 @@
         <version>0.1.23-Beta</version>
         <description>Some nuget package</description>
         <authors>First, Second, Third</authors>
+        <licenseUrl>Apache 2.0</licenseUrl>
+        <iconUrl>https://icon.example.com</iconUrl>
+        <projectUrl>https://project.example.com</projectUrl>
+        <title>A title</title>
+        <summary>A summary</summary>
+        <requireLicenseAcceptance>true</requireLicenseAcceptance>
+        <tags>one two</tags>
         <dependencies>
             <group>
                 <dependency id="RouteMagic" version="1.1.0" />
