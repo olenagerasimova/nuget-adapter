@@ -1,7 +1,7 @@
 {
   "@id": "null",
-  "id": "somepackage",
-  "version": "0.1.23",
+  "id": "SomePackage",
+  "version": "0.1.23-Beta",
   "description": "Some nuget package",
   "authors": [
     "First",
