@@ -147,8 +147,9 @@ public abstract class IndexJson {
             final Optional<JsonArray> array = itemsJsonArray(
                 Json.createReader(this.input).readObject()
             );
+            List<JsonObject> items = Collections.emptyList();
             if (array.isPresent()) {
-                final List<JsonObject> items = array.get().stream().map(JsonValue::asJsonObject)
+                items = array.get().stream().map(JsonValue::asJsonObject)
                     .filter(
                         item -> {
                             final JsonObject entry = item.getJsonObject(IndexJson.CATALOG_ENTRY);
@@ -158,17 +159,19 @@ public abstract class IndexJson {
                         }
                     ).sorted(Comparator.comparing(val -> new Semver(version(val))))
                         .collect(Collectors.toList());
-                if (!items.isEmpty()) {
-                    res.add(IndexJson.LOWER, version(items.get(0)));
-                    res.add(IndexJson.UPPER, version(items.get(items.size() - 1)));
-                    addIdAndCount(res, IndexJson.NULL, items.size());
-                    final JsonArrayBuilder builder = Json.createArrayBuilder();
-                    items.forEach(builder::add);
-                    res.add(IndexJson.ITEMS, builder);
-                }
             }
-            return Json.createObjectBuilder().add(IndexJson.COUNT, 1)
-                .add(IndexJson.ITEMS, Json.createArrayBuilder().add(res)).build();
+            if (!items.isEmpty()) {
+                final JsonObjectBuilder jitems = Json.createObjectBuilder();
+                jitems.add(IndexJson.LOWER, version(items.get(0)));
+                jitems.add(IndexJson.UPPER, version(items.get(items.size() - 1)));
+                addIdAndCount(jitems, IndexJson.NULL, items.size());
+                final JsonArrayBuilder builder = Json.createArrayBuilder();
+                items.forEach(builder::add);
+                jitems.add(IndexJson.ITEMS, builder);
+                res.add(IndexJson.COUNT, 1)
+                    .add(IndexJson.ITEMS, Json.createArrayBuilder().add(jitems));
+            }
+            return res.build();
         }
     }
 

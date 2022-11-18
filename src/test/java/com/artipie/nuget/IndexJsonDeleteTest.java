@@ -6,6 +6,8 @@ package com.artipie.nuget;
 
 import com.artipie.asto.test.TestResource;
 import java.nio.charset.StandardCharsets;
+import org.hamcrest.MatcherAssert;
+import org.hamcrest.core.IsEqual;
 import org.json.JSONException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -81,19 +83,12 @@ class IndexJsonDeleteTest {
     }
 
     @Test
-    void returnsEmptyIndexWhenLastItemRemoved() throws JSONException {
-        JSONAssert.assertEquals(
-            String.join(
-                "\n",
-                "{",
-                "  \"count\": 1,",
-                "  \"items\": [ {} ]",
-                "}"
-            ),
+    void returnsEmptyJsonWhenLastItemRemoved() {
+        MatcherAssert.assertThat(
             new IndexJson.Delete(
                 new TestResource("IndexJsonDeleteTest/one_version.json").asInputStream()
-            ).perform("newtonsoft.json", "0.13.1").toString(),
-            true
+            ).perform("newtonsoft.json", "0.13.1").isEmpty(),
+            new IsEqual<>(true)
         );
     }
 
