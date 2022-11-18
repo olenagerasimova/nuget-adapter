@@ -23,8 +23,6 @@ import org.apache.commons.lang3.tuple.Pair;
  * CatalogEntry item from registration page.
  * <a href="https://learn.microsoft.com/en-us/nuget/api/registration-base-url-resource#catalog-entry">Docs</a>.
  * @since 1.5
- * add iconUrl, licenceUrl, minClientVersion, projectUrl, requireLicenseAcceptance, summary, tags
- * title,
  */
 public interface CatalogEntry {
 
