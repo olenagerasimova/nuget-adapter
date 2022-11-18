@@ -29,10 +29,10 @@ class IndexJsonDeleteTest {
     }
 
     @Test
-    void deletesMiddleItem() throws JSONException {
+    void deletesMiddleItemIgnoringIdCase() throws JSONException {
         JSONAssert.assertEquals(
             new IndexJson.Delete(this.resource.asInputStream())
-                .perform("newtonsoft.json", "12.0.3").toString(),
+                .perform("neWtonsOft.json", "12.0.3").toString(),
             new String(
                 new TestResource("IndexJsonDeleteTest/deletesMiddleItem_res.json").asBytes(),
                 StandardCharsets.UTF_8
