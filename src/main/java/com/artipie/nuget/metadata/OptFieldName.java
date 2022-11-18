@@ -6,12 +6,21 @@ package com.artipie.nuget.metadata;
 
 /**
  * Names of the optional fields of nuspes file.
+ * Check <a href="https://learn.microsoft.com/en-us/nuget/reference/nuspec">docs</a> for more info.
  * @since 0.7
  * @checkstyle JavadocVariableCheck (500 lines)
  */
 public enum OptFieldName {
 
     TITLE("title"),
+
+    SUMMARY("summary"),
+
+    ICON("icon"),
+
+    ICON_URL("iconUrl"),
+
+    LICENSE("license"),
 
     LICENSE_URL("licenseUrl"),
 
