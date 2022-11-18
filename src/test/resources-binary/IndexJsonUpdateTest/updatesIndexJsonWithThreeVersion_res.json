@@ -142,7 +142,14 @@
                 "targetFramework": ".NETFramework3.5",
                 "dependencies": []
               }
-            ]
+            ],
+            "minClientVersion": "2.12",
+            "licenseUrl": "MIT",
+            "iconUrl": "packageIcon.png",
+            "projectUrl": "https://www.newtonsoft.com/json",
+            "requireLicenseAcceptance": "false",
+            "title": "Json.NET",
+            "tags": "json"
           }
         },
         {

@@ -59,9 +59,16 @@ public interface Nuspec {
     String authors();
 
     /**
+     * Returns `minClientVersion` attribute value. Check
+     * <a href="https://learn.microsoft.com/en-us/nuget/reference/nuspec#minclientversion">docs</a>.
+     * @return Optional with value if present
+     */
+    Optional<String> minClientVersion();
+
+    /**
      * Returns optional field by name.
      * @param name Field name
-     * @return Optional with value is found
+     * @return Optional with value if found
      */
     Optional<String> fieldByName(OptFieldName name);
 
@@ -164,6 +171,12 @@ public interface Nuspec {
                 this.content,
                 "/*[name()='package']/*[name()='metadata']/*[name()='authors']/text()"
             );
+        }
+
+        @Override
+        public Optional<String> minClientVersion() {
+            return this.content.xpath("/*[name()='package']/*[name()='metadata']/@minClientVersion")
+                .stream().findFirst();
         }
 
         @Override

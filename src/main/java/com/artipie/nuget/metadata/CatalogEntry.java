@@ -10,6 +10,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Stream;
 import javax.json.Json;
 import javax.json.JsonArrayBuilder;
 import javax.json.JsonObject;
@@ -70,7 +72,54 @@ public interface CatalogEntry {
                 builder.add(FromNuspec.AUTHORS_FIELD, authors);
             }
             builder.add("dependencyGroups", this.dependencyGroupArray());
+            this.addOptFields(builder);
             return builder.build();
+        }
+
+        /**
+         * Adds optional fields from nuspec into catalog entry. Note, that `licenceUrl` and
+         * `iconUrl` were replaced with `license` and `icon` correspondingly in the newest versions,
+         * but in the catalogEntry fields are called `licenceUrl` and `iconUrl` (with `url` part).
+         * For the other fields, the names in nuspec and catalogEntry match.
+         * About `tags` check
+         * <a href="https://learn.microsoft.com/en-us/nuget/reference/nuspec#tags">docs</a>.
+         * @param builder Json object builder to add fields to
+         */
+        private void addOptFields(final JsonObjectBuilder builder) {
+            this.nuspec.minClientVersion().ifPresent(min -> builder.add("minClientVersion", min));
+            this.addOneOfTwo(builder, OptFieldName.LICENSE, OptFieldName.LICENSE_URL);
+            this.addOneOfTwo(builder, OptFieldName.ICON, OptFieldName.ICON_URL);
+            Stream.of(
+                OptFieldName.PROJECT_URL, OptFieldName.REQUIRE_LICENSE_ACCEPTANCE,
+                OptFieldName.TITLE, OptFieldName.SUMMARY
+            ).forEach(
+                item -> this.nuspec.fieldByName(item).ifPresent(val -> builder.add(item.get(), val))
+            );
+            this.nuspec.fieldByName(OptFieldName.TAGS).ifPresent(
+                val -> {
+                    if (val.contains(" ")) {
+                        final JsonArrayBuilder arr = Json.createArrayBuilder();
+                        Stream.of(val.split(" ")).forEach(arr::add);
+                        builder.add(OptFieldName.TAGS.get(), arr);
+                    } else {
+                        builder.add(OptFieldName.TAGS.get(), val);
+                    }
+                }
+            );
+        }
+
+        /**
+         * Add one of two possible field values into builder. Second field name is used
+         * in the builder.
+         * @param builder Json object builder
+         * @param first First field name
+         * @param second Second field name
+         */
+        private void addOneOfTwo(final JsonObjectBuilder builder, final OptFieldName first,
+            final OptFieldName second) {
+            Stream.of(this.nuspec.fieldByName(first), this.nuspec.fieldByName(second))
+                .filter(Optional::isPresent).map(Optional::get).findFirst()
+                .ifPresent(lc -> builder.add(second.get(), lc));
         }
 
         /**
