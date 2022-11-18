@@ -152,7 +152,8 @@ public abstract class IndexJson {
                     .filter(
                         item -> {
                             final JsonObject entry = item.getJsonObject(IndexJson.CATALOG_ENTRY);
-                            return !(entry.getString("id").equals(new PackageId(name).normalized())
+                            return !(new PackageId(entry.getString("id")).normalized()
+                                .equals(new PackageId(name).normalized())
                                 && new Semver(version(item)).equals(new Semver(version)));
                         }
                     ).sorted(Comparator.comparing(val -> new Semver(version(val))))
