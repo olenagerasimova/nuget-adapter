@@ -21,9 +21,9 @@ import com.artipie.nuget.PackageKeys;
 import com.artipie.nuget.Versions;
 import com.artipie.nuget.http.NuGet;
 import com.artipie.nuget.http.TestAuthentication;
-import com.artipie.nuget.http.TestPermissions;
 import com.artipie.nuget.metadata.Nuspec;
 import com.artipie.nuget.metadata.Version;
+import com.artipie.security.policy.PolicyByUsername;
 import io.reactivex.Flowable;
 import java.io.ByteArrayInputStream;
 import java.net.URL;
@@ -64,8 +64,9 @@ class NuGetPackageMetadataTest {
         this.nuget = new NuGet(
             new URL("http://localhost:4321/repo"),
             new AstoRepository(this.storage),
-            new TestPermissions.Read(TestAuthentication.USERNAME),
-            new TestAuthentication()
+            new PolicyByUsername(TestAuthentication.USERNAME),
+            new TestAuthentication(),
+            "test"
         );
     }
 
@@ -154,7 +155,9 @@ class NuGetPackageMetadataTest {
                 Headers.EMPTY,
                 Flowable.empty()
             ),
-            new ResponseMatcher(RsStatus.UNAUTHORIZED, new Header("WWW-Authenticate", "Basic"))
+            new ResponseMatcher(
+                RsStatus.UNAUTHORIZED, new Header("WWW-Authenticate", "Basic realm=\"artipie\"")
+            )
         );
     }
 

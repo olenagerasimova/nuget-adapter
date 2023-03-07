@@ -16,7 +16,7 @@ import com.artipie.http.rs.RsStatus;
 import com.artipie.nuget.AstoRepository;
 import com.artipie.nuget.http.NuGet;
 import com.artipie.nuget.http.TestAuthentication;
-import com.artipie.nuget.http.TestPermissions;
+import com.artipie.security.policy.PolicyByUsername;
 import com.google.common.io.Resources;
 import io.reactivex.Flowable;
 import java.io.ByteArrayOutputStream;
@@ -49,8 +49,9 @@ class NuGetPackagePublishTest {
         this.nuget = new NuGet(
             new URL("http://localhost"),
             new AstoRepository(new InMemoryStorage()),
-            new TestPermissions.Write(TestAuthentication.USERNAME),
-            new TestAuthentication()
+            new PolicyByUsername(TestAuthentication.USERNAME),
+            new TestAuthentication(),
+            "test"
         );
     }
 
@@ -102,7 +103,9 @@ class NuGetPackagePublishTest {
                 Headers.EMPTY,
                 Flowable.fromArray(ByteBuffer.wrap("data".getBytes()))
             ),
-            new ResponseMatcher(RsStatus.UNAUTHORIZED, new Header("WWW-Authenticate", "Basic"))
+            new ResponseMatcher(
+                RsStatus.UNAUTHORIZED, new Header("WWW-Authenticate", "Basic realm=\"artipie\"")
+            )
         );
     }
 

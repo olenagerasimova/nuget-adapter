@@ -20,7 +20,7 @@ import com.artipie.http.rs.RsStatus;
 import com.artipie.nuget.AstoRepository;
 import com.artipie.nuget.http.NuGet;
 import com.artipie.nuget.http.TestAuthentication;
-import com.artipie.nuget.http.TestPermissions;
+import com.artipie.security.policy.PolicyByUsername;
 import io.reactivex.Flowable;
 import java.net.URL;
 import java.util.Arrays;
@@ -56,8 +56,9 @@ class NuGetPackageContentTest {
         this.nuget = new NuGet(
             new URL("http://localhost"),
             new AstoRepository(this.storage),
-            new TestPermissions.Read(TestAuthentication.USERNAME),
-            new TestAuthentication()
+            new PolicyByUsername(TestAuthentication.USERNAME),
+            new TestAuthentication(),
+            "test"
         );
     }
 
@@ -169,7 +170,9 @@ class NuGetPackageContentTest {
                 Headers.EMPTY,
                 Flowable.empty()
             ),
-            new ResponseMatcher(RsStatus.UNAUTHORIZED, new Header("WWW-Authenticate", "Basic"))
+            new ResponseMatcher(
+                RsStatus.UNAUTHORIZED, new Header("WWW-Authenticate", "Basic realm=\"artipie\"")
+            )
         );
     }
 }
