@@ -64,6 +64,33 @@ authors, packages types and any other `.nuspec` metadata fields value.
 Class `Version` can be used to normalise the version, it also implements `Comparable<Version>` 
 interface and can be used to sort the package by versions.
 
+To add the package into `index.json` [registration page](https://learn.microsoft.com/en-us/nuget/api/registration-base-url-resource#registration-page-object)
+use `IndexJson.Update` class:
+
+```java
+// you can add the package to existing index.json
+final IndexJson.Update index = new IndexJson.Update(Files.newInputStream(Paths.get("my_index.json")));
+
+// or if index.json does not exists, use empty constructor
+final IndexJson.Update index = new IndexJson.Update();
+
+// then call `perform()` method providing the package to add
+final JsonObject res = upd.perform(new Nupkg(Files.newInputStream(Paths.get("my_example.nupkg"))));
+// resulting JsonObject represents index.json with added package
+```
+
+To remove package from `index.json` [registration page](https://learn.microsoft.com/en-us/nuget/api/registration-base-url-resource#registration-page-object)
+use `IndexJson.Delete` class:
+
+```java
+// create `IndexJson.Delete` instance providing index.json to remove the package from
+final IndexJson.Delete index = new IndexJson.Delete(Files.newInputStream(Paths.get("my_index.json")));
+
+//then call `perform()` method package id and version which will be deleted
+final JsonObject res = upd.perform("package-to-delete-id", "package-to-delete-version");
+// resulting JsonObject contains index.json with removed package
+```
+
 Read the [Javadoc](http://www.javadoc.io/doc/com.artipie/nuget-adapter)
 for more technical details.
 

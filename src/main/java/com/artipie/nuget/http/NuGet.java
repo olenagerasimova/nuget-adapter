@@ -1,5 +1,5 @@
 /*
- * The MIT License (MIT) Copyright (c) 2020-2022 artipie.com
+ * The MIT License (MIT) Copyright (c) 2020-2023 artipie.com
  * https://github.com/nuget-adapter/artipie/LICENSE.txt
  */
 package com.artipie.nuget.http;
@@ -7,10 +7,8 @@ package com.artipie.nuget.http;
 import com.artipie.http.Headers;
 import com.artipie.http.Response;
 import com.artipie.http.Slice;
-import com.artipie.http.auth.Action;
 import com.artipie.http.auth.Authentication;
-import com.artipie.http.auth.Permission;
-import com.artipie.http.auth.Permissions;
+import com.artipie.http.auth.OperationControl;
 import com.artipie.http.rq.RequestLineFrom;
 import com.artipie.http.rq.RqMethod;
 import com.artipie.http.rs.RsStatus;
@@ -20,6 +18,9 @@ import com.artipie.nuget.http.content.PackageContent;
 import com.artipie.nuget.http.index.ServiceIndex;
 import com.artipie.nuget.http.metadata.PackageMetadata;
 import com.artipie.nuget.http.publish.PackagePublish;
+import com.artipie.security.perms.Action;
+import com.artipie.security.perms.AdapterBasicPermission;
+import com.artipie.security.policy.Policy;
 import java.net.URL;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
@@ -50,14 +51,19 @@ public final class NuGet implements Slice {
     private final Repository repository;
 
     /**
-     * Access permissions.
+     * Access policy.
      */
-    private final Permissions perms;
+    private final Policy<?> policy;
 
     /**
      * User identities.
      */
     private final Authentication users;
+
+    /**
+     * Repository name.
+     */
+    private final String name;
 
     /**
      * Ctor.
@@ -66,7 +72,7 @@ public final class NuGet implements Slice {
      * @param repository Repository.
      */
     public NuGet(final URL url, final Repository repository) {
-        this(url, repository, Permissions.FREE, Authentication.ANONYMOUS);
+        this(url, repository, Policy.FREE, Authentication.ANONYMOUS, "*");
     }
 
     /**
@@ -74,19 +80,22 @@ public final class NuGet implements Slice {
      *
      * @param url Base URL.
      * @param repository Storage for packages.
-     * @param perms Access permissions.
+     * @param policy Access policy.
      * @param users User identities.
+     * @param name Repository name
      */
     public NuGet(
         final URL url,
         final Repository repository,
-        final Permissions perms,
-        final Authentication users
+        final Policy<?> policy,
+        final Authentication users,
+        final String name
     ) {
         this.url = url;
         this.repository = repository;
-        this.perms = perms;
+        this.policy = policy;
         this.users = users;
+        this.name = name;
     }
 
     @Override
@@ -145,7 +154,7 @@ public final class NuGet implements Slice {
     private Route auth(final Route route, final Action action) {
         return new BasicAuthRoute(
             route,
-            new Permission.ByName(this.perms, action),
+            new OperationControl(this.policy, new AdapterBasicPermission(this.name, action)),
             this.users
         );
     }
