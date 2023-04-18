@@ -68,7 +68,7 @@ SOFTWARE.
     <dependency>
       <groupId>com.artipie</groupId>
       <artifactId>asto-core</artifactId>
-      <version>v1.15.4</version>
+      <version>v1.15.5</version>
     </dependency>
     <dependency>
       <groupId>javax.json</groupId>
@@ -83,7 +83,7 @@ SOFTWARE.
     <dependency>
       <groupId>com.artipie</groupId>
       <artifactId>http</artifactId>
-      <version>v1.2.3</version>
+      <version>v1.2.7</version>
       <exclusions>
         <exclusion>
           <groupId>org.apache.httpcomponents</groupId>
@@ -102,9 +102,9 @@ SOFTWARE.
       <version>2.13.2</version>
     </dependency>
     <dependency>
-      <groupId>com.vdurmont</groupId>
-      <artifactId>semver4j</artifactId>
-      <version>3.1.0</version>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-artifact</artifactId>
+      <version>3.9.1</version>
     </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>

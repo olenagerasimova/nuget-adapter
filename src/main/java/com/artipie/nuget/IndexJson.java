@@ -7,7 +7,6 @@ package com.artipie.nuget;
 import com.artipie.nuget.metadata.CatalogEntry;
 import com.artipie.nuget.metadata.Nuspec;
 import com.artipie.nuget.metadata.PackageId;
-import com.vdurmont.semver4j.Semver;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -21,6 +20,7 @@ import javax.json.JsonArrayBuilder;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 import javax.json.JsonValue;
+import org.apache.maven.artifact.versioning.ComparableVersion;
 
 /**
  * Index json operations. Index json is metadata file for various version of NuGet package, it's
@@ -155,9 +155,10 @@ public abstract class IndexJson {
                             final JsonObject entry = item.getJsonObject(IndexJson.CATALOG_ENTRY);
                             return !(new PackageId(entry.getString("id")).normalized()
                                 .equals(new PackageId(name).normalized())
-                                && new Semver(version(item)).equals(new Semver(version)));
+                                && new ComparableVersion(version(item))
+                                .equals(new ComparableVersion(version)));
                         }
-                    ).sorted(Comparator.comparing(val -> new Semver(version(val))))
+                    ).sorted(Comparator.comparing(val -> new ComparableVersion(version(val))))
                         .collect(Collectors.toList());
             }
             if (!items.isEmpty()) {
@@ -269,7 +270,7 @@ public abstract class IndexJson {
                 arr.stream().map(JsonValue::asJsonObject)
                     .filter(val -> !version.equals(version(val))).forEach(list::add);
                 list.add(newest);
-                list.sort(Comparator.comparing(val -> new Semver(version(val))));
+                list.sort(Comparator.comparing(val -> new ComparableVersion(version(val))));
             }
             return list;
         }
