@@ -11,6 +11,8 @@ import com.artipie.http.misc.RandomFreePort;
 import com.artipie.http.slice.LoggingSlice;
 import com.artipie.nuget.http.NuGet;
 import com.artipie.nuget.http.TestAuthentication;
+import com.artipie.scheduling.ArtifactEvent;
+import com.artipie.scheduling.EventQueue;
 import com.artipie.security.policy.Policy;
 import com.artipie.vertx.VertxSliceServer;
 import com.jcabi.log.Logger;
@@ -56,8 +58,14 @@ class NugetITCase {
      */
     private GenericContainer<?> cntn;
 
+    /**
+     * Events queue.
+     */
+    private EventQueue<ArtifactEvent> events;
+
     @BeforeEach
     void setUp() throws Exception {
+        this.events = new EventQueue<>();
         final int port = new RandomFreePort().get();
         final String base = String.format("http://host.testcontainers.internal:%s", port);
         this.server = new VertxSliceServer(
@@ -67,7 +75,7 @@ class NugetITCase {
                     new AstoRepository(new InMemoryStorage()),
                     Policy.FREE,
                     new TestAuthentication(),
-                    "test"
+                    "test", this.events
                 )
             ),
             port
@@ -103,6 +111,7 @@ class NugetITCase {
             this.pushPackage(),
             new StringContains(false, "Your package was pushed.")
         );
+        MatcherAssert.assertThat("Events queue has one event", this.events.size() == 1);
     }
 
     @Test

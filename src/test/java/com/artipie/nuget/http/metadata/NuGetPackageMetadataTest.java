@@ -23,6 +23,7 @@ import com.artipie.nuget.http.NuGet;
 import com.artipie.nuget.http.TestAuthentication;
 import com.artipie.nuget.metadata.Nuspec;
 import com.artipie.nuget.metadata.Version;
+import com.artipie.scheduling.EventQueue;
 import com.artipie.security.policy.PolicyByUsername;
 import io.reactivex.Flowable;
 import java.io.ByteArrayInputStream;
@@ -66,7 +67,8 @@ class NuGetPackageMetadataTest {
             new AstoRepository(this.storage),
             new PolicyByUsername(TestAuthentication.USERNAME),
             new TestAuthentication(),
-            "test"
+            "test",
+            new EventQueue<>()
         );
     }
 

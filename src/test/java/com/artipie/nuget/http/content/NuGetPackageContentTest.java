@@ -20,6 +20,7 @@ import com.artipie.http.rs.RsStatus;
 import com.artipie.nuget.AstoRepository;
 import com.artipie.nuget.http.NuGet;
 import com.artipie.nuget.http.TestAuthentication;
+import com.artipie.scheduling.EventQueue;
 import com.artipie.security.policy.PolicyByUsername;
 import io.reactivex.Flowable;
 import java.net.URL;
@@ -58,7 +59,8 @@ class NuGetPackageContentTest {
             new AstoRepository(this.storage),
             new PolicyByUsername(TestAuthentication.USERNAME),
             new TestAuthentication(),
-            "test"
+            "test",
+            new EventQueue<>()
         );
     }
 
