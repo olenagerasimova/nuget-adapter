@@ -7,6 +7,7 @@ package com.artipie.nuget;
 
 import com.artipie.asto.Content;
 import com.artipie.asto.Key;
+import com.artipie.asto.Meta;
 import com.artipie.asto.Storage;
 import com.artipie.asto.streams.ContentAsStream;
 import com.artipie.nuget.metadata.Nuspec;
@@ -54,7 +55,7 @@ public final class AstoRepository implements Repository {
     }
 
     @Override
-    public CompletionStage<Void> add(final Content content) {
+    public CompletionStage<PackageInfo> add(final Content content) {
         final Key key = new Key.From(UUID.randomUUID().toString());
         return this.storage.save(key, content).thenCompose(
             saved -> this.storage.value(key)
@@ -90,6 +91,13 @@ public final class AstoRepository implements Repository {
                                             vers -> vers.save(
                                                 target,
                                                 pkey.versionsKey()
+                                            )
+                                        ).thenCompose(
+                                            nothing -> this.storage.metadata(id.nuspecKey())
+                                                .thenApply(meta -> meta.read(Meta.OP_SIZE).get())
+                                        ).thenApply(
+                                            size -> new PackageInfo(
+                                                nuspec.id(), nuspec.version(), size
                                             )
                                         )
                                 );

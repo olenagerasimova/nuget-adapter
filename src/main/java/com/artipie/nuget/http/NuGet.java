@@ -18,6 +18,8 @@ import com.artipie.nuget.http.content.PackageContent;
 import com.artipie.nuget.http.index.ServiceIndex;
 import com.artipie.nuget.http.metadata.PackageMetadata;
 import com.artipie.nuget.http.publish.PackagePublish;
+import com.artipie.scheduling.ArtifactEvent;
+import com.artipie.scheduling.EventQueue;
 import com.artipie.security.perms.Action;
 import com.artipie.security.perms.AdapterBasicPermission;
 import com.artipie.security.policy.Policy;
@@ -66,13 +68,18 @@ public final class NuGet implements Slice {
     private final String name;
 
     /**
+     * Artifact events.
+     */
+    private final EventQueue<ArtifactEvent> events;
+
+    /**
      * Ctor.
      *
      * @param url Base URL.
      * @param repository Repository.
      */
     public NuGet(final URL url, final Repository repository) {
-        this(url, repository, Policy.FREE, Authentication.ANONYMOUS, "*");
+        this(url, repository, Policy.FREE, Authentication.ANONYMOUS, "*", new EventQueue<>());
     }
 
     /**
@@ -83,19 +90,22 @@ public final class NuGet implements Slice {
      * @param policy Access policy.
      * @param users User identities.
      * @param name Repository name
+     * @param events Events queue
      */
     public NuGet(
         final URL url,
         final Repository repository,
         final Policy<?> policy,
         final Authentication users,
-        final String name
+        final String name,
+        final EventQueue<ArtifactEvent> events
     ) {
         this.url = url;
         this.repository = repository;
         this.policy = policy;
         this.users = users;
         this.name = name;
+        this.events = events;
     }
 
     @Override
@@ -126,7 +136,7 @@ public final class NuGet implements Slice {
      * @return Resource found by path.
      */
     private Resource resource(final String path) {
-        final PackagePublish publish = new PackagePublish(this.repository);
+        final PackagePublish publish = new PackagePublish(this.repository, this.events, this.name);
         final PackageContent content = new PackageContent(this.url, this.repository);
         final PackageMetadata metadata = new PackageMetadata(this.repository, content);
         return new RoutingResource(
