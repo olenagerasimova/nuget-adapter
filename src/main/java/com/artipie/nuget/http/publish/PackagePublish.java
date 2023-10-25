@@ -8,6 +8,7 @@ package com.artipie.nuget.http.publish;
 import com.artipie.http.Headers;
 import com.artipie.http.Response;
 import com.artipie.http.async.AsyncResponse;
+import com.artipie.http.headers.Login;
 import com.artipie.http.rs.RsStatus;
 import com.artipie.http.rs.RsWithStatus;
 import com.artipie.nuget.InvalidPackageException;
@@ -15,6 +16,8 @@ import com.artipie.nuget.PackageVersionAlreadyExistsException;
 import com.artipie.nuget.Repository;
 import com.artipie.nuget.http.Resource;
 import com.artipie.nuget.http.Route;
+import com.artipie.scheduling.ArtifactEvent;
+import com.artipie.scheduling.EventQueue;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
 import org.reactivestreams.Publisher;
@@ -28,17 +31,37 @@ import org.reactivestreams.Publisher;
 public final class PackagePublish implements Route {
 
     /**
+     * Repository type constant.
+     */
+    private static final String REPO_TYPE = "nuget";
+
+    /**
      * Repository for adding package.
      */
     private final Repository repository;
 
     /**
+     * Repository name.
+     */
+    private final String name;
+
+    /**
+     * Artifact events.
+     */
+    private final EventQueue<ArtifactEvent> events;
+
+    /**
      * Ctor.
      *
      * @param repository Repository for adding package.
+     * @param events Repository events queue
+     * @param name Repository name
      */
-    public PackagePublish(final Repository repository) {
+    public PackagePublish(final Repository repository, final EventQueue<ArtifactEvent> events,
+        final String name) {
         this.repository = repository;
+        this.events = events;
+        this.name = name;
     }
 
     @Override
@@ -48,7 +71,7 @@ public final class PackagePublish implements Route {
 
     @Override
     public Resource resource(final String path) {
-        return new NewPackage(this.repository);
+        return new NewPackage(this.repository, this.events, this.name);
     }
 
     /**
@@ -65,12 +88,27 @@ public final class PackagePublish implements Route {
         private final Repository repository;
 
         /**
+         * Repository name.
+         */
+        private final String name;
+
+        /**
+         * Artifact events.
+         */
+        private final EventQueue<ArtifactEvent> events;
+
+        /**
          * Ctor.
          *
          * @param repository Repository for adding package.
+         * @param events Repository events
+         * @param name Repository name
          */
-        public NewPackage(final Repository repository) {
+        public NewPackage(final Repository repository, final EventQueue<ArtifactEvent> events,
+            final String name) {
             this.repository = repository;
+            this.events = events;
+            this.name = name;
         }
 
         @Override
@@ -86,13 +124,24 @@ public final class PackagePublish implements Route {
             return new AsyncResponse(
                 CompletableFuture.supplyAsync(
                     () -> new Multipart(headers, body).first()
-                ).thenCompose(
-                    content -> this.repository.add(content).thenApply(
-                        nothing -> RsStatus.CREATED
-                    ).exceptionally(
-                        throwable -> toStatus(throwable.getCause())
-                    ).thenApply(RsWithStatus::new)
-                )
+                ).thenCompose(this.repository::add).handle(
+                    (info, throwable) -> {
+                        final RsStatus res;
+                        if (throwable == null) {
+                            this.events.put(
+                                new ArtifactEvent(
+                                    PackagePublish.REPO_TYPE, this.name,
+                                    new Login(headers).getValue(), info.packageName(),
+                                    info.packageVersion(), info.zipSize()
+                                )
+                            );
+                            res = RsStatus.CREATED;
+                        } else {
+                            res = toStatus(throwable.getCause());
+                        }
+                        return res;
+                    }
+                ).thenApply(RsWithStatus::new)
             );
         }
 

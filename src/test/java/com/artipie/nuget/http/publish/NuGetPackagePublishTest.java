@@ -16,6 +16,8 @@ import com.artipie.http.rs.RsStatus;
 import com.artipie.nuget.AstoRepository;
 import com.artipie.nuget.http.NuGet;
 import com.artipie.nuget.http.TestAuthentication;
+import com.artipie.scheduling.ArtifactEvent;
+import com.artipie.scheduling.EventQueue;
 import com.artipie.security.policy.PolicyByUsername;
 import com.google.common.io.Resources;
 import io.reactivex.Flowable;
@@ -44,14 +46,21 @@ class NuGetPackagePublishTest {
      */
     private NuGet nuget;
 
+    /**
+     * Events queue.
+     */
+    private EventQueue<ArtifactEvent> events;
+
     @BeforeEach
     void init() throws Exception {
+        this.events = new EventQueue<>();
         this.nuget = new NuGet(
             new URL("http://localhost"),
             new AstoRepository(new InMemoryStorage()),
             new PolicyByUsername(TestAuthentication.USERNAME),
             new TestAuthentication(),
-            "test"
+            "test",
+            this.events
         );
     }
 
@@ -62,6 +71,7 @@ class NuGetPackagePublishTest {
             response,
             new RsHasStatus(RsStatus.CREATED)
         );
+        MatcherAssert.assertThat("Events queue has one event", this.events.size() == 1);
     }
 
     @Test
@@ -71,6 +81,7 @@ class NuGetPackagePublishTest {
             this.putPackage("not a zip".getBytes()),
             new RsHasStatus(RsStatus.BAD_REQUEST)
         );
+        MatcherAssert.assertThat("Events queue is empty", this.events.size() == 0);
     }
 
     @Test
@@ -83,6 +94,7 @@ class NuGetPackagePublishTest {
             this.putPackage(nupkg()),
             new RsHasStatus(RsStatus.CONFLICT)
         );
+        MatcherAssert.assertThat("Events queue is contains one item", this.events.size() == 1);
     }
 
     @Test
@@ -93,6 +105,7 @@ class NuGetPackagePublishTest {
             Flowable.empty()
         );
         MatcherAssert.assertThat(response, new RsHasStatus(RsStatus.METHOD_NOT_ALLOWED));
+        MatcherAssert.assertThat("Events queue is empty", this.events.size() == 0);
     }
 
     @Test
@@ -107,6 +120,7 @@ class NuGetPackagePublishTest {
                 RsStatus.UNAUTHORIZED, new Header("WWW-Authenticate", "Basic realm=\"artipie\"")
             )
         );
+        MatcherAssert.assertThat("Events queue is empty", this.events.size() == 0);
     }
 
     private Response putPackage(final byte[] pack) throws Exception {
